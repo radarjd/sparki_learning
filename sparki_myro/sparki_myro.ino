@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - January 4, 2016 */
+   last modified - January 22, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -279,6 +279,7 @@ int getSerialInt() {
 
 // gets bytes from the serial port
 // the byte stream should be terminated by TERMINATOR
+// buf will be overwritten entirely
 // way too much work went into getting this function right - it probably could be more efficient
 // returns the number of bytes read
 int getSerialBytes(char* buf, int size) {
@@ -725,11 +726,6 @@ void getName() {
   int buf_size = EEPROM_NAME_MAX_CHARS;
   char buf[buf_size];
 
-  // zero out the buffer
-  for( int i = 0; i < buf_size; i++ ) {
-    buf[i] = '\0';
-  }
-  
   int count = loadName( buf, buf_size );
   
   sendSerial( buf );
@@ -812,21 +808,22 @@ void LCDprint() {
 
 #ifdef USE_EEPROM
 // loadName(char*, int)
-// load the robot's name into a buffer
+// load the robot's name into a buffer (buffer will be overwritten)
 // returns the number of characters read
 // note that the name must be set at least once to get usable data
 int loadName(char* buf, int size) {
   int count = 0;
+
+  // zero out the buffer
+  for( int i = 0; i < size; i++ ) {
+    buf[i] = '\0';
+  }
+
   char nextByte = EEPROM.read(EEPROM_NAME_START);
   
   while( (count < size) && (nextByte != TERMINATOR) && (count < EEPROM_NAME_MAX_CHARS) ) {
     buf[count++] = nextByte;
     nextByte = EEPROM.read(EEPROM_NAME_START + count);
-  }
-  
-  if(count == 0) {
-    strcpy(buf, "Sparki");
-    count = 6;
   }
   
   return count;
