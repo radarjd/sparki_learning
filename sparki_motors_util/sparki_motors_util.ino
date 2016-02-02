@@ -6,7 +6,7 @@
 /* includes a minimal implementation of the Sparki Myro library */
 
 /* initial creation - January 24, 2015 
-   last modified - January 24, 2016 */
+   last modified - February 2, 2016 */
 
 #include <Sparki.h>
 
@@ -401,30 +401,30 @@ void setup() {
   sparki.println((char*)SPARKI_MYRO_VERSION);
   sparki.updateLCD();
 
-  sparki.println("Connecting to Bluetooth");
+//  sparki.println("Connecting to Bluetooth");
   sparki.updateLCD();
   serial.begin(9600);
 
-  sparki.println("Robot initialization successful");
+//  sparki.println("Robot initialization successful");
   sparki.updateLCD();
   
-  printDebug("Using motors to move forward for 1 second", DEBUG_INFO, 1);
-  delay(2000);
+//  printDebug("Using motors to move forward for 1 second", DEBUG_INFO, 1);
+//  delay(2000);
   motors(100, 100, 1.0);
 
-  printDebug("Using motors to move backward for 1 second", DEBUG_INFO, 1);
-  delay(2000);
+//  printDebug("Using motors to move backward for 1 second", DEBUG_INFO, 1);
+//  delay(2000);
   motors(-100, -100, 1.0);
  
-  printDebug("Using motors to turn right for 1 second", DEBUG_INFO, 1);
-  delay(2000);
+//  printDebug("Using motors to turn right for 1 second", DEBUG_INFO, 1);
+//  delay(2000);
   motors(100, -100, 1.0);
 
-  printDebug("Using motors to turn left for 1 second", DEBUG_INFO, 1);
-  delay(2000);
+//  printDebug("Using motors to turn left for 1 second", DEBUG_INFO, 1);
+//  delay(2000);
   motors(-100, 100, 1.0);
  
-  printDebug("Hope it worked! Now try giving commands over Bluetooth", DEBUG_INFO, 1);
+  printDebug("Now try giving commands over Bluetooth", DEBUG_INFO, 1);
 } // end setup()
 
 
