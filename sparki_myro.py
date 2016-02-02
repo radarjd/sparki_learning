@@ -9,7 +9,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: January 4, 2016
+# Last Modified: January 28, 2016
 # written targeting Python 3.4, but likely works with other versions >=3
 
 import datetime
@@ -30,7 +30,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.0.0"     # this may differ from the version on Sparki itself
+SPARKI_MYRO_VERSION = "1.0.1"     # this may differ from the version on Sparki itself
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -154,6 +154,7 @@ SERVO_RIGHT = 80
 #   work with different versions of the Sparki library
 # The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, reserved, reserved, reserved
 SPARKI_CAPABILTIES = { "z": [ True, True, False, False, False, False, False ],
+                       "DEBUG": [ False, False, True, False, False, False, False ],
                        "0.2 No Mag / No Accel": [ True, True, False, False, False, False, False ],
                        "0.8.3 Mag / Accel On": [ False, False, False, False, False, False, False ],
                        "0.9.6": [ False, False, False, True, False, False, False ],
@@ -173,6 +174,8 @@ centimeters_moved = 0           # this stores the sum of centimeters moved forwa
 degrees_turned = 0              # this stores the sum of degrees turned using the turnBy() function; positive is clockwise
                                 # and negative is counterclockwise
                                 # I don't have a use for this right now either...
+
+init_time = -1                  # time when the robot was initialized
 
 robot_library_version = None    # version of the code on the robot
 
@@ -247,15 +250,17 @@ def disconnectSerial():
         returns:
         nothing
     """
+    global init_time
     global serial_conn
     global serial_is_connected
     global serial_port
 
     if serial_is_connected:
+        serial_is_connected = False
         serial_conn.close()
         serial_conn = None
         serial_port = None
-        serial_is_connected = False
+        init_time = -1
 
 
 def getSerialBytes():
@@ -348,7 +353,7 @@ def getSerialInt():
     result = getSerialBytes()
 
     if str(result) == "ovf" or len(result) == 0:    # check for overflow
-        result = -1   # -1.0 is not necessarily a great "error response", except that values from the Sparki should be positive
+        result = -1   # -1 is not necessarily a great "error response", except that values from the Sparki should be positive
     else:
         result = int(result)
 
@@ -391,9 +396,9 @@ def printDebug(message, priority = DEBUG_WARN, output = sys.stderr):
 
 def music_sunrise():
     # plays "Sunrise" from Also sprach Zarathustra by Strauss (aka the 2001 theme)
-    beep(523.25, 1000)
-    beep(783.99, 1000)
-    beep(1046.50, 1000)
+    beep(1000, 523)
+    beep(1000, 784)
+    beep(1000, 1047)
         
     
 def sendSerial(command, args = None):
@@ -690,7 +695,7 @@ def gamepad():
         returns:
         nothing
     """
-    printDebug("Beginning gamepad control", DEBUG_DEBUG)
+    printDebug("Beginning gamepad control", DEBUG_INFO)
     
     sendSerial( COMMAND_CODES["GAMEPAD"] )
     print("Sparki will not respond to other commands until remote control ends")
@@ -922,7 +927,7 @@ def getName():
         string - name of robot
     """
     if not USE_EEPROM:
-        printDebug("getName cannot be implemented on Sparki", DEBUG_CRITICAL)
+        printDebug("getName not be implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
     printDebug("In getName", DEBUG_INFO)
@@ -962,6 +967,23 @@ def getObstacle(position = "all"):
     result = ping()
 
     return result
+
+    
+def getUptime():
+    """ Gets the amount of time since the robot was initialized - returns a -1 if the robot has not been initialized
+    
+        arguments:
+        none
+        
+        returns:
+        float - number of seconds since init() was called, or -1 if the robot is not connected
+    """
+    global init_time
+    
+    if init_time < 0:
+        return -1
+    else:
+        return currentTime() - init_time
 
 
 def gripperClose(distance = MAX_GRIPPER_DISTANCE):
@@ -1038,6 +1060,7 @@ def init(com_port):
         returns:
         nothing
     """
+    global init_time
     global robot_library_version
     global serial_conn
     global serial_port
@@ -1071,6 +1094,8 @@ def init(com_port):
     robot_library_version = getSerialString()   # Sparki sends us its library version in response
     
     if robot_library_version:
+        init_time = currentTime()
+    
         printDebug("Sparki connection successful", DEBUG_ALWAYS)
         printDebug("  Python library version is " + SPARKI_MYRO_VERSION, DEBUG_ALWAYS)
         printDebug("  Robot library version is " + robot_library_version, DEBUG_ALWAYS)
@@ -1084,6 +1109,7 @@ def init(com_port):
     else:
         printDebug("Sparki communication failed", DEBUG_ALWAYS)
         serial_is_connected = False
+        init_time = -1
 
 
 def initialize(com_port):
@@ -1657,7 +1683,7 @@ def setName(newName):
         string - name of robot
     """
     if not USE_EEPROM:
-        printDebug("setName cannot be implemented on Sparki", DEBUG_CRITICAL)
+        printDebug("setName not be implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
     printDebug("In setName, newName is " + str(newName), DEBUG_INFO)
