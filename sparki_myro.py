@@ -7,12 +7,18 @@
 # Sparki is a mark of Arcbotics, LLC; no claim is made to the name Sparki and all rights in the name Sparki
 # remain property of their respective owners
 #
+# Your Sparki will need the sparki_myro.ino program running on it, and to have paired your Sparki with your computer
+# over Bluetooth.
+#
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: January 28, 2016
-# written targeting Python 3.4, but likely works with other versions >=3
+# Last Modified: February 27, 2016
+# written targeting Python 3.4, but likely works with other versions
+
+from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
 
 import datetime
+import math
 import os
 import sys
 import serial                   # developed with pyserial 2.7
@@ -30,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.0.1"     # this may differ from the version on Sparki itself
+SPARKI_MYRO_VERSION = "1.1.0"     # this may differ from the version on Sparki itself
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -50,13 +56,13 @@ USE_EEPROM = True
 
 
 # ***** MISCELLANEOUS VARIABLES ***** #
-SECS_PER_CM = .5        # number of seconds it takes sparki to move 1 cm
-SECS_PER_DEGREE = .05   # number of seconds it takes sparki to rotate 1 degree
+SECS_PER_CM = .42       # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
+SECS_PER_DEGREE = .035  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
 MAX_TRANSMISSION = 30   # maximum message length is 30 - size of the buffer in getSerialBytes() on the Sparki
 
 
 # ***** SERIAL TIMEOUT ***** #
-CONN_TIMEOUT = 5            # in seconds
+CONN_TIMEOUT = 5        # in seconds
 
 
 # ***** COMMAND CHARACTER CODES ***** #
@@ -169,11 +175,12 @@ command_queue = []              # this stores every command sent to Sparki; I do
 
 centimeters_moved = 0           # this stores the sum of centimeters moved forward or backward using the moveForwardcm()
                                 # or moveBackwardcm() functions; forward movement is positive, and backwards movement is negative
+                                # used implicitly by moveTo() and moveBy()
                                 # I don't have a use for this right now either...
                                 
 degrees_turned = 0              # this stores the sum of degrees turned using the turnBy() function; positive is clockwise
                                 # and negative is counterclockwise
-                                # I don't have a use for this right now either...
+                                # can be set by setAngle() or retrieved with getAngle()
 
 init_time = -1                  # time when the robot was initialized
 
@@ -183,6 +190,12 @@ sparki_myro_py_debug = DEBUG_WARN    # this is the default debug level
 serial_port = None              # save the serial port on which we're connected
 serial_conn = None              # hold the pyserial object
 serial_is_connected = False     # set to true once connection is done
+
+xpos = 0                        # for the moveBy(), moveTo(), getPosition() and setPosition() commands (the "grid commands"), these
+ypos = 0                        # variables keep track of the current x,y position of the robot; each integer coordinate is 1cm, and
+                                # the robot starts at 0,0
+                                # note that this _only_ update with the grid commands (e.g. motors(1,1,1) will not change the xpos & ypos)
+                                # making these of limited value
 ########### END OF GLOBAL VARIABLES ###########
 
 ########### INTERNAL FUNCTIONS ###########
@@ -261,6 +274,27 @@ def disconnectSerial():
         serial_conn = None
         serial_port = None
         init_time = -1
+
+
+def flrange(start, stop, step):
+    """ Iterator like range() (or xrange() prior to python 3) which allows float steps
+    
+        arguments:
+        start - the starting number for the range
+        stop - the number which the range cannot go over; the last value generated will be stop - step
+        step - the stepping value for the range
+        
+        yield:
+        float - the next value in the range
+    """
+    if step > 0:
+        while start < stop:
+            yield start    # yield is a special keyword which is something like return
+            start += step
+    elif step < 0:
+        while start > stop:
+            yield start    # yield is a special keyword which is something like return
+            start += step
 
 
 def getSerialBytes():
@@ -524,6 +558,21 @@ def waitForSync():
             raise serial.SerialTimeoutException
 
         wait(loop_wait)
+
+
+def wrapAngle(angle):
+    """ Ensures angle is between -360 and 360
+    
+        arguments:
+        angle - float angle that needs to be between -360 and 360
+        
+        returns:
+        float - angle between -360 and 360
+    """
+    if angle >= 0:
+        return angle % 360
+    else:
+        return angle % -360
 ########### END OF INTERNAL FUNCTIONS ###########
 
 
@@ -539,6 +588,8 @@ def ask(message, mytitle = "Question"):
         returns:
         string response from the user
     """
+    printDebug("In ask", DEBUG_INFO)
+
     if USE_GUI:
         try:
             result = tk.simpledialog.askstring(mytitle, message)
@@ -561,6 +612,8 @@ def askQuestion(message, options, mytitle = "Question"):
         returns:
         string response from the user
     """
+    printDebug("In askQuestion", DEBUG_INFO)
+
     if USE_GUI:
         try:
             result = tk.simpledialog(title = mytitle, text = message, buttons = options)
@@ -656,6 +709,29 @@ def currentTime():
     """
     
     return time.time()
+
+    
+def drawFunction(function, xvals, scale = 1):
+    """ Draws the function specified on the coordinate plane using moveTo()
+
+        The arguments are the function which calculates y as a value of x, a list of x values to calculate from,
+        and an optional scale factor
+
+        For example, a valid call to this would be drawFunction( lambda x: x**2, flrange(-5, 5.1, .1) ) which
+        would draw the function y = x**2 for values of x from -2 up to 2 going .1 of a value at a time
+    
+        arguments:
+        function - should be a lambda function; the function should calculate the value of y given x
+        xvals - an iterator which holds the values of x
+        scale - a multiplier for x and y to make them larger on the plane
+        
+        returns:
+        nothing
+    """
+    printDebug("In drawFunction, xvals are " + str(xvals) + ", and scale is " + str(scale), DEBUG_INFO)
+    
+    for x in xvals:
+        moveTo( x * scale, function(x) * scale )
 
 
 def forward(speed, time = -1):
@@ -760,6 +836,23 @@ def getAccelZ():
     """
 
     return getAccel()[2]
+
+
+def getAngle():
+    """ Returns the number of degrees that the robot has turned using turnBy since it was initialized
+        OR since setAngle() was called
+
+        arguments:
+        none
+
+        returns:
+        float - number of degrees that the robot has turned
+    """
+    global degrees_turned
+    
+    printDebug("In getAngle", DEBUG_INFO)
+
+    return degrees_turned
 
 
 def getBattery():
@@ -968,6 +1061,25 @@ def getObstacle(position = "all"):
 
     return result
 
+
+def getPosition():
+    """ Gets the current x,y position of Sparki - used with the grid commands (moveTo() & moveBy())
+        Note that only use of the grid commands actually changes this value -- the x & y coordinates
+        do not change for other move commends
+        The robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
+
+        arguments:
+        none
+
+        returns:
+        list containing xpos,ypos (xpos is [0], ypos is [1])
+    """
+    global xpos, ypos
+
+    printDebug("In getPosition", DEBUG_INFO)
+    
+    return [xpos, ypos]
+
     
 def getUptime():
     """ Gets the amount of time since the robot was initialized - returns a -1 if the robot has not been initialized
@@ -979,6 +1091,8 @@ def getUptime():
         float - number of seconds since init() was called, or -1 if the robot is not connected
     """
     global init_time
+
+    printDebug("In getUptime", DEBUG_INFO)
     
     if init_time < 0:
         return -1
@@ -1046,6 +1160,7 @@ def humanTime():
         returns:
         string - time of call
     """
+    printDebug("In humanTime", DEBUG_INFO)
     
     return time.ctime()
 
@@ -1242,7 +1357,6 @@ def LCDprintLn(message, update = True):
 
     if update:
         LCDupdate()
-    
 
 
 def LCDupdate():
@@ -1257,6 +1371,44 @@ def LCDupdate():
     printDebug("In LCDupdate", DEBUG_INFO)
 
     sendSerial( COMMAND_CODES["LCD_UPDATE"] )
+    
+    
+def motors(left_speed, right_speed, time = -1):
+    """ Moves wheels at left_speed and right_speed for time; time is optional
+    
+        arguments:
+        left_speed - the left wheel speed; a float between -1.0 and 1.0
+        right_speed - the right wheel speed; a float between -1.0 and 1.0
+        time - the number of seconds to move; negative numbers will cause the robot to move without stopping
+        
+        returns:
+        nothing
+    """    
+    printDebug("In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(time), DEBUG_INFO)
+
+    if left_speed == 0 and right_speed == 0:
+        printDebug("In motors, both speeds == 0, doing nothing", DEBUG_WARN)
+        return
+        
+    if left_speed < -1.0 or left_speed > 1.0:
+        printDebug("In motors, left_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
+        
+    if right_speed < -1.0 or right_speed > 1.0:
+        printDebug("In motors, right_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
+    
+    # adjust speeds to Sparki's requirements
+    left_speed = constrain( left_speed, -1.0, 1.0 )
+    right_speed = constrain( right_speed, -1.0, 1.0 )
+        
+    left_speed = int( left_speed * 100 )      # sparki expects an int between 1 and 100
+    right_speed = int( right_speed * 100 )      # sparki expects an int between 1 and 100
+    time = float( time )
+    args = [ left_speed, right_speed, time ]
+    
+    sendSerial( COMMAND_CODES["MOTORS"], args )
+
+    if time >= 0:
+        wait(time)
 
 
 def move(translate_speed, rotate_speed):    # NOT WELL TESTED
@@ -1353,44 +1505,83 @@ def moveForwardcm(centimeters):
 
     sendSerial( COMMAND_CODES["FORWARD_CM"], args )
     wait( centimeters * SECS_PER_CM )
-    
-    
-def motors(left_speed, right_speed, time = -1):
-    """ Moves wheels at left_speed and right_speed for time; time is optional
-    
+
+
+def moveBy(dX, dY, turnBack = False): 
+    """ Moves to the relative x,y coordinate specified (i.e. treats the current position as 0,0 and does a moveTo, but
+        maintains the x,y coordinates correctly; for example, if the robot is currently at 3,4, and you give it moveBy(1,2)
+        it will move to 4,5)
+		
+        When turned on, the robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
+
+        The robot's heading is changed from "facing the positive coordinates of the Y axis" every time turnBy() is called
+        If you want the robot to be "reset" to "facing the positive coordinates of the Y axis", call setAngle() prior to this
+
+        Only movement commands made via moveTo() or moveBy() will update the X & Y coordinates
+        Robot returns to original heading at the end of the function if turnBack is True
+
         arguments:
-        left_speed - the left wheel speed; a float between -1.0 and 1.0
-        right_speed - the right wheel speed; a float between -1.0 and 1.0
-        time - the number of seconds to move; negative numbers will cause the robot to move without stopping
-        
+        dX - float relative X position of the robot
+        dY - float relative Y position of the robot
+        turnBack - boolean - True if the robot should turn back to the direction it faced prior to the command
+
         returns:
-        nothing
-    """    
-    printDebug("In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(time), DEBUG_INFO)
+        none
+    """
+    global xpos, ypos
 
-    if left_speed == 0 and right_speed == 0:
-        printDebug("In motors, both speeds == 0, doing nothing", DEBUG_WARN)
+    printDebug("In moveBy, moving to relative position " + str(dX) + ", " + str(dY), DEBUG_INFO)    
+
+    if (dX == 0) and (dY == 0):
+        printDebug("In moveBy, already at location " + str(dX) + ", " + str(dY), DEBUG_WARN)
         return
-        
-    if left_speed < -1.0 or left_speed > 1.0:
-        printDebug("In motors, left_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
-        
-    if right_speed < -1.0 or right_speed > 1.0:
-        printDebug("In motors, right_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
-    
-    # adjust speeds to Sparki's requirements
-    left_speed = constrain( left_speed, -1.0, 1.0 )
-    right_speed = constrain( right_speed, -1.0, 1.0 )
-        
-    left_speed = int( left_speed * 100 )      # sparki expects an int between 1 and 100
-    right_speed = int( right_speed * 100 )      # sparki expects an int between 1 and 100
-    time = float( time )
-    args = [ left_speed, right_speed, time ]
-    
-    sendSerial( COMMAND_CODES["MOTORS"], args )
 
-    if time >= 0:
-        wait(time)
+    # determine the length (in cm) we need to move to the new position
+    hypotenuse = math.hypot(dX, dY)
+
+    # our angle is set relative to the Y axis
+    # determine the angle to the new position (law of cosines, dY / hypotenuse)
+    angle = math.degrees( math.acos( dY / hypotenuse ) )    # acos gives the value in radians
+
+    if dX < 0:
+        angle = -angle
+
+    # turn & move
+    oldHeading = getAngle()
+    turnTo(angle)
+    moveForwardcm(hypotenuse)
+
+    xpos, ypos = xpos + dX, ypos + dY    # set the new position
+
+    if turnBack:
+        # return to the original heading
+        turnTo(oldHeading)
+
+
+def moveTo(newX, newY, turnBack = False): 
+    """ Moves to the x,y coordinate specified 
+		
+        When turned on, the robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
+
+        The robot's heading is changed from "facing the positive coordinates of the Y axis" every time turnBy() is called
+        If you want the robot to be "reset" to "facing the positive coordinates of the Y axis", call setAngle()
+        
+        Only movement commands made via moveTo() or moveBy() will update the X & Y coordinates
+        Robot returns to original heading at the end of the function if turnBack is True
+
+        arguments:
+        newX - float new X position of the robot
+        newY - float new Y position of the robot
+        turnBack - boolean - True if the robot should turn back to the direction it faced prior to the command
+
+        returns:
+        none
+    """
+    global xpos, ypos
+
+    printDebug("In moveTo, moving to " + str(newX) + ", " + str(newY), DEBUG_INFO)
+
+    moveBy(newX - xpos, newY - ypos, turnBack)
 
 
 def pickAFile():
@@ -1424,11 +1615,27 @@ def ping():
         returns:
         int - approximate distance in centimeters from nearest object
     """
-    printDebug("Ping", DEBUG_INFO)
+    printDebug("in ping", DEBUG_INFO)
 
     sendSerial( COMMAND_CODES["PING"] )
     result = getSerialInt()
     return result
+
+
+def resetPosition():
+    """ Sets the number of degrees that the robot has turned to 0 and sets angle to 0 (used by the grid commands moveBy() & moveTo())
+        Like reseting the Sparki to the position when it was initialized
+
+        arguments:
+        none
+        
+        returns:
+        nothing
+    """    
+    printDebug("In resetPosition", DEBUG_INFO)
+
+    setAngle(0)
+    setPosition(0,0)
 
 
 def rotate(speed):
@@ -1612,6 +1819,26 @@ def servo(position):
     wait(.5)
 
 
+def setAngle(newAngle = 0):
+    """ Sets the number of degrees that the robot has turned (used by the grid commands moveBy() & moveTo())
+
+        If you want the robot to be "reset" to "facing the positive coordinates of the Y axis", call setAngle()
+
+        arguments:
+        newAngle - float new number of degrees the robot has turned (defaults to 0); cannot be greater than 360
+
+        returns:
+        nothing
+    """
+    global degrees_turned
+    
+    printDebug("In setAngle, newAngle is " + str(newAngle), DEBUG_INFO)
+        
+    newAngle = float( wrapAngle( newAngle ) )  # ensure we're getting a float between -360 and 360
+    
+    degrees_turned = newAngle
+
+
 def setDebug(level):
     """ Sets the debug (in Python) to level
 
@@ -1627,6 +1854,28 @@ def setDebug(level):
     level = int( constrain( level, DEBUG_ALWAYS, DEBUG_DEBUG ) )
     
     sparki_myro_py_debug = level
+
+
+def setPosition(newX, newY):
+    """ Sets the current x,y position of Sparki - used with the grid commands (moveTo() & moveBy())
+        Note that this does not move the robot, but merely tells it that it is at another location
+        Also note that only use of the grid commands actually changes this value -- the x & y coordinates
+        do not change for other move commends
+        The robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
+
+        arguments:
+        newX - float new X position of the robot
+        newY - float new Y position of the robot
+
+        returns:
+        none
+    """
+    global xpos, ypos   # also can be set in moveBy()
+
+    printDebug("In setPosition, new position will be " + str(newX) + ", " + str(newY), DEBUG_INFO)
+    
+    xpos = float(newX)
+    ypos = float(newY)
 
 
 def setSparkiDebug(level):
@@ -1764,7 +2013,8 @@ def turnBy(degrees):
     """ Turn Sparki by degrees; positive numbers turn clockwise & negative numbers turn counter clockwise
 
         arguments:
-        degrees - float number of degrees to turn; positive is clockwise and negative is counter clockwise
+        degrees - float number of degrees to turn; positive is clockwise and negative is counter clockwise; must
+                  be greater than -360 and less than 360
 
         returns:
         nothing
@@ -1773,13 +2023,21 @@ def turnBy(degrees):
     
     printDebug("In turnBy, degrees is " + str(degrees), DEBUG_INFO)
 
-    degrees = float( degrees )
+    degrees = float( constrain( degrees, -360.0, 360.0 ) )
+
+    if abs(degrees) >= 360:     # >= -- the greater than is in case there's a rounding error
+        degrees = 0
 
     if degrees == 0:
         printDebug("In turnBy, degrees is 0... doing nothing", DEBUG_WARN)
         return
 
     degrees_turned += degrees
+
+    # keep degrees_turned greater than -360 and less than 360
+    degrees_turned = wrapAngle( degrees_turned )
+    
+    printDebug("In turnBy, degrees_turned is now " + str(degrees_turned), DEBUG_DEBUG)
     
     args = [ degrees ]
 
@@ -1788,30 +2046,26 @@ def turnBy(degrees):
 
 
 def turnTo(newHeading):
-    """ Turns Sparki to the compass heading specified
+    """ Turns Sparki to the heading specified, where 0 is the heading the Sparki was at when initialized
+        Note that the heading only changes from turnBy() or turnTo() commands and not turnLeft(), turnRight(), or motors()
+
+        Note that the functionality of this command changed between library versions 1.0.0 and 1.1.0
 
         arguments:
-        newHeading - heading in degrees to turn to; must be greater than or equal to 0 and less than 360
+        newHeading - float heading in degrees to turn to
         
         returns:
         nothing
     """
     printDebug("In turnTo, newHeading is " + str(newHeading), DEBUG_INFO)
 
-    newHeading = float( newHeading )
-
     # ensure newHeading is less than 360 and greater than or equal to 0
-    newHeading = constrain( newHeading, 0.0, 360.0 )
-    if newHeading == 360:
-        newHeading = 0
+    newHeading = wrapAngle( newHeading )
+    
+    currentHeading = getAngle()
 
-    currentHeading = compass()
-
-    if currentHeading == newHeading or (abs(currentHeading - newHeading) < 1):  # if the newHeading is the currentHeading or within 1 of the newHeading, don't turn
-        printDebug("In turnTo, already at heading " + str(newHeading), DEBUG_WARN)
-    else:
-        printDebug("In turnTo turning from " + str(currentHeading) + " to " + str(newHeading), DEBUG_DEBUG)
-        turnBy(currentHeading - newHeading)
+    printDebug("In turnTo turning from " + str(currentHeading) + " to " + str(newHeading), DEBUG_DEBUG)       
+    turnBy(newHeading - currentHeading)
 
 
 def turnLeft(speed, time = -1):
@@ -1896,9 +2150,11 @@ def yesorno(message):
         returns:
         string response from the user
     """
+    printDebug("In yesorno", DEBUG_INFO)
+
     if USE_GUI:
         try:
-            result = tk.messagebox.askquestion("Yes or No?", message)
+            result = askQuestion(message, ["yes", "no"], "Yes or No?")
         except:
             result = None
     
@@ -1917,10 +2173,6 @@ def arcTo(args = None):
     printDebug("arcTo not implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
 
-def getAngle():
-    printDebug("getAngle not implemented on Sparki", DEBUG_CRITICAL)
-    raise NotImplementedError
-
 def getIR(args = None):
     printDebug("getIR cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
@@ -1928,33 +2180,13 @@ def getIR(args = None):
 def getMicrophone():
     printDebug("getMicrophone cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
-
-def getPosition():
-    printDebug("getPosition not implemented on Sparki", DEBUG_CRITICAL)
-    raise NotImplementedError
     
 def getStall():
     printDebug("getStall cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
 
-def moveBy(args = None):
-    printDebug("moveBy not implemented on Sparki", DEBUG_CRITICAL)
-    raise NotImplementedError
-
-def moveTo(args = None):
-    printDebug("moveTo not implemented on Sparki", DEBUG_CRITICAL)
-    raise NotImplementedError
-
 def takePicture(args = None):
     printDebug("takePicture cannot be implemented on Sparki (because there's no camera)", DEBUG_CRITICAL)
-    raise NotImplementedError
-
-def setAngle(args = None):
-    printDebug("getPosition not implemented on Sparki", DEBUG_CRITICAL)
-    raise NotImplementedError
-
-def setPosition(args = None):
-    printDebug("setPosition not implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
     
 def speak(message, async = False):
