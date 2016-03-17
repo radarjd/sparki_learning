@@ -5,17 +5,17 @@ Conceptually, the library which is loaded on the robot is simply an interpreter 
 The Python part of the library implements much of the IPRE (Institute for Personal Robotics in Education <http://www.roboteducation.org/>) Myro API (API reference at <http://calicoproject.org/Calico_Myro>). This API was originally chosen because the original author of this project taught (or teaches, depending on when you read this) a class making use of that program. A free textbook exists to teach that program may be found at <http://calicoproject.org/Learning_Computing_With_Robots_Using_Calico_Python>. The Python library here does not implement all of that library -- in particular, anything having to do with the camera cannot be implemented on Sparki because Sparki does not have that hardware. 
 
 To make use of this library with your Sparki:
-1) Download the latest version of Sparkiduino from Arcbotics: <http://arcbotics.com/products/sparki/start/>
-2) Make a copy (through git clone or otherwise) on your computer of the sparki_myro.ino file -- it has to be in its own directory called sparki_myro
-3) Load the sparki_myro.ino file in Sparkiduino and upload it to your Sparki
-4) You're done! At least, you're done with the part that concerns your Sparki. The library on its own won't do much unless you've got a way to talk to it.
+1. Download the latest version of Sparkiduino from Arcbotics: <http://arcbotics.com/products/sparki/start/>
+2. Make a copy (through git clone or otherwise) on your computer of the sparki_myro.ino file -- it has to be in its own directory called sparki_myro
+3. Load the sparki_myro.ino file in Sparkiduino and upload it to your Sparki
+4. You're done! At least, you're done with the part that concerns your Sparki. The library on its own won't do much unless you've got a way to talk to it.
 
 To talk to the library using Python:
-1) Download a version of Python 3 -- this was developed on Python 3.4, but the author believes any version of Python 3 will work <https://www.python.org/downloads/>
-2) Download the pyserial library (<https://github.com/pyserial/pyserial> or Windows installer at <https://pypi.python.org/pypi/pyserial>) -- this was developed on pyserial 2.7
-3) Pair your Sparki with Bluetooth (<http://arcbotics.com/lessons/using-usb-serial-and-bluetooth-communications/>)
-4) Make a copy (through git clone or otherwise) on your computer of the sparki_myro.py file -- it should be in your python library path OR you can include it in the same directory as the programs which make use of it
-5) Use the sparki_myro.py library to control your Sparki!
+1. Download a version of Python 3 -- this was developed on Python 3.4, but the author believes any version of Python 3 will work <https://www.python.org/downloads/>. The author has also used Python 2.7, though it is not as thoroughly tested.
+2. Download the pyserial library (<https://github.com/pyserial/pyserial> or Windows installer at <https://pypi.python.org/pypi/pyserial>) -- this was developed on pyserial 2.7, but has been used successfully with the most recent version as of this date (pyserial 3.1)
+3. Pair your Sparki with Bluetooth (<http://arcbotics.com/lessons/using-usb-serial-and-bluetooth-communications/>)
+4. Make a copy (through git clone or otherwise) on your computer of the sparki_myro.py file -- it should be in your python library path OR you can include it in the same directory as the programs which make use of it
+5. Use the sparki_myro.py library to control your Sparki!
 
 All of the software in this project is provided under the Apache version 2 license available at <http://www.apache.org/licenses/LICENSE-2.0> and is WITHOUT WARRANTY, including implied warranties. I have also included a couple of sample / test programs for you to look at in python to get a feel for how to use the library. 
 
