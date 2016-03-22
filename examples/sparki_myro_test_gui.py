@@ -1,6 +1,7 @@
 # Sparki_Myro testing
+from __future__ import print_function
+
 from sparki_myro import *
-import sparki_myro
 
 result = ask("What is your name? ")
 print("The user said " + result)
@@ -14,9 +15,9 @@ print("The user said " + result)
 result = pickAFile()
 print("The user said " + result)
 
-init("COM4")        # change for your COM port (or /dev/)
-senses()
-
-senses_text()
-
-joystick()
+##init("COM4")        # change for your COM port (or /dev/)
+##senses()
+##
+##senses_text()
+##
+##joystick()

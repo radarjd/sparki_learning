@@ -1,6 +1,7 @@
 # Sparki_Myro drawFunction testing
+from __future__ import print_function
+
 from sparki_myro import *
-import sparki_myro
 
 import math
 

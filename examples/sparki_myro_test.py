@@ -1,11 +1,12 @@
 # Sparki_Myro testing
-from sparki_myro import *
-import sparki_myro
+from __future__ import print_function
 
-# for version 1.0.0 of the library
+from sparki_myro import *
+
+# for version 1.1.1 of the library
 
 print("initializing")
-init("COM4")            # change to your COM port (or /dev/)
+init("COM3")            # change to your COM port (or /dev/)
 
 print("Sparki's name is " + getName())
 

@@ -1,6 +1,7 @@
 # Sparki_Myro grid testing
+from __future__ import print_function
+
 from sparki_myro import *
-import sparki_myro
 
 init("COM3")        # change for your COM port (or /dev/)
 

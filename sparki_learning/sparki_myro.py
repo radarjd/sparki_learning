@@ -7,13 +7,13 @@
 # Sparki is a mark of Arcbotics, LLC; no claim is made to the name Sparki and all rights in the name Sparki
 # remain property of their respective owners
 #
-# Your Sparki will need the sparki_myro.ino program running on it, and to have paired your Sparki with your computer
+# Your Sparki will need the sparki_myro.ino program running on it, and you need to have paired your Sparki with your computer
 # over Bluetooth.
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: February 27, 2016
-# written targeting Python 3.4, but likely works with other versions
+# Last Modified: March 22, 2016
+# written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
 
@@ -21,7 +21,7 @@ import datetime
 import math
 import os
 import sys
-import serial                   # developed with pyserial 2.7
+import serial                   # developed with pyserial 2.7, but also tested with 3.1
 import time
 
 # try to import tkinter -- but make a note if we can't
@@ -36,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.1.0"     # this may differ from the version on Sparki itself
+SPARKI_MYRO_VERSION = "1.1.1"     # this may differ from the version on Sparki itself
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -49,6 +49,7 @@ SYNC = chr(22)   # this character is sent by Sparki after every command complete
 
 # ***** COMPILE OPTIONS ***** #
 # some commands may be turned off in the version of sparki myro running on Sparki
+# these will be reset during the initialization process depending on the version (see the SPARKI_CAPABILITIES variable)
 NO_MAG = False
 NO_ACCEL = False
 SPARKI_DEBUGS = False
@@ -194,7 +195,7 @@ serial_is_connected = False     # set to true once connection is done
 xpos = 0                        # for the moveBy(), moveTo(), getPosition() and setPosition() commands (the "grid commands"), these
 ypos = 0                        # variables keep track of the current x,y position of the robot; each integer coordinate is 1cm, and
                                 # the robot starts at 0,0
-                                # note that this _only_ update with the grid commands (e.g. motors(1,1,1) will not change the xpos & ypos)
+                                # note that these _only_ update with the grid commands (e.g. motors(1,1,1) will not change the xpos & ypos)
                                 # making these of limited value
 ########### END OF GLOBAL VARIABLES ###########
 
@@ -277,24 +278,29 @@ def disconnectSerial():
 
 
 def flrange(start, stop, step):
-    """ Iterator like range() (or xrange() prior to python 3) which allows float steps
+    """ Generator like range() (or xrange() prior to python 3) which allows float steps
     
         arguments:
         start - the starting number for the range
         stop - the number which the range cannot go over; the last value generated will be stop - step
-        step - the stepping value for the range
+        step - the stepping value for the range; if step is negative, the values yielded will count down from
+               start to stop, so start must be > than stop
         
         yield:
         float - the next value in the range
     """
     if step > 0:
         while start < stop:
-            yield start    # yield is a special keyword which is something like return
+            yield start    # yield is a special keyword which is something like return, but behaves very differently
+                           # more info can be found at https://docs.python.org/3.4/reference/expressions.html#yieldexpr
             start += step
     elif step < 0:
         while start > stop:
-            yield start    # yield is a special keyword which is something like return
+            yield start
             start += step
+    else:
+        printDebug("In flrange, invalid value for step", DEBUG_ERROR)
+        raise StopIteration
 
 
 def getSerialBytes():
@@ -657,8 +663,8 @@ def beep(time = 200, freq = 2800):
     """ Plays a tone on the Sparki buzzer at freq for time; both are optional
     
         arguments:
-        time - time in milliseconds to play freq
-        freq - integer frequency of the tone
+        time - time in milliseconds to play freq (default 200ms)
+        freq - integer frequency of the tone (default 2800Hz)
         
         returns:
         nothing
@@ -1051,7 +1057,7 @@ def getObstacle(position = "all"):
     elif position == "right":
         position = SERVO_RIGHT
     elif position == "all":
-        result = [ getObstacle( SERVO_RIGHT ), getObstacle( SERVO_LEFT ), getObstacle( SERVO_CENTER ) ]
+        result = [ getObstacle( SERVO_RIGHT ), getObstacle( SERVO_LEFT ), getObstacle( SERVO_CENTER ) ] # recursion
         return result
 
     position = int( constrain( position, SERVO_LEFT, SERVO_RIGHT ) )
@@ -1220,7 +1226,7 @@ def init(com_port):
             # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, reserved, reserved, reserved
             NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, reserved1, reserved2, reserved3 = SPARKI_CAPABILTIES[robot_library_version]
         except:
-            printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Myro Python library", DEBUG_ALWAYS)                
+            printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Myro Python library", DEBUG_ALWAYS)
     else:
         printDebug("Sparki communication failed", DEBUG_ALWAYS)
         serial_is_connected = False
@@ -1280,7 +1286,9 @@ def joystick():
             control.rowconfigure(i, weight=1)
 
         control.wait_window(control)
-        
+    else:
+        printDebug("No GUI for joystick control", DEBUG_CRITICAL)
+    
 
 def LCDclear(update = True):
     """ Clears the LCD on Sparki
@@ -1615,7 +1623,7 @@ def ping():
         returns:
         int - approximate distance in centimeters from nearest object
     """
-    printDebug("in ping", DEBUG_INFO)
+    printDebug("In ping", DEBUG_INFO)
 
     sendSerial( COMMAND_CODES["PING"] )
     result = getSerialInt()
@@ -1893,7 +1901,7 @@ def setSparkiDebug(level):
     
         sendSerial( COMMAND_CODES["SET_DEBUG_LEVEL"], level )
     else:
-        printDebug("Sparki debugs are not available", DEBUG_ERROR)
+        printDebug("Setting sparki debug level is not available", DEBUG_ERROR)
     
 
 def setLEDBack(brightness):
@@ -2013,7 +2021,7 @@ def turnBy(degrees):
     """ Turn Sparki by degrees; positive numbers turn clockwise & negative numbers turn counter clockwise
 
         arguments:
-        degrees - float number of degrees to turn; positive is clockwise and negative is counter clockwise; must
+        degrees - float number of degrees to turn; positive is clockwise and negative is counter clockwise; should
                   be greater than -360 and less than 360
 
         returns:
@@ -2023,7 +2031,7 @@ def turnBy(degrees):
     
     printDebug("In turnBy, degrees is " + str(degrees), DEBUG_INFO)
 
-    degrees = float( constrain( degrees, -360.0, 360.0 ) )
+    degrees = wrapAngle( degrees )
 
     if abs(degrees) >= 360:     # >= -- the greater than is in case there's a rounding error
         degrees = 0
@@ -2203,7 +2211,6 @@ def main():
     print("Sparki Myro version " + SPARKI_MYRO_VERSION)
     print("This is intended to be used as a library -- your code should call this program by importing the library, e.g.")
     print("from sparki_myro import *")
-    print("import sparki_myro")
     print("Exiting...")
 
 if __name__ == "__main__":
