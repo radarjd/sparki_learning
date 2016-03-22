@@ -13,7 +13,7 @@
 from setuptools import setup, find_packages
 setup(
     name = "sparki_learning",
-    version = "1.1.2",
+    version = "1.1.5",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets
@@ -23,7 +23,7 @@ setup(
     package_data = {
     },
 
-    zip_safe = False,
+#    zip_safe = False,
 
     # metadata for upload to PyPI
     author = "Jeremy Eglen",
@@ -32,7 +32,7 @@ setup(
     license = "Apache License Version 2.0",
     keywords = "sparki learning myro robot",
     url = "https://github.com/radarjd/sparki_learning",   # project home page
-    download_url = "https://github.com/radarjd/sparki_learning/tarball/v1.1.0",
+    download_url = "https://github.com/radarjd/sparki_learning/tarball/v1.1.3",
     classifiers = [
                    'Development Status :: 4 - Beta',
                    'Intended Audience :: Education',

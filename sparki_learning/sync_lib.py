@@ -32,7 +32,7 @@ PORT = 32216
 BUFSIZE = 4096
 START_NOW = -1
 
-def sync_client(server_ip, server_port):
+def _sync_client(server_ip, server_port):
     # Connects to the server
     # Upon connection, the server immediately sends its current time (using the time() function) to the client
     # The client sends back the offset between what time the client's real time clock shows and the server's time
@@ -68,7 +68,7 @@ def sync_client(server_ip, server_port):
     else:
         return (start_time - offset) - time()
         
-def sync_server(start_time = START_NOW, port = PORT):
+def _sync_server(start_time = START_NOW, port = PORT):
     # Listens on a socket for the clients to connect
     # Upon connection, the server immediately sends its current time (using the time() function) to the client
     # The client sends back the offset between what time the client's real time clock shows and the server's time
@@ -131,7 +131,7 @@ def start_sync_client(server_ip = None, server_port = PORT):
     if server_ip == None:
         server_ip = input("What is the server's IP? ")
 
-    wait_time = sync_client(server_ip, server_port)
+    wait_time = _sync_client(server_ip, server_port)
     
     if(wait_time > 0):
         print("waiting " + str(wait_time) + " seconds")
@@ -162,7 +162,7 @@ def start_sync_server(wait_time = 15):
     print("start time is " + str(start_time) + "; wait time is " + str(wait_time) + " seconds")
 
     try:
-        sync_server( start_time + wait_time )
+        _sync_server( start_time + wait_time )
     except:
         print("timeout or socket error")
     
