@@ -7,13 +7,13 @@
 #
 # written by Jeremy Eglen
 # Created: February 24, 2016
-# Last Modified: March 21, 2016
+# Last Modified: March 22, 2016
 # written targeting Python 3.4, but likely works with other versions, and has been lightly tested with Python 2.7
 
 from setuptools import setup, find_packages
 setup(
     name = "sparki_learning",
-    version = "1.1.0",
+    version = "1.1.2",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets
