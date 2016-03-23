@@ -1,5 +1,5 @@
 ======================================================
-Sparki Myro Command Quick Reference v2
+Sparki Learning Command Quick Reference v2
 ======================================================
 
 (this library makes use of Python3 – versions of Python <3 but >=2.6 may work)
@@ -15,9 +15,8 @@ currentTime()
 flrange(start, stop, step)
 	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2. start should be the first value of x you want to calculate, stop should be the last – step value you want to calculate, and step should be the step. The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
 
-from sparki_myro import * 
-import sparki_myro
-	These commands import the sparki_myro module to make all of the Sparki specific commands available. They must appear at the beginning of your Sparki programs. Other modules (also called libraries) exist in python such as string, math, random, sys, os and datetime. 
+from sparki_learning import * 
+	This command imports the sparki_learning module to make all of the Sparki specific commands available. It must appear at the beginning of your Sparki programs. Other modules (also called libraries) exist in python such as string, math, random, sys, os and datetime. 
 
 getName()
 	Returns the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you’ll get a garbage value.
@@ -212,3 +211,14 @@ senses()
 
 servo(POSITION)
 	Turns the servo (sparki’s head) to POSITION. POSITION is a number between -90 and 90, where -90 is directly to the left, 0 is straight ahead, and 90 is directly to the right. 
+	
+	
+Synchronization Commands
+-----------------------------------
+The synchronization commands are provided to allow several computers to do something at the same time. In the case of sparki_learning, they are usually used to allow multiple computers to command their respective robots so that the robots can do things together (at the same time). One computer acts as the server, and all other computers act as the clients. The server is told how much time to wait, and then the server communicates that to any clients that connect to the server. When the time expires, the server and clients all return from the synchronization function. 
+
+start_sync_server(TIME)
+	Starts the sync server to execute the commands following after TIME seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open a port. Defaults to port 32216. 
+	
+start_sync_client(server_ip, server_port)
+	Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server).
