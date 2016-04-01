@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: March 22, 2016
+# Last Modified: March 31, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -36,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.1.1"     # this may differ from the version on Sparki itself
+SPARKI_MYRO_VERSION = "1.1.5"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -50,16 +50,17 @@ SYNC = chr(22)   # this character is sent by Sparki after every command complete
 # ***** COMPILE OPTIONS ***** #
 # some commands may be turned off in the version of sparki myro running on Sparki
 # these will be reset during the initialization process depending on the version (see the SPARKI_CAPABILITIES variable)
-NO_MAG = False
-NO_ACCEL = False
-SPARKI_DEBUGS = False
-USE_EEPROM = True
+NO_MAG = False              # compass(), getMag(), getMagX(), getMagY(), getMagZ()
+NO_ACCEL = False            # getAccel(), getAccelX(), getAccelY(), getAccelZ()
+SPARKI_DEBUGS = False       # setSparkiDebug()
+USE_EEPROM = True           # getName(), setName()
+EXT_LCD_1 = False           # LCDdrawString(), LCDreadPixel()
 
 
 # ***** MISCELLANEOUS VARIABLES ***** #
 SECS_PER_CM = .42       # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
 SECS_PER_DEGREE = .035  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
-MAX_TRANSMISSION = 30   # maximum message length is 30 - size of the buffer in getSerialBytes() on the Sparki
+MAX_TRANSMISSION = 20   # maximum message length is 20 to conserve Sparki's limited RAM
 
 
 # ***** SERIAL TIMEOUT ***** #
@@ -89,21 +90,21 @@ COMMAND_CODES = {
                     ##'LCD_DRAW_LINE':'2',  # requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
                     'LCD_DRAW_PIXEL':'3',     # requires 2 arguments: int x&y; returns nothing
                     ##'LCD_DRAW_RECT':'4',  # requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing 
-                    ##'LCD_DRAW_STRING':'5',    # requires 3 arguments: int x (column), int line_number, and char* string; returns nothing
+                    'LCD_DRAW_STRING':'5',    # requires 3 arguments: int x (column), int line_number, and char* string; returns nothing; EXT_LCD_1 must be True
 
                     'LCD_PRINT':'6',      # requires 1 argument: char* string; returns nothing
                     'LCD_PRINTLN':'7',    # requires 1 argument: char* string; returns nothing
-                    ##'LCD_READ_PIXEL':'8',     # requires 2 arguments: int x&y; returns int color of pixel at that point - removed for compacting
+                    'LCD_READ_PIXEL':'8', # requires 2 arguments: int x&y; returns int color of pixel at that point; EXT_LCD_1 must be True
                     'LCD_UPDATE':'9',     # no arguments; returns nothing
                     'MOTORS':'A',         # requires 3 arguments: int left_speed (1-100), int right_speed (1-100), & float time
                                                             # if time < 0, motors will begin immediately and will not stop; returns nothing
                     'BACKWARD_CM':'B',    # requires 1 argument: float cm to move backward; returns nothing
                     'FORWARD_CM':'C',     # requires 1 argument: float cm to move forward; returns nothing
                     'PING':'D',           # no arguments; returns ping at current servo position
-                    'RECEIVE_IR':'E', 
-                    'SEND_IR':'F', 
+                    'RECEIVE_IR':'E',     # no arguments; returns an int read from the IR sensor
+                    'SEND_IR':'F',        # requires 1 argument: int to send on the IR sender; returns nothing
                     'SERVO':'G',          # requires 1 argument: int servo position; returns nothing
-                    'SET_DEBUG_LEVEL':'H',    # requires 1 argument: int debug level (0-5); returns nothing
+                    'SET_DEBUG_LEVEL':'H',    # requires 1 argument: int debug level (0-5); returns nothing; SPARKI_DEBUGS must be True
                     'SET_RGB_LED':'I',    # requires 3 arguments: int red, int green, int blue; returns nothing
                     'SET_STATUS_LED':'J',     # requires 1 argument: int brightness of LED; returns nothing
                     'STOP':'K',           # no arguments; returns nothing
@@ -159,7 +160,7 @@ SERVO_RIGHT = 80
 # this dictionary stores the capabilities of various versions of the program running on the Sparki itself
 # this is used in init to update the capabilities of the Sparki -- you could use this so that the library can
 #   work with different versions of the Sparki library
-# The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, reserved, reserved, reserved
+# The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
 SPARKI_CAPABILTIES = { "z": [ True, True, False, False, False, False, False ],
                        "DEBUG": [ False, False, True, False, False, False, False ],
                        "0.2 No Mag / No Accel": [ True, True, False, False, False, False, False ],
@@ -167,7 +168,8 @@ SPARKI_CAPABILTIES = { "z": [ True, True, False, False, False, False, False ],
                        "0.9.6": [ False, False, False, True, False, False, False ],
                        "0.9.7": [ False, False, False, True, False, False, False ],   
                        "0.9.8": [ False, False, False, True, False, False, False ],   
-                       "1.0.0": [ False, False, False, True, False, False, False ] }   
+                       "1.0.0": [ False, False, False, True, False, False, False ],   
+                       "1.0.1": [ False, False, False, True, True, False, False ] }   
 
 ########### END OF CONSTANTS ###########
 
@@ -1186,7 +1188,7 @@ def init(com_port):
     global serial_conn
     global serial_port
     global serial_is_connected
-    global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM
+    global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1
 
     printDebug("In init, com_port is " + str(com_port), DEBUG_INFO)
 
@@ -1224,7 +1226,7 @@ def init(com_port):
         # use the version number to try to figure out capabilities
         try:
             # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, reserved, reserved, reserved
-            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, reserved1, reserved2, reserved3 = SPARKI_CAPABILTIES[robot_library_version]
+            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, reserved3 = SPARKI_CAPABILTIES[robot_library_version]
         except:
             printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Myro Python library", DEBUG_ALWAYS)
     else:
@@ -1311,21 +1313,50 @@ def LCDdrawPixel(x, y, update = True):
     """ Draws a pixel on the LCD
 
         arguments:
-        x - int x coordinate for the pixel, must be <= 128
-        y - int y coordinate for the pixel, must be <= 64
+        x - int x coordinate for the pixel, must be <= 127
+        y - int y coordinate for the pixel, must be <= 63
         update - True (default) if you want Sparki to update the display
 
         returns:
         nothing
     """
-    printDebug("In LCDdrawPixel", DEBUG_INFO)
+    printDebug("In LCDdrawPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 128))    # the LCD is 128 x 64
-    y = int(constrain(y, 0, 64))
+    x = int(constrain(x, 0, 127))    # the LCD is 128 x 64
+    y = int(constrain(y, 0, 63))
 
     args = [ x, y ]
 
     sendSerial( COMMAND_CODES["DRAW_PIXEL"], args )
+
+    if update:
+        LCDupdate()
+
+
+def LCDdrawString(x, y, message, update = True):
+    """ Prints message on the LCD on Sparki at the given x,y coordinate
+
+        arguments:
+        x - int x coordinate (the location where the text starts) -- can be from 0 to 121 (inclusive)
+        y - int y coordinate (the line number where the text states) -- can be from 0 to 7 (inclusive)
+        message - string that you want to display
+        update - True (default) if you want Sparki to update the display
+
+        returns:
+        nothing
+    """
+    if not EXT_LCD_1:
+        printDebug("LCDdrawString not be implemented on Sparki", DEBUG_CRITICAL)
+        raise NotImplementedError
+
+    printDebug("In LCDdrawString, x is " + str(x) + ", y is " + str(y) + ", message is " + str(message), DEBUG_INFO)
+
+    x = int(constrain(x, 0, 121))
+    y = int(constrain(y, 0, 7))
+
+    args = [ x, y, message ]
+
+    sendSerial( COMMAND_CODES["LCD_DRAW_STRING"], args )
 
     if update:
         LCDupdate()
@@ -1365,6 +1396,36 @@ def LCDprintLn(message, update = True):
 
     if update:
         LCDupdate()
+
+
+def LCDreadPixel(x, y):
+    """ Returns True if the pixel at the x,y coordinate given is black (colored in)
+    
+        arguments:
+        x - int x coordinate for the pixel, must be <= 127
+        y - int y coordinate for the pixel, must be <= 63
+
+        returns:
+        bool - True if the pixel is black
+    """
+    if not EXT_LCD_1:
+        printDebug("LCDreadPixel not be implemented on Sparki", DEBUG_CRITICAL)
+        raise NotImplementedError
+
+    printDebug("In LCDredPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
+
+    x = int(constrain(x, 0, 127))    # the LCD is 128 x 64
+    y = int(constrain(y, 0, 63))
+
+    args = [ x, y ]
+
+    sendSerial( COMMAND_CODES["LCD_READ_PIXEL"], args )
+    result = getSerialInt()
+
+    if result == 1:
+        return True
+    else:
+        return False
 
 
 def LCDupdate():
@@ -1630,6 +1691,22 @@ def ping():
     return result
 
 
+def receiveIR():
+    """ Returns the reading from the IR sensor on front of the Sparki (presumably sent from another Sparki using sendIR)
+    
+        arguments:
+        none
+        
+        returns:
+        int - reading 
+    """
+    printDebug("In receiveIR", DEBUG_INFO)
+
+    sendSerial( COMMAND_CODES["RECEIVE_IR"] )
+    result = getSerialInt()
+    return result
+
+
 def resetPosition():
     """ Sets the number of degrees that the robot has turned to 0 and sets angle to 0 (used by the grid commands moveBy() & moveTo())
         Like reseting the Sparki to the position when it was initialized
@@ -1650,6 +1727,23 @@ def rotate(speed):
     """ Synonym for turnRight -- use turnRight instead
     """
     turnRight(speed)
+
+
+def sendIR(sendMe):
+    """ Sends an integer via the IR emitter on the front of the Sparki; intended to be received by another Sparki
+        via receiveIR
+
+        arguments:
+        sendMe - int to transmit using the IR emitter 
+
+        returns:
+        nothing
+    """
+    printDebug("In sendIR, sendMe is " + str(sendMe), DEBUG_INFO)
+    sendMe = int(sendMe)
+    args = [ sendMe ]
+
+    sendSerial( COMMAND_CODES["SEND_IR"], args)
 
     
 def senses():
@@ -2022,7 +2116,8 @@ def turnBy(degrees):
 
         arguments:
         degrees - float number of degrees to turn; positive is clockwise and negative is counter clockwise; should
-                  be greater than -360 and less than 360
+                  be greater than -360 and less than 360 (Note that the clockwise direction is different than the
+                  Myro library)
 
         returns:
         nothing
@@ -2210,7 +2305,7 @@ def show(args = None):
 def main():
     print("Sparki Myro version " + SPARKI_MYRO_VERSION)
     print("This is intended to be used as a library -- your code should call this program by importing the library, e.g.")
-    print("from sparki_myro import *")
+    print("from sparki_learning import *")
     print("Exiting...")
 
 if __name__ == "__main__":

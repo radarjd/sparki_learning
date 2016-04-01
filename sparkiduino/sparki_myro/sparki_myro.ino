@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - January 22, 2016 */
+   last modified - April 1, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -19,6 +19,10 @@
  * optimization, always choose clarity, and assume a student learning the language and the hardware will
  * be reviewing and maintaining the code
  */
+
+/* most recent version developed in Sparkiduino 1.6.8.2 -- there do appear to be differences in compiled progam size 
+ * among different versions of Sparkiduino
+*/
 
 // for simplicity of installation, we're keeping the constants and prototypes in the cpp file
 #ifndef Sparki_Myro_h
@@ -39,7 +43,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.0.0";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.0.1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 
 /* ***** MESSAGE TERMINATOR ***** */
 const char TERMINATOR = (char)23;      // this terminates every transmission from python
@@ -82,15 +86,15 @@ const char COMMAND_LCD_CLEAR = '0';     // no arguments; returns nothing
 
 #ifndef COMPACT_2
 const char COMMAND_LCD_DRAW_CIRCLE = '1';   // requires 4 arguments: int x&y, int radius, and int filled (1 is filled); returns nothing
-const char COMMAND_LCD_DRAW_LINE = '2'; // requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
 const char COMMAND_LCD_DRAW_RECT = '4'; // requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing 
-const char COMMAND_LCD_DRAW_STRING = '5';   // requires 3 arguments: int x (column), int line_number, and char* string; returns nothing
-const char COMMAND_LCD_READ_PIXEL = '8';    // requires 2 arguments: int x&y; returns int color of pixel at that point
 #endif // COMPACT_2
 
+const char COMMAND_LCD_DRAW_LINE = '2'; // requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
 const char COMMAND_LCD_DRAW_PIXEL = '3';    // requires 2 arguments: int x&y; returns nothing
+const char COMMAND_LCD_DRAW_STRING = '5';   // requires 3 arguments: int x (column), int line_number, and char* string; returns nothing
 const char COMMAND_LCD_PRINT = '6';     // requires 1 argument: char* string; returns nothing
 const char COMMAND_LCD_PRINTLN = '7';   // requires 1 argument: char* string; returns nothing
+const char COMMAND_LCD_READ_PIXEL = '8';    // requires 2 arguments: int x&y; returns int color of pixel at that point
 const char COMMAND_LCD_UPDATE = '9';    // no arguments; returns nothing
 const char COMMAND_MOTORS = 'A';        // requires 3 arguments: int left_speed (1-100), int right_speed (1-100), & float time
                                         // if time < 0, motors will begin immediately and will not stop; returns nothing
@@ -181,7 +185,9 @@ void printDebug(int* ints, int importance, int size, int newLine = 0);  // print
 #endif // NO_DEBUGS
 
 #ifdef USE_EEPROM
+int loadFromEEPROM(char* buf, int size, int start);  // loads data from EEPROM into buffer
 int loadName(char* buf, int size);  // loads the robot's name into buffer
+void writeToEEPROM(int start);  // writes data to EEPROM at location start
 #endif // USE_EEPROM
 
 void sendSerial(char c);
@@ -219,12 +225,13 @@ void setName();
 
 void initSparki();  // confirms communication with Python
 
-// LCD functions are handled via direct calls except for circle and rect
+// LCD functions are generally handled via direct calls
 #ifndef COMPACT_2
 void LCDdrawCircle(int center_x, int center_y, int radius, int filled);
 void LCDdrawRect(int corner_x, int corner_y, int width, int height, int filled);
 #endif // COMPACT_2
 
+void LCDdrawString();
 void LCDprint();
 void motors(int left_speed, int right_speed, float time);
 void setDebugLevel(int level);
@@ -248,7 +255,7 @@ int debug_level = DEBUG_WARN;
 // gets a char from the serial port
 // blocks until one is available
 char getSerialChar() {
-  int size = 30;
+  int size = 5;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return buf[0];
@@ -260,7 +267,7 @@ char getSerialChar() {
 // we then convert the string to a float and return that
 // there is likely to be some loss of precision
 float getSerialFloat() {
-  int size = 30;
+  int size = 20;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atof( buf );
@@ -271,7 +278,7 @@ float getSerialFloat() {
 // ints are sent to Sparki as char* in order to eliminate conversion issues
 // we then convert the string to an int and return that
 int getSerialInt() {
-  int size = 30;
+  int size = 20;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atoi( buf );
@@ -617,7 +624,7 @@ void gamepad() {
     } // end switch
   } // end while
   
-  sparki.println("Ending remote control");
+  sparki.println("End remote");
   sparki.updateLCD();
 } // end gamepad()
 
@@ -794,10 +801,25 @@ void LCDdrawRect(int corner_x, int corner_y, int width, int height, int filled) 
 } // end LCDdrawRect(int, int, int, int, int)
 #endif // COMPACT_2
 
+
+// LCDdrawString()
+// gets a line number and position, then gets a string from the serial port and prints it
+void LCDdrawString() {
+  int maxChars = 20;
+  char buf[maxChars];
+  int x = getSerialInt();
+  int y = getSerialInt();
+  
+  getSerialBytes( buf, maxChars );
+
+  sparki.drawString( x, y, buf);  
+} // end LCDprint()
+
+
 // LCDprint()
 // gets data from the serial port and prints it
 void LCDprint() {
-  int maxChars = 30;
+  int maxChars = 20;
   char buf[maxChars];
   
   getSerialBytes( buf, maxChars );
@@ -807,11 +829,10 @@ void LCDprint() {
 
 
 #ifdef USE_EEPROM
-// loadName(char*, int)
-// load the robot's name into a buffer (buffer will be overwritten)
+// loadFromEEPROM(char*, int, int)
+// loads data from EEPROM into a buffer (buffer will be overwritten)
 // returns the number of characters read
-// note that the name must be set at least once to get usable data
-int loadName(char* buf, int size) {
+int loadFromEEPROM(char* buf, int size, int start) {
   int count = 0;
 
   // zero out the buffer
@@ -819,15 +840,41 @@ int loadName(char* buf, int size) {
     buf[i] = '\0';
   }
 
-  char nextByte = EEPROM.read(EEPROM_NAME_START);
+  char nextByte = EEPROM.read(start);
   
-  while( (count < size) && (nextByte != TERMINATOR) && (count < EEPROM_NAME_MAX_CHARS) ) {
+  while( (count < size) && (nextByte != TERMINATOR)  ) {
     buf[count++] = nextByte;
-    nextByte = EEPROM.read(EEPROM_NAME_START + count);
+    nextByte = EEPROM.read(start + count);
   }
   
   return count;
+} // loadFromEEPROM(char*, int, int)
+
+
+// loadName(char*, int)
+// load the robot's name into a buffer (buffer will be overwritten)
+// returns the number of characters read
+// note that the name must be set at least once to get usable data
+int loadName(char* buf, int size) {
+  return loadFromEEPROM(buf, size, EEPROM_NAME_START);
 } // loadName(char*, int)
+
+
+// writeToEEPROM(int)
+// writes data from the serial port to EEPROM beginning at start location
+void writeToEEPROM(int start) {
+  int buf_size = EEPROM_NAME_MAX_CHARS;
+  char buf[buf_size];
+  int i = 0;
+  int count = getSerialBytes( buf, buf_size );
+  
+  while(i < count) {
+    EEPROM.write( start + i, buf[i] );
+    i++;
+  }
+  
+  EEPROM.write( start + i, TERMINATOR );
+}
 #endif // USE_EEPROM
 
 
@@ -911,18 +958,7 @@ void setRGBLED(int red, int green, int blue) {
 // void setName()
 // sets the robot's name from the argument on the serial port
 void setName() {
-  int buf_size = EEPROM_NAME_MAX_CHARS;
-  char buf[buf_size];
-  int i;
-  
-  int count = getSerialBytes( buf, buf_size );
-  
-  while(i < count) {
-    EEPROM.write( EEPROM_NAME_START + i, buf[i] );
-    i++;
-  }
-  
-  EEPROM.write( EEPROM_NAME_START + i, TERMINATOR );
+  writeToEEPROM(EEPROM_NAME_START);
 } // end setName()
 #endif // USE_EEPROM
 
@@ -964,7 +1000,7 @@ void turnBy(float deg) {
   printDebug("In turnBy, deg is ", DEBUG_DEBUG);
   printDebug(deg, DEBUG_DEBUG, 1);
 #endif // NO_DEBUGS
-  const float SECS_PER_DEGREE = .05;  // a conservative value
+  const float SECS_PER_DEGREE = .04;  // estimated from observation - may vary based on battery strength and other factors
   
   if (deg < 0) {
     deg = -deg;
@@ -990,13 +1026,15 @@ void setup() {
 //  sparki.println("Prepare for motion");
   sparki.updateLCD();
 
+/*
   sparki.servo(SERVO_RIGHT); 
   delay(500); 
   sparki.servo(SERVO_LEFT);  
   delay(500);
   sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
+*/
 
-  sparki.println("Connecting to Bluetooth");
+//  sparki.println("Connecting to Bluetooth");
   sparki.updateLCD();
   serial.begin(9600);
 
@@ -1016,12 +1054,12 @@ void setup() {
 
 #ifdef USE_EEPROM
   char name[EEPROM_NAME_MAX_CHARS];
-  sparki.print("Hi, my name is ");
+  sparki.print("Hi, I'm ");
   loadName(name, EEPROM_NAME_MAX_CHARS);
   sparki.println(name);
 #endif
 
-  sparki.println("Robot initialization successful");
+  sparki.println("Ready");
   sparki.updateLCD();
 } // end setup()
 
@@ -1098,29 +1136,29 @@ void loop() {
     case COMMAND_LCD_DRAW_CIRCLE:     // int, int, int, int; returns nothing
       LCDdrawCircle( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() );
       break;
-    case COMMAND_LCD_DRAW_LINE:       // int, int, int, int; returns nothing
-      sparki.drawLine( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() );
-      break;
     case COMMAND_LCD_DRAW_RECT:       // int, int, int, int, int; returns nothing
       LCDdrawRect( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() );
-      break;
-    case COMMAND_LCD_DRAW_STRING:     // int, int, char*; returns nothing
-      break;
-    case COMMAND_LCD_READ_PIXEL:      // int, int; returns nothing
-      sendSerial( sparki.readPixel( getSerialInt(), getSerialInt() ) );
       break;
 #endif // COMPACT_2
 
     case COMMAND_LCD_DRAW_PIXEL:      // int, int; returns nothing
       sparki.drawPixel( getSerialInt(), getSerialInt() );
       break;
-
+    case COMMAND_LCD_DRAW_LINE:       // int, int, int, int; returns nothing
+      sparki.drawLine( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() );
+      break;
+    case COMMAND_LCD_DRAW_STRING:     // int, int, char*; returns nothing
+      LCDdrawString();
+      break;
     case COMMAND_LCD_PRINT:           // char*; returns nothing
       LCDprint();
       break;
     case COMMAND_LCD_PRINTLN:         // char*; returns nothing
       LCDprint();
       sparki.println(' ');
+      break;
+    case COMMAND_LCD_READ_PIXEL:      // int, int; returns nothing
+      sendSerial( sparki.readPixel( getSerialInt(), getSerialInt() ) );
       break;
     case COMMAND_LCD_UPDATE:          // no args; returns nothing
       sparki.updateLCD();

@@ -13,7 +13,7 @@ currentTime()
 	Returns the number of seconds which have occurred since midnight on January 1, 1970. Other functions exist to format this into a more manageable number (like humanTime() below), but this can be used (among other uses) to determine how long a part of a program has taken. For example, to time how long a portion of code takes to execute (in clock time), before the function you could write startingTime = currentTime() and then after the function you could find out the running time with runTime = currentTime() - startingTime
 
 flrange(start, stop, step)
-	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2. start should be the first value of x you want to calculate, stop should be the last – step value you want to calculate, and step should be the step. The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
+	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2. start should be the first value of x you want to calculate, stop should be the last – step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
 
 from sparki_learning import * 
 	This command imports the sparki_learning module to make all of the Sparki specific commands available. It must appear at the beginning of your Sparki programs. Other modules (also called libraries) exist in python such as string, math, random, sys, os and datetime. 
@@ -33,8 +33,8 @@ init(“[COM?]”)
 randint(LOWER, UPPER)
 	Returns an integer between (and including) the LOWER and UPPER bounds. To use this function, you must import it from the random library (e.g. from random import *). 
 
-range(MIN, MAX, STEP)
-	Returns a list of integers from MIN to MAX by STEP. MIN is the number at which the range begins. The range ends one value before MAX. The range counts by STEP. For example, if STEP is 2, range counts by twos. MIN and STEP are optional. MIN defaults to 0 and STEP defaults to 1. (This command is built in to Python.)
+range(start, stop, step)
+	Returns a list of integers from start to stop by step. start is the number at which the range begins. The range ends one value before stop. The range counts by step. For example, if step is 2, range counts by twos. start and step are optional. start defaults to 0 and step defaults to 1. (This command is built in to Python.)
 
 setName(NAME)
 	Sets the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you’ll get a garbage value.
@@ -46,6 +46,8 @@ wait(TIME)
 Common Variables
 -----------------------------------
 Several commands in the myro module use variables for SPEED and TIME, including motors(), forward(), backward(), turnLeft(), and turnRight(). wait() makes use only of TIME. MESSAGE is used for output and some input functions. FILE is used for reading data from files and saving data to them.
+
+DISTANCE - a float number of centimeters.
 
 FILE – a string value containing an absolute path to a file, or a relative path from the directory where IDLE resides. An absolute path on Windows looks like “C:\Music\musicfile.wav” and on Mac looks like “/home/music/musicfile.wav”. Even on Windows, the backslashes may appear as front slashes. 
 
@@ -86,7 +88,7 @@ stop()
 	Stops the robot’s motors immediately. Only necessary if the robot is presently in motion (e.g. for the motors() or move() commands).
 
 turnBy(VALUE)
-	Turns the robot by a number of degrees. VALUE can be any number. A negative VALUE turns the robot left (counterclockwise). A positive VALUE turns the robot right (clockwise). 
+	Turns the robot by a number of degrees. VALUE can be any number. A negative VALUE turns the robot left (counterclockwise). A positive VALUE turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).
 
 turnTo(VALUE)
 	Turns the robot to the specified heading relative to the value returned by getAngle(). VALUE can be any number greater than or equal to 0 and less than 360. A value greater than or equal to 360 or less than 0 will be interpreted as a 0.
@@ -161,6 +163,9 @@ beep(TIME, FREQ)
 LCDclear(UPDATE)
 	Clears (makes blank) Sparki’s LCD. Note that you must call LCDupdate() to display the message once it’s printed if you set UPDATE to False.
 
+LCDdrawString(X, Y, MESSAGE, UPDATE)
+	Prints MESSAGE to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it’s printed if you set UPDATE to False.
+	
 LCDprint(MESSAGE, UPDATE)
 	Prints MESSAGE to the LCD on the back of Sparki. See the section on Common Variables for an explanation of MESSAGE. Note that you must call LCDupdate() to display the message once it’s printed if you set UPDATE to False.
 
@@ -213,12 +218,21 @@ servo(POSITION)
 	Turns the servo (sparki’s head) to POSITION. POSITION is a number between -90 and 90, where -90 is directly to the left, 0 is straight ahead, and 90 is directly to the right. 
 	
 	
+IR Commands
+-----------------------------------
+receiveIR()
+	Returns an int received from the IR sensor on the front of the Sparki. You can then convert this int to a more meaningful piece of information. *Not well tested*
+
+sendIR(DATA)
+	Sends the int DATA via the IR emitter on the front of the Sparki. *Not well tested*
+	
+	
 Synchronization Commands
 -----------------------------------
 The synchronization commands are provided to allow several computers to do something at the same time. In the case of sparki_learning, they are usually used to allow multiple computers to command their respective robots so that the robots can do things together (at the same time). One computer acts as the server, and all other computers act as the clients. The server is told how much time to wait, and then the server communicates that to any clients that connect to the server. When the time expires, the server and clients all return from the synchronization function. 
 
-start_sync_server(TIME)
-	Starts the sync server to execute the commands following after TIME seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open a port. Defaults to port 32216. 
+start_sync_server(TIME, server_port)
+	Starts the sync server to execute the commands following after TIME seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open and listen on a port. server_port defaults to port 32216. server_port must be the same on the client and server.
 	
 start_sync_client(server_ip, server_port)
-	Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server).
+	Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.

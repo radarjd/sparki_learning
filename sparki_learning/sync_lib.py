@@ -68,7 +68,7 @@ def _sync_client(server_ip, server_port):
     else:
         return (start_time - offset) - time()
         
-def _sync_server(start_time = START_NOW, port = PORT):
+def _sync_server(start_time = START_NOW, port):
     # Listens on a socket for the clients to connect
     # Upon connection, the server immediately sends its current time (using the time() function) to the client
     # The client sends back the offset between what time the client's real time clock shows and the server's time
@@ -139,7 +139,7 @@ def start_sync_client(server_ip = None, server_port = PORT):
         
     print("client go")
     
-def start_sync_server(wait_time = 15):
+def start_sync_server(wait_time = 15, port = PORT):
     """ Tells clients when to return (and waits itself) -- specifically:
         1) listens on a local socket for connections from clients
         2) on a client connect, sends the UTC time at which the client function
@@ -162,7 +162,7 @@ def start_sync_server(wait_time = 15):
     print("start time is " + str(start_time) + "; wait time is " + str(wait_time) + " seconds")
 
     try:
-        _sync_server( start_time + wait_time )
+        _sync_server( start_time + wait_time, port )
     except:
         print("timeout or socket error")
     
