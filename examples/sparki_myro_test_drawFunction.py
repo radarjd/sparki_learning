@@ -1,11 +1,11 @@
 # Sparki_Myro drawFunction testing
 from __future__ import print_function
 
-from sparki_myro import *
+from sparki_learning import *
 
 import math
 
-init("COM3")        # change for your COM port (or /dev/)
+init("COM4")        # change for your COM port (or /dev/)
 #setDebug(DEBUG_INFO)
 
 print("Drawing y = x ** 2")

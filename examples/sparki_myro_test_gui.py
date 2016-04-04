@@ -1,7 +1,7 @@
 # Sparki_Myro testing
 from __future__ import print_function
 
-from sparki_myro import *
+from sparki_learning import *
 
 result = ask("What is your name? ")
 print("The user said " + result)

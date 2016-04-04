@@ -1,11 +1,11 @@
 # Sparki_Myro testing
 from __future__ import print_function
 
-from sparki_myro import *
+from sparki_learning import *
 
 init("COM4")
 steps = 5
-wait_time = .5
+wait_time = .05
 
 print("Increasing status brightness")
 for b in range(0, 101):

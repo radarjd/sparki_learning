@@ -1,9 +1,9 @@
 # Sparki_Myro grid testing
 from __future__ import print_function
 
-from sparki_myro import *
+from sparki_learning import *
 
-init("COM3")        # change for your COM port (or /dev/)
+init("COM4")        # change for your COM port (or /dev/)
 
 print("Drawing first right triangle")
 
@@ -35,22 +35,3 @@ for coords in coordinates:
 
     print("Moving to", newX, ",", newY)
     moveTo(newX, newY)
-
-
-##def drawFunction( function, xRange ):
-##    for xCoord in xRange:
-##        moveTo( xCoord, function(xCoord) )
-##
-##moveTo(0,0)
-##
-##print("Drawing y = x")
-##
-##drawFunction( lambda x: x, range(-20, 21) )
-##
-##print("finished y = x")
-##
-##moveTo(0,0)
-##
-##print("Drawing y = x ** 2")
-##
-##drawFunction( lambda x: x**2, range(-10, 10, .5) )

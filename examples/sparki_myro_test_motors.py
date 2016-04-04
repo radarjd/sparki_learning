@@ -1,12 +1,12 @@
 # Sparki_Myro testing
 from __future__ import print_function
 
-from sparki_myro import *
+from sparki_learning import *
 
 # for the DEBUG version of the library
 
 print("initializing -- may get an error below due to library version")
-init("COM3")            # change to your COM port (or /dev/)
+init("COM4")            # change to your COM port (or /dev/)
 
 print("moving forward")
 forward(1, 1)
