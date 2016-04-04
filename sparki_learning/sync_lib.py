@@ -68,7 +68,7 @@ def _sync_client(server_ip, server_port):
     else:
         return (start_time - offset) - time()
         
-def _sync_server(start_time = START_NOW, port):
+def _sync_server(start_time = START_NOW, port = PORT):
     # Listens on a socket for the clients to connect
     # Upon connection, the server immediately sends its current time (using the time() function) to the client
     # The client sends back the offset between what time the client's real time clock shows and the server's time
