@@ -5,8 +5,8 @@
 
 /* includes a minimal implementation of the Sparki Myro library */
 
-/* initial creation - January 24, 2015 
-   last modified - February 2, 2016 */
+/* initial creation - January 24, 2016 
+   last modified - April 5, 2016 */
 
 #include <Sparki.h>
 
@@ -173,10 +173,8 @@ void sendSerial(float* floats, int size) {
 }
 
 void sendSerial(int i) {
-#ifndef NO_DEBUGS
   printDebug("Sending int over Bluetooth: ", DEBUG_DEBUG);
   printDebug(i, DEBUG_DEBUG, 1);
-#endif
   
   serial.print(i); 
   serial.print(TERMINATOR); 
@@ -327,7 +325,7 @@ void motors(int left_speed, int right_speed, float time) {
 // speed should be a number from 1 to 100 indicating the percentage of power used
 // if the speed is positive, that indicates forward motion on that wheel
 void motors(int left_speed, int right_speed) { 
-  printDebug("In motors, moving at left speed ", DEBUG_INFO);
+  printDebug("In motors, left speed ", DEBUG_INFO);
   printDebug(left_speed, DEBUG_INFO);
   printDebug(" and right speed ", DEBUG_INFO);
   printDebug(right_speed, DEBUG_INFO, 1);
@@ -357,10 +355,7 @@ void motors(int left_speed, int right_speed) {
 // sets the debug level -- higher numbers result in more verbose output
 // -1 will turn off all debugging messages
 void setDebugLevel(int level) {
-  printDebug("Changing debug level from ", DEBUG_DEBUG);
-  printDebug(debug_level, DEBUG_DEBUG);
-  printDebug(" to ", DEBUG_DEBUG);
-  printDebug(level, DEBUG_DEBUG, 1);
+  printDebug("Changing debug level", DEBUG_INFO);
 
   debug_level = level;
 } //setDebugLevel(int)
@@ -369,8 +364,8 @@ void setDebugLevel(int level) {
 // setStatusLED(int)
 // sets the status LED to brightness -- brightness should be between 0 and 100 (as a percentage)
 void setStatusLED(int brightness) {
-  printDebug("In setStatusLED, brightness is ", DEBUG_DEBUG);
-  printDebug(brightness, DEBUG_DEBUG, 1);
+//  printDebug("In setStatusLED, brightness is ", DEBUG_DEBUG);
+//  printDebug(brightness, DEBUG_DEBUG, 1);
  
   // if brightness is 0 or 100, we'll use the digital write
   if (brightness <= 0) {
