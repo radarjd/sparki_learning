@@ -6,13 +6,22 @@ from sparki_learning import *
 # for the DEBUG version of the library
 
 print("initializing -- may get an error below due to library version")
-init("COM4")            # change to your COM port (or /dev/)
+com_port = None     # replace with your COM port or /dev/
+
+setDebug(DEBUG_INFO)
+
+while com_port == None:
+    com_port = input("What is your com port or /dev/? ")
+
+init(com_port)
+
+setSparkiDebug(DEBUG_DEBUG)
 
 print("moving forward")
-forward(1, 1)
+forward(1, 1.5)
 
 print("moving backward")
-backward(1, 1)
+backward(1, 1.5)
 
 print("turning left")
 turnLeft(1, 1)
