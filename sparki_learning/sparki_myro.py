@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: March 31, 2016
+# Last Modified: April 6, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -36,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.1.5"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.2.0"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -53,8 +53,8 @@ SYNC = chr(22)   # this character is sent by Sparki after every command complete
 NO_MAG = False              # compass(), getMag(), getMagX(), getMagY(), getMagZ()
 NO_ACCEL = False            # getAccel(), getAccelX(), getAccelY(), getAccelZ()
 SPARKI_DEBUGS = False       # setSparkiDebug()
-USE_EEPROM = True           # getName(), setName()
-EXT_LCD_1 = False           # LCDdrawString(), LCDreadPixel()
+USE_EEPROM = False          # EEPROMread(), EEPROMwrite(), getName(), setName()
+EXT_LCD_1 = False           # EEPROMread(), EEPROMwrite(), LCDdrawLine(), LCDdrawString(), LCDreadPixel()
 
 
 # ***** MISCELLANEOUS VARIABLES ***** #
@@ -87,11 +87,11 @@ COMMAND_CODES = {
 
                     ## below LCD commands removed for compacting purposes
                     ##'LCD_DRAW_CIRCLE':'1',    # requires 4 arguments: int x&y, int radius, and int filled (1 is filled); returns nothing
-                    ##'LCD_DRAW_LINE':'2',  # requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
-                    'LCD_DRAW_PIXEL':'3',     # requires 2 arguments: int x&y; returns nothing
-                    ##'LCD_DRAW_RECT':'4',  # requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing 
-                    'LCD_DRAW_STRING':'5',    # requires 3 arguments: int x (column), int line_number, and char* string; returns nothing; EXT_LCD_1 must be True
-
+                    'LCD_DRAW_LINE':'2',  # requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing; EXT_LCD_1 must be True
+                    'LCD_DRAW_PIXEL':'3', # requires 2 arguments: int x&y; returns nothing
+                    ##'LCD_DRAW_RECT':'4',# requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing 
+                    'LCD_DRAW_STRING':'5',# requires 3 arguments: int x (column), int line_number, and char* string; returns nothing; EXT_LCD_1 must be True
+                    'LCD_ERASE_PIXEL':'T',# requires 2 arguments: int x&y; returns nothing
                     'LCD_PRINT':'6',      # requires 1 argument: char* string; returns nothing
                     'LCD_PRINTLN':'7',    # requires 1 argument: char* string; returns nothing
                     'LCD_READ_PIXEL':'8', # requires 2 arguments: int x&y; returns int color of pixel at that point; EXT_LCD_1 must be True
@@ -112,7 +112,9 @@ COMMAND_CODES = {
                                                             # if degrees is negative, turn counterclockwise; returns nothing
                     'GET_NAME':'O',       # get the Sparki's name as stored in the EEPROM - USE_EEPROM must be True
                                                             # if the name was not set previously, can give undefined behavior
-                    'SET_NAME':'P'        # set the Sparki's name in the EEPROM - USE_EEPROM must be True
+                    'SET_NAME':'P',       # set the Sparki's name in the EEPROM - USE_EEPROM must be True
+                    'READ_EEPROM':'Q',    # reads data as stored in the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
+                    'WRITE_EEPROM':'R'    # writes data to the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
                 }
 #***** END OF COMMAND CHARACTER CODES ***** #
 
@@ -146,8 +148,9 @@ LIGHT_SENS_LEFT = 0
 MAX_GRIPPER_DISTANCE = 7.0
 
 
-# ***** MAX NAME LENGTH ***** #
+# ***** EEPROM STORAGE ***** #
 EEPROM_NAME_MAX_CHARS = 20
+EEPROM_MAX_ADDRESS = 1023
 
 
 # ***** SERVO POSITIONS ***** #
@@ -161,15 +164,20 @@ SERVO_RIGHT = 80
 # this is used in init to update the capabilities of the Sparki -- you could use this so that the library can
 #   work with different versions of the Sparki library
 # The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
-SPARKI_CAPABILTIES = { "z": [ True, True, False, False, False, False, False ],
-                       "DEBUG": [ False, False, True, False, False, False, False ],
+SPARKI_CAPABILITIES = { "z": [ True, True, False, False, False, False, False ],
+                       "DEBUG": [ True, True, True, False, False, False, False ],
+                       "DEBUG-ACCEL": [ False, True, True, False, False, False, False ],
+                       "DEBUG-EEPROM": [ True, True, True, True, False, False, False ],
+                       "DEBUG-MAG": [ True, False, True, False, False, False, False ],
                        "0.2 No Mag / No Accel": [ True, True, False, False, False, False, False ],
                        "0.8.3 Mag / Accel On": [ False, False, False, False, False, False, False ],
                        "0.9.6": [ False, False, False, True, False, False, False ],
                        "0.9.7": [ False, False, False, True, False, False, False ],   
                        "0.9.8": [ False, False, False, True, False, False, False ],   
                        "1.0.0": [ False, False, False, True, False, False, False ],   
-                       "1.0.1": [ False, False, False, True, True, False, False ] }   
+                       "1.0.1": [ False, False, False, True, True, False, False ],   
+                       "1.1.0": [ False, False, False, True, True, False, False ],   
+                       "1.1.1": [ False, False, False, True, True, False, False ] }   
 
 ########### END OF CONSTANTS ###########
 
@@ -250,8 +258,10 @@ def constrain(n, min_n, max_n):
         min_n, max_n = max_n, min_n
     
     if n < min_n:
+        printDebug("In constrain, n " + str(n) + " was less than min (corrected)", DEBUG_INFO)
         return min_n
     elif n > max_n:
+        printDebug("In constrain, n " + str(n) + " was greater than max (corrected)", DEBUG_INFO)
         return max_n
     else:
         return n
@@ -441,7 +451,26 @@ def music_sunrise():
     beep(1000, 523)
     beep(1000, 784)
     beep(1000, 1047)
-        
+
+
+def printUnableToConnect():
+    """ Prints a troubleshooting message
+
+        arguments:
+        none
+
+        returns:
+        nothing
+    """
+    printDebug("Unable to connect with Sparki", DEBUG_ALWAYS)
+    printDebug("Ensure that:", DEBUG_ALWAYS)
+    printDebug("    1) Sparki is turned on", DEBUG_ALWAYS)
+    printDebug("    2) Sparki's Bluetooth module is inserted", DEBUG_ALWAYS)
+    printDebug("    3) Your computer's Bluetooth has been paired with Sparki", DEBUG_ALWAYS)
+    printDebug("    4) Sparki's batteries have some power left", DEBUG_ALWAYS)
+    printDebug("If you see the Sparki logo on the LCD, turn reset Sparki and try to reconnect", DEBUG_ALWAYS)
+    printDebug("You can also try to reset your shell", DEBUG_ALWAYS)
+
     
 def sendSerial(command, args = None):
     """ Sends the command with the args over a serial connection
@@ -493,7 +522,8 @@ def sendSerial(command, args = None):
         try:
             serial_conn.write(message)
         except serial.SerialTimeoutException:
-            printDebug("Error communicating with Sparki", DEBUG_CRITICAL)
+            printDebug("In sendSerial, error communicating with Sparki", DEBUG_CRITICAL)
+            printUnableToConnect()
             raise
 
     serial_conn.flush()     # ensure the buffer is flushed
@@ -549,20 +579,21 @@ def waitForSync():
     serial_conn.flushInput()    # get rid of any waiting bytes
 
     inByte = -1
-    count = 0
+    retries = 5                 # the number of times to retry connecting in the case of a timeout
+    start_time = currentTime()
     loop_wait = .1              # pause this long each time through the loop
 
     while inByte != SYNC.encode():  # loop, doing nothing substantive, while we wait for SYNC
         try:
             inByte = serial_conn.read()
         except serial.SerialTimeoutException:
-            printDebug("Unable to sync with Sparki", DEBUG_CRITICAL)
+            printDebug("SerialTimeoutException caught in waitForSync, unable to sync with Sparki", DEBUG_CRITICAL)
+            printUnableToConnect()
             raise
-        printDebug("Waiting for sync, count = " + str(count), DEBUG_DEBUG)
-        count += 1
 
-        if count * loop_wait > CONN_TIMEOUT:
-            printDebug("Unable to sync with Sparki", DEBUG_CRITICAL)
+        if currentTime() > start_time + (CONN_TIMEOUT * retries):
+            printDebug("In waitForSync, unable to sync with Sparki", DEBUG_CRITICAL)
+            printUnableToConnect()
             raise serial.SerialTimeoutException
 
         wait(loop_wait)
@@ -740,6 +771,73 @@ def drawFunction(function, xvals, scale = 1):
     
     for x in xvals:
         moveTo( x * scale, function(x) * scale )
+
+    
+def EEPROMread(location, amount):
+    """ Reads amount of data from location in the EEPROM on Sparki
+
+        arguments:
+        location - int - must be a valid location (0 through 1023)
+        amount - int - the number of bytes you want to read
+
+        returns:
+        bytes - bytes from the EEPROM
+    """
+    if not (USE_EEPROM and EXT_LCD_1):
+        printDebug("EEPROMread not be implemented on Sparki", DEBUG_CRITICAL)
+        raise NotImplementedError
+
+    printDebug("In EEPROMread, location is " + str(location) + " and amount is " + str(amount), DEBUG_INFO)
+
+    if location > EEPROM_MAX_ADDRESS:
+        printDebug("In EEPROMread, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
+
+    if amount > EEPROM_MAX_ADDRESS:
+        printDebug("In EEPROMread, amount greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
+
+    location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
+    amount = int(constrain(amount, 0, EEPROM_MAX_ADDRESS))
+
+    if amount == 0:
+        printDebug("In EEPROMread, asked to read 0 bytes, returning...", DEBUG_WARN)
+
+    if location + amount > EEPROM_MAX_ADDRESS:
+        printDebug("In EEPROMread, amount greater than EEPROM space", DEBUG_CRITICAL)
+        raise IndexError
+
+    args = [ location, amount ]
+    sendSerial( COMMAND_CODES["READ_EEPROM"], args )
+
+    return getSerialBytes()
+
+    
+def EEPROMwrite(location, data):
+    """ Writes data to location in the EEPROM on Sparki
+
+        arguments:
+        location - int - must be a valid location (0 through 1023)
+        data - string - data to be written; must be less than EEPROM_NAME_MAX_CHARS
+
+        returns:
+        nothing
+    """
+    if not (USE_EEPROM and EXT_LCD_1):
+        printDebug("EEPROMwrite not be implemented on Sparki", DEBUG_CRITICAL)
+        raise NotImplementedError
+
+    printDebug("In EEPROMwrite, location is " + str(location) + " and data is " + str(data), DEBUG_INFO)
+
+    if location > EEPROM_MAX_ADDRESS:
+        printDebug("In EEPROMread, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
+
+    location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
+
+    if location + len(data) > EEPROM_MAX_ADDRESS:
+        printDebug("In EEPROMwrite, Too much data to store", DEBUG_CRITICAL)
+        raise IndexError
+
+    args = [ location, data ]
+    sendSerial( COMMAND_CODES["WRITE_EEPROM"], args )
 
 
 def forward(speed, time = -1):
@@ -1161,6 +1259,7 @@ def gripperStop():
     
 def humanTime():
     """ Return a human readable current time (i.e. time.ctime())
+        Output looks like 'Fri Apr 5 19:50:05 2016'
     
         arguments:
         none
@@ -1200,14 +1299,7 @@ def init(com_port):
     try:
         serial_conn = serial.Serial(port = serial_port, baudrate = 9600, timeout = CONN_TIMEOUT)
     except serial.SerialException:
-        printDebug("Unable to connect with Sparki", DEBUG_ALWAYS)
-        printDebug("Ensure that:", DEBUG_ALWAYS)
-        printDebug("    1) Sparki is turned on", DEBUG_ALWAYS)
-        printDebug("    2) Sparki's Bluetooth module is inserted", DEBUG_ALWAYS)
-        printDebug("    3) Your computer's Bluetooth has been paired with Sparki", DEBUG_ALWAYS)
-        printDebug("    4) Sparki's batteries have some power left", DEBUG_ALWAYS)
-        printDebug("If you see the Sparki logo on the LCD, turn Sparki off and back on and try to reconnect", DEBUG_ALWAYS)
-        printDebug("You can also try to reset your shell", DEBUG_ALWAYS)
+        printUnableToConnect()
         raise
         
     serial_is_connected = True      # have to do this prior to sendSerial, or sendSerial will never try to send
@@ -1225,10 +1317,14 @@ def init(com_port):
 
         # use the version number to try to figure out capabilities
         try:
-            # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, reserved, reserved, reserved
-            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, reserved3 = SPARKI_CAPABILTIES[robot_library_version]
-        except:
-            printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Myro Python library", DEBUG_ALWAYS)
+            # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
+            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, reserved3 = SPARKI_CAPABILITIES[robot_library_version]
+            printDebug("Sparki Capabilities:", DEBUG_INFO)
+            printDebug("\tNO_ACCEL:\tNO_MAG:\tSPARKI_DEBUGS:\tUSE_EEPROM:\tEXT_LCD_1:", DEBUG_INFO)
+            printDebug("\t" + str(NO_ACCEL) + "\t\t" + str(NO_MAG) + "\t" + str(SPARKI_DEBUGS) + "\t\t" + str(USE_EEPROM) + "\t\t" + str(EXT_LCD_1), DEBUG_INFO)
+        except KeyError:
+            printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Learning Python library", DEBUG_ALWAYS)
+            printDebug("(to upgrade the library type: easy_install sparki-learning)", DEBUG_ALWAYS)
     else:
         printDebug("Sparki communication failed", DEBUG_ALWAYS)
         serial_is_connected = False
@@ -1327,7 +1423,35 @@ def LCDdrawPixel(x, y, update = True):
 
     args = [ x, y ]
 
-    sendSerial( COMMAND_CODES["DRAW_PIXEL"], args )
+    sendSerial( COMMAND_CODES["LCD_DRAW_PIXEL"], args )
+
+    if update:
+        LCDupdate()
+        
+
+def LCDdrawLine(x1, y1, x2, y2, update = True):
+    """ Draws a line on the LCD
+
+        arguments:
+        x1 - int first x coordinate for the pixel, must be <= 127
+        y1 - int first y coordinate for the pixel, must be <= 63
+        x2 - int second x coordinate for the pixel, must be <= 127
+        y2 - int second y coordinate for the pixel, must be <= 63
+        update - True (default) if you want Sparki to update the display
+
+        returns:
+        nothing
+    """
+    printDebug("In LCDdrawLine, x1 is " + str(x1) + ", y1 is " + str(y1) + "x2 is " + str(x2) + ", y2 is " + str(y2), DEBUG_INFO)
+
+    x1 = int(constrain(x1, 0, 127))    # the LCD is 128 x 64
+    y1 = int(constrain(y1, 0, 63))
+    x2 = int(constrain(x2, 0, 127))
+    y2 = int(constrain(y2, 0, 63))
+
+    args = [ x1, y1, x2, y2 ]
+
+    sendSerial( COMMAND_CODES["LCD_DRAW_LINE"], args )
 
     if update:
         LCDupdate()
@@ -1351,8 +1475,8 @@ def LCDdrawString(x, y, message, update = True):
 
     printDebug("In LCDdrawString, x is " + str(x) + ", y is " + str(y) + ", message is " + str(message), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 121))
-    y = int(constrain(y, 0, 7))
+    x = int(constrain(x, 0, 121))   # 128 (0 to 127) pixels on the LCD, and a character is 6 pixels wide
+    y = int(constrain(y, 0, 7))     # 8 (0 to 7) lines on the LCD
 
     args = [ x, y, message ]
 
@@ -1448,7 +1572,7 @@ def motors(left_speed, right_speed, time = -1):
         arguments:
         left_speed - the left wheel speed; a float between -1.0 and 1.0
         right_speed - the right wheel speed; a float between -1.0 and 1.0
-        time - the number of seconds to move; negative numbers will cause the robot to move without stopping
+        time - float the number of seconds to move; negative numbers will cause the robot to move without stopping
         
         returns:
         nothing
@@ -1956,46 +2080,6 @@ def setDebug(level):
     level = int( constrain( level, DEBUG_ALWAYS, DEBUG_DEBUG ) )
     
     sparki_myro_py_debug = level
-
-
-def setPosition(newX, newY):
-    """ Sets the current x,y position of Sparki - used with the grid commands (moveTo() & moveBy())
-        Note that this does not move the robot, but merely tells it that it is at another location
-        Also note that only use of the grid commands actually changes this value -- the x & y coordinates
-        do not change for other move commends
-        The robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
-
-        arguments:
-        newX - float new X position of the robot
-        newY - float new Y position of the robot
-
-        returns:
-        none
-    """
-    global xpos, ypos   # also can be set in moveBy()
-
-    printDebug("In setPosition, new position will be " + str(newX) + ", " + str(newY), DEBUG_INFO)
-    
-    xpos = float(newX)
-    ypos = float(newY)
-
-
-def setSparkiDebug(level):
-    """ Sets the debug (in Sparki) to level
-
-        arguments:
-        level - int between 0 and 5; greater numbers produce more output (many of Sparki's debug statements are turned off)
-
-        returns:
-        none
-    """
-    if SPARKI_DEBUGS:
-        printDebug("Changing Sparki debug level to " + str(level), DEBUG_INFO)
-        level = int( constrain( level, DEBUG_ALWAYS, DEBUG_DEBUG ) )
-    
-        sendSerial( COMMAND_CODES["SET_DEBUG_LEVEL"], level )
-    else:
-        printDebug("Setting sparki debug level is not available", DEBUG_ERROR)
     
 
 def setLEDBack(brightness):
@@ -2047,6 +2131,28 @@ def setName(newName):
     sendSerial( COMMAND_CODES["SET_NAME"], args )
 
 
+def setPosition(newX, newY):
+    """ Sets the current x,y position of Sparki - used with the grid commands (moveTo() & moveBy())
+        Note that this does not move the robot, but merely tells it that it is at another location
+        Also note that only use of the grid commands actually changes this value -- the x & y coordinates
+        do not change for other move commends
+        The robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
+
+        arguments:
+        newX - float new X position of the robot
+        newY - float new Y position of the robot
+
+        returns:
+        none
+    """
+    global xpos, ypos   # also can be set in moveBy()
+
+    printDebug("In setPosition, new position will be " + str(newX) + ", " + str(newY), DEBUG_INFO)
+    
+    xpos = float(newX)
+    ypos = float(newY)
+
+
 def setRGBLED(red, green, blue):
     """ Sets the RGB LED to the color given -- colors should be a value between 0 and 100, which is a percentage of that color
 
@@ -2066,6 +2172,26 @@ def setRGBLED(red, green, blue):
     args = [ red, green, blue ]
 
     sendSerial( COMMAND_CODES["SET_RGB_LED"], args )
+
+
+def setSparkiDebug(level):
+    """ Sets the debug (in Sparki) to level
+
+        arguments:
+        level - int between 0 and 5; greater numbers produce more output (many of Sparki's debug statements are turned off)
+
+        returns:
+        none
+    """
+    if SPARKI_DEBUGS:
+        printDebug("Changing Sparki debug level to " + str(level), DEBUG_INFO)
+        level = int( constrain( level, DEBUG_ALWAYS, DEBUG_DEBUG ) )
+
+        args = [ level ]
+    
+        sendSerial( COMMAND_CODES["SET_DEBUG_LEVEL"], args )
+    else:
+        printDebug("Setting sparki debug level is not available", DEBUG_ERROR)
 
 
 def setStatusLED(brightness):
@@ -2128,7 +2254,7 @@ def turnBy(degrees):
 
     degrees = wrapAngle( degrees )
 
-    if abs(degrees) >= 360:     # >= -- the greater than is in case there's a rounding error
+    if abs(degrees) >= 360:     # >= in case there's a rounding error
         degrees = 0
 
     if degrees == 0:
@@ -2303,7 +2429,7 @@ def show(args = None):
 
 
 def main():
-    print("Sparki Myro version " + SPARKI_MYRO_VERSION)
+    print("sparki_learning version " + SPARKI_MYRO_VERSION)
     print("This is intended to be used as a library -- your code should call this program by importing the library, e.g.")
     print("from sparki_learning import *")
     print("Exiting...")
