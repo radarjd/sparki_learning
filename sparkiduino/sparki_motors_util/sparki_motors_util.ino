@@ -6,7 +6,7 @@
 /* includes a minimal implementation of the Sparki Myro library */
 
 /* initial creation - January 24, 2016 
-   last modified - April 6, 2016 */
+   last modified - April 5, 2016 */
 
 #include <Sparki.h>
 
@@ -81,7 +81,7 @@ int debug_level = DEBUG_INFO;
 // gets a char from the serial port
 // blocks until one is available
 char getSerialChar() {
-  int size = 15;
+  int size = 30;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return buf[0];
@@ -93,7 +93,7 @@ char getSerialChar() {
 // we then convert the string to a float and return that
 // there is likely to be some loss of precision
 float getSerialFloat() {
-  int size = 15;
+  int size = 30;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atof( buf );
@@ -104,7 +104,7 @@ float getSerialFloat() {
 // ints are sent to Sparki as char* in order to eliminate conversion issues
 // we then convert the string to an int and return that
 int getSerialInt() {
-  int size = 15;
+  int size = 30;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atoi( buf );
@@ -143,7 +143,7 @@ int getSerialBytes(char* buf, int size) {
 
 /* These functions send data from Sparki to the computer over Bluetooth */
 void sendSerial(char c) {
-  printDebug("Sending char: ", DEBUG_DEBUG);
+  printDebug("Sending char over Bluetooth: ", DEBUG_DEBUG);
   printDebug(c, DEBUG_DEBUG, 1);
 
   serial.print(c); 
@@ -151,7 +151,7 @@ void sendSerial(char c) {
 }
 
 void sendSerial(char* message) {
-  printDebug("Sending message: ", DEBUG_DEBUG);
+  printDebug("Sending message over Bluetooth: ", DEBUG_DEBUG);
   printDebug(message, DEBUG_DEBUG, 1);
   
   serial.print(message); 
@@ -159,7 +159,7 @@ void sendSerial(char* message) {
 }
 
 void sendSerial(float f) {
-  printDebug("Sending float: ", DEBUG_DEBUG);
+  printDebug("Sending float over Bluetooth: ", DEBUG_DEBUG);
   printDebug(f, DEBUG_DEBUG, 1);
   
   serial.print(f); 
@@ -173,7 +173,7 @@ void sendSerial(float* floats, int size) {
 }
 
 void sendSerial(int i) {
-  printDebug("Sending int: ", DEBUG_DEBUG);
+  printDebug("Sending int over Bluetooth: ", DEBUG_DEBUG);
   printDebug(i, DEBUG_DEBUG, 1);
   
   serial.print(i); 
@@ -400,8 +400,6 @@ void setup() {
   sparki.updateLCD();
   serial.begin(9600);
 
-  sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
-
 //  sparki.println("Robot initialization successful");
   sparki.updateLCD();
   
@@ -421,7 +419,7 @@ void setup() {
 //  delay(2000);
   motors(-100, 100, 1.0);
  
-  printDebug("Ready for Python", DEBUG_INFO, 1);
+  printDebug("Now try giving commands over Bluetooth", DEBUG_INFO, 1);
 } // end setup()
 
 
@@ -432,12 +430,8 @@ void loop() {
     char inByte = getSerialChar();
     setStatusLED(100);                  // turn on the LED while we're processing a command
 
-//    int left_speed = 0;
-//    int right_speed = 0;
-//    float time_length = 0;
-
     if (debug_level >= DEBUG_DEBUG) {
-      sparki.print("Command: ");
+      sparki.print("Received character: ");
       sparki.println(inByte);
       sparki.updateLCD();
     }
@@ -447,26 +441,10 @@ void loop() {
       initSparki();                   // sendSerial is done in the function
       break;
 
-    case COMMAND_MOTORS:              // int, int, float; returns nothing
-      { // these braces permit declaration of the below variables for this case only
-        // declaring the variables and assigning them here, and then passing the values to motors
-        // fixes a bug of undetermined origin -- previously, this was done by motors( getSerialInt(), getSerialInt(), getSerialFloat() );
-        // but that resulted in time_length and left_speed being switched -- I have no idea why
-        // for some reason, this fixes the error
-      int left_speed = getSerialInt();
-      int right_speed = getSerialInt();
-      int time_length = getSerialFloat();
-
-      printDebug("In switch, left_speed=", DEBUG_DEBUG, 0);
-      printDebug(left_speed, DEBUG_DEBUG, 0);
-      printDebug(" right_speed=", DEBUG_DEBUG, 0);
-      printDebug(right_speed, DEBUG_DEBUG, 0);
-      printDebug(" time_length=", DEBUG_DEBUG, 0);
-      printDebug(time_length, DEBUG_DEBUG, 1);
-      
-      motors( left_speed, right_speed, time_length );
+    case COMMAND_MOTORS:              // int, int, int; returns nothing
+      motors( getSerialInt(), getSerialInt(), getSerialInt() );
       break;
-      } // end COMMAND_MOTORS
+      
     case COMMAND_SET_DEBUG_LEVEL:     // int; returns nothing
       setDebugLevel( getSerialInt() );
       break;
