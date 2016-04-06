@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - April 1, 2016 */
+   last modified - April 6, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -43,7 +43,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.0.1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.0";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 
 /* ***** MESSAGE TERMINATOR ***** */
 const char TERMINATOR = (char)23;      // this terminates every transmission from python
@@ -53,7 +53,7 @@ const char SYNC = (char)22;            // send this when in the command loop wai
 
 
 /* ***** LOW BATTERY VOLTAGE ***** */
-const float LOW_BATTERY = 4.0;
+const float LOW_BATTERY = 4.0;         // 6.0 should be a full power battery
 
 
 /* ***** COMMAND CHARACTER CODES ***** */
@@ -92,6 +92,7 @@ const char COMMAND_LCD_DRAW_RECT = '4'; // requires 5 arguments: int x&y for sta
 const char COMMAND_LCD_DRAW_LINE = '2'; // requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
 const char COMMAND_LCD_DRAW_PIXEL = '3';    // requires 2 arguments: int x&y; returns nothing
 const char COMMAND_LCD_DRAW_STRING = '5';   // requires 3 arguments: int x (column), int line_number, and char* string; returns nothing
+const char COMMAND_LCD_ERASE_PIXEL = 'T';   // requires 2 arguments: int x&y; returns nothing -- not yet implemented
 const char COMMAND_LCD_PRINT = '6';     // requires 1 argument: char* string; returns nothing
 const char COMMAND_LCD_PRINTLN = '7';   // requires 1 argument: char* string; returns nothing
 const char COMMAND_LCD_READ_PIXEL = '8';    // requires 2 arguments: int x&y; returns int color of pixel at that point
@@ -118,6 +119,8 @@ const char COMMAND_TURN_BY = 'L';       // requires 1 argument: float degrees to
 #ifdef USE_EEPROM
 const char COMMAND_GET_NAME = 'O';      // get Sparki's name from the EEPROM
 const char COMMAND_SET_NAME = 'P';      // set Sparki's name in the EEPROM
+const char COMMAND_EEPROM_READ = 'Q';   // reads data from the EEPROM
+const char COMMAND_EEPROM_WRITE = 'R';  // writes data to the EEPROM
 #endif // USE_EEPROM
 
 #ifndef COMPACT_2
@@ -186,8 +189,6 @@ void printDebug(int* ints, int importance, int size, int newLine = 0);  // print
 
 #ifdef USE_EEPROM
 int loadFromEEPROM(char* buf, int size, int start);  // loads data from EEPROM into buffer
-int loadName(char* buf, int size);  // loads the robot's name into buffer
-void writeToEEPROM(int start);  // writes data to EEPROM at location start
 #endif // USE_EEPROM
 
 void sendSerial(char c);
@@ -221,6 +222,8 @@ void getMag();
 #ifdef USE_EEPROM
 void getName();
 void setName();
+void readFromEEPROM(int start, int amount);  // reads data from EEPROM at location start and sends over serial port
+void writeToEEPROM(int start);  // writes data to EEPROM at location start
 #endif // USE_EEPROM
 
 void initSparki();  // confirms communication with Python
@@ -232,6 +235,7 @@ void LCDdrawRect(int corner_x, int corner_y, int width, int height, int filled);
 #endif // COMPACT_2
 
 void LCDdrawString();
+void LCDerasePixel(int x, int y);
 void LCDprint();
 void motors(int left_speed, int right_speed, float time);
 void setDebugLevel(int level);
@@ -653,20 +657,6 @@ void getAccel() {
 #endif // NO_ACCEL
 
 
-// float getBattery()
-// returns the voltage of the battery
-float getBattery() { 
-  float value = sparki.systemVoltage();
-
-#ifndef NO_DEBUGS
-  printDebug("In getBattery, value is ", DEBUG_DEBUG);
-  printDebug(value, DEBUG_DEBUG, 1);
-#endif // NO_DEBUGS
-  
-  return value;
-} // end getBattery()
-
-
 // void getLight()
 // sends an array with the values of the left, center and right light sensors
 void getLight() { 
@@ -726,24 +716,10 @@ void getMag() {
 #endif // NO_MAG
 
 
-#ifdef USE_EEPROM
-// void getName()
-// sends the robot's name over the serial port
-void getName() {
-  int buf_size = EEPROM_NAME_MAX_CHARS;
-  char buf[buf_size];
-
-  int count = loadName( buf, buf_size );
-  
-  sendSerial( buf );
-}
-#endif // USE_EEPROM
-
-
 // return version to prove communication
 void initSparki() {
   sparki.clearLCD();
-  sparki.println("Connected");
+//  sparki.println("Connected");
   sparki.updateLCD();
 	
   sendSerial( (char*)SPARKI_MYRO_VERSION );
@@ -816,6 +792,12 @@ void LCDdrawString() {
 } // end LCDprint()
 
 
+// LCDerasePixel(int, int) - *not yet implemented*
+// erases the pixel at x,y
+void LCDerasePixel(int x, int y) {
+} // end LCDprint()
+
+
 // LCDprint()
 // gets data from the serial port and prints it
 void LCDprint() {
@@ -829,6 +811,18 @@ void LCDprint() {
 
 
 #ifdef USE_EEPROM
+// void getName()
+// sends the robot's name over the serial port
+void getName() {
+  int buf_size = EEPROM_NAME_MAX_CHARS;
+  char buf[buf_size];
+
+  int count = loadFromEEPROM( buf, buf_size, EEPROM_NAME_START );
+  
+  sendSerial( buf );
+}
+
+
 // loadFromEEPROM(char*, int, int)
 // loads data from EEPROM into a buffer (buffer will be overwritten)
 // returns the number of characters read
@@ -842,7 +836,7 @@ int loadFromEEPROM(char* buf, int size, int start) {
 
   char nextByte = EEPROM.read(start);
   
-  while( (count < size) && (nextByte != TERMINATOR)  ) {
+  while( (count < size - 1) && (nextByte != TERMINATOR)  ) {
     buf[count++] = nextByte;
     nextByte = EEPROM.read(start + count);
   }
@@ -851,13 +845,23 @@ int loadFromEEPROM(char* buf, int size, int start) {
 } // loadFromEEPROM(char*, int, int)
 
 
-// loadName(char*, int)
-// load the robot's name into a buffer (buffer will be overwritten)
-// returns the number of characters read
-// note that the name must be set at least once to get usable data
-int loadName(char* buf, int size) {
-  return loadFromEEPROM(buf, size, EEPROM_NAME_START);
-} // loadName(char*, int)
+// void readFromEEPROM(int, int)
+// sends arbitrary data from the EEPROM over the serial port
+void readFromEEPROM(int start, int amount) {
+  int buf_size = amount + 1;
+  char buf[buf_size];
+
+  loadFromEEPROM( buf, buf_size, start );
+   
+  sendSerial( buf );
+}
+
+
+// void setName()
+// sets the robot's name from the argument on the serial port
+void setName() {
+  writeToEEPROM(EEPROM_NAME_START);
+} // end setName()
 
 
 // writeToEEPROM(int)
@@ -954,15 +958,6 @@ void setRGBLED(int red, int green, int blue) {
 } // end setRGBLED()
 
 
-#ifdef USE_EEPROM
-// void setName()
-// sets the robot's name from the argument on the serial port
-void setName() {
-  writeToEEPROM(EEPROM_NAME_START);
-} // end setName()
-#endif // USE_EEPROM
-
-
 // setStatusLED(int)
 // sets the status LED to brightness -- brightness should be between 0 and 100 (as a percentage)
 void setStatusLED(int brightness) {
@@ -1021,7 +1016,7 @@ void turnBy(float deg) {
 void setup() {
   setStatusLED(50);
   sparki.clearLCD();
-  sparki.print("Sparki Myro Version ");
+  sparki.print("Version ");
   sparki.println((char*)SPARKI_MYRO_VERSION);
 //  sparki.println("Prepare for motion");
   sparki.updateLCD();
@@ -1031,16 +1026,17 @@ void setup() {
   delay(500); 
   sparki.servo(SERVO_LEFT);  
   delay(500);
-  sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
 */
+  sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
+
 
 //  sparki.println("Connecting to Bluetooth");
-  sparki.updateLCD();
+//  sparki.updateLCD();
   serial.begin(9600);
 
-  float battery_level = getBattery();
+  float battery_level = sparki.systemVoltage();
   if (battery_level <= LOW_BATTERY) {
-    sparki.println("Low battery");
+    sparki.println("Low batt");
     sparki.updateLCD();
     setRGBLED( 255, 0, 0 );
     sparki.beep();
@@ -1055,7 +1051,7 @@ void setup() {
 #ifdef USE_EEPROM
   char name[EEPROM_NAME_MAX_CHARS];
   sparki.print("Hi, I'm ");
-  loadName(name, EEPROM_NAME_MAX_CHARS);
+  loadFromEEPROM(name, EEPROM_NAME_MAX_CHARS, EEPROM_NAME_START);
   sparki.println(name);
 #endif
 
@@ -1101,7 +1097,7 @@ void loop() {
 #endif // NO_ACCEL
 
     case COMMAND_GET_BATTERY:         // no args; returns float
-      sendSerial( getBattery() );
+      sendSerial( sparki.systemVoltage() );
       break;
     case COMMAND_GET_LIGHT:           // no args; returns array of 3 ints
       getLight();                     // sendSerial is done in the function
@@ -1150,11 +1146,14 @@ void loop() {
     case COMMAND_LCD_DRAW_STRING:     // int, int, char*; returns nothing
       LCDdrawString();
       break;
+    case COMMAND_LCD_ERASE_PIXEL:      // int, int; returns nothing
+      LCDerasePixel( getSerialInt(), getSerialInt() );
+      break;
     case COMMAND_LCD_PRINT:           // char*; returns nothing
-      LCDprint();
+      LCDprint();					  // gets char* in function
       break;
     case COMMAND_LCD_PRINTLN:         // char*; returns nothing
-      LCDprint();
+      LCDprint();					  // gets char* in function
       sparki.println(' ');
       break;
     case COMMAND_LCD_READ_PIXEL:      // int, int; returns nothing
@@ -1163,9 +1162,19 @@ void loop() {
     case COMMAND_LCD_UPDATE:          // no args; returns nothing
       sparki.updateLCD();
       break;
-    case COMMAND_MOTORS:              // int, int, int; returns nothing
-      motors( getSerialInt(), getSerialInt(), getSerialInt() );
+    case COMMAND_MOTORS:              // int, int, float; returns nothing
+      { // these braces permit declaration of the below variables for this case only
+        // declaring the variables and assigning them here, and then passing the values to motors
+        // fixes a bug of undetermined origin -- previously, this was done by motors( getSerialInt(), getSerialInt(), getSerialFloat() );
+        // but that resulted in time_length and left_speed being switched -- I have no idea why
+        // for some reason, this fixes the error
+      int left_speed = getSerialInt();
+      int right_speed = getSerialInt();
+      int time_length = getSerialFloat();
+      
+      motors( left_speed, right_speed, time_length );
       break;
+      } // end COMMAND_MOTORS
     case COMMAND_BACKWARD_CM:         // float; returns nothing
       sparki.moveBackward( getSerialFloat() );
       break;
@@ -1209,7 +1218,13 @@ void loop() {
       getName();                      // sendSerial is done in the function
       break;
     case COMMAND_SET_NAME:            // char*; returns nothing
-      setName();
+      setName();					  // gets char* in function
+      break;
+    case COMMAND_EEPROM_READ:         // int, int; returns char*
+      readFromEEPROM( getSerialInt(), getSerialInt() ); // sendSerial is done in the function
+      break;
+    case COMMAND_EEPROM_WRITE:        // int, char*; returns nothing
+      writeToEEPROM( getSerialInt() );// gets char* in function
       break;
 #endif // USE_EEPROM
 
