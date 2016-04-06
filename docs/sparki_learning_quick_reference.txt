@@ -18,17 +18,14 @@ flrange(start, stop, step)
 from sparki_learning import * 
 	This command imports the sparki_learning module to make all of the Sparki specific commands available. It must appear at the beginning of your Sparki programs. Other modules (also called libraries) exist in python such as string, math, random, sys, os and datetime. 
 
-getName()
-	Returns the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you’ll get a garbage value.
-
 getUptime()
 	Returns the number of milliseconds since the Sparki was initialized; returns -1 if Sparki has not been initialized.
 
 humanTime()
 	Returns the time in a human readable format like "Fri Apr 5 19:50:05 2016"
 
-init(“[COM?]”)
-	Connects your computer to the Sparki via Bluetooth. On a Mac, instead of using a COM port, you will use a device path which looks something like “/dev/tty.ArcBotics-DevB”. You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device.
+init("[COM?]")
+	Connects your computer to the Sparki via Bluetooth. On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device.
 
 randint(start, stop)
 	Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import * ). 
@@ -41,9 +38,6 @@ setDebug(level)
 
 setSparkiDebug(level)
 	Sets the level of debug output for the Sparki itself library. The SPARKI_DEBUGS capability must be set to True (and it is False for all "standard" versions of the Sparki library to save memory on the Sparki). Possible values (from least verbose to most verbose) are DEBUG_ALWAYS, DEBUG_CRITICAL, DEBUG_ERROR, DEBUG_WARN, DEBUG_INFO, DEBUG_DEBUG. The DEBUG levels are constant integer values defined in the sparki_learning library. The default is DEBUG_WARN, which is a fairly sane level of verbosity. Messages will be displayed on the Sparki's LCD. You probably never will use this function.
-	
-setName(name)
-	Sets the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you’ll get a garbage value.
 
 wait(time)
 	Waits time seconds before moving to the next command.
@@ -82,7 +76,7 @@ gripperStop()
 	Stops the gripper motor. 
 
 motors(LEFT_speed, RIGHT_speed, time)
-	Starts the robot’s wheel motors. The left wheel will move at LEFT_speed. The right wheel will move at RIGHT_speed. The wheels will move for time seconds. time is optional and may be omitted. LEFT_speed and RIGHT_speed are speed variables as defined in the section on Common Variables.
+	Starts the robot's wheel motors. The left wheel will move at LEFT_speed. The right wheel will move at RIGHT_speed. The wheels will move for time seconds. time is optional and may be omitted. LEFT_speed and RIGHT_speed are speed variables as defined in the section on Common Variables.
 
 moveBackwardcm(distance)
 	Moves the robot backward distance centimeters. 
@@ -91,7 +85,7 @@ moveForwardcm(distance)
 	Moves the robot backward distance centimeters. 
 
 stop()
-	Stops the robot’s motors immediately. Only necessary if the robot is presently in motion (e.g. for the motors() or move() commands).
+	Stops the robot's motors immediately. Only necessary if the robot is presently in motion (e.g. for the motors() or move() commands).
 
 turnBy(degrees)
 	Turns the robot by a number of degrees. degrees can be any number. A negative degrees turns the robot left (counterclockwise). A positive degrees turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).
@@ -117,7 +111,7 @@ getAngle()
 	Return the number of degrees that Sparki has turned using the turnBy() command, or since setAngle() was last called. turnRight(), turnLeft() and motors() do not update the angle.
 
 getPosition()
-	Return Sparki’s current position on the grid as a list. The x position is the first element of the list (i.e. [0]) and the y position is the second element of the list (i.e. [1]).
+	Return Sparki's current position on the grid as a list. The x position is the first element of the list (i.e. [0]) and the y position is the second element of the list (i.e. [1]).
 
 moveBy(x, y, turnBack)
 	Move the robot to grid position x, y as though the current position were 0,0. For example, if the robot is at 3,4, moveBy(1,1) would move Sparki to 4,5. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.
@@ -126,13 +120,13 @@ moveTo(x, y, turnBack)
 	Move the robot to grid position x, y. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.
 
 resetPosition()
-	Sets Sparki’s current position on the grid to 0,0 and its angle to 0. The same as calling setAngle(0) and setPosition(0,0). Does not move the robot.
+	Sets Sparki's current position on the grid to 0,0 and its angle to 0. The same as calling setAngle(0) and setPosition(0,0). Does not move the robot.
 
 setAngle(newAngle)
-	Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki – to turn to an angle relative to the robot’s starting position, use turnTo(). 
+	Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki – to turn to an angle relative to the robot's starting position, use turnTo(). 
 
 setPosition(x, y)
-	Sets Sparki’s current position on the grid. Does not move the robot.
+	Sets Sparki's current position on the grid. Does not move the robot.
 
 
 Input Commands
@@ -140,16 +134,16 @@ Input Commands
 Several of the commands (ask(), askQuestion(), joystick(), pickAFile() and yesorno()) will create GUI windows if tkinter is available. If it is not, the library will fall back to pure text.
 
 ask(message, title)
-	Creates window with message. User is allowed to input a response. Returns the user’s response. See the section on Common Variables for an explanation of message. title is optional and defaults to “Question”.
+	Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to "Question".
 
 askQuestion(message, options, title)
-	Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user’s response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to “Question”.
+	Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to "Question".
 
 gamepad()
 	Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or – on the remote to end remote control.
 
 input(message)
-	Prints message to the shell. User is allowed to input a response. Returns the user’s response. See the section on Common Variables for an explanation of message. (This command is built in to Python.)
+	Prints message to the shell. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. (This command is built in to Python.)
 
 joystick()
 	Control Sparki using a GUI window. Allows movement and opening and closing of the gripper.
@@ -158,7 +152,7 @@ pickAFile()
 	Creates window with a file dialog so that the user can pick a file. Might be useful for reading from or saving to a file.
 
 yesorno(message)
-	Creates window with message, with buttons labeled with “yes” and “no”. Returns the user’s response (which will be either “yes” or “no”). See the section on Common Variables for an explanation of message.
+	Creates window with message, with buttons labeled with "yes" and "no". Returns the user's response (which will be either "yes" or "no"). See the section on Common Variables for an explanation of message.
 
 
 Output Commands
@@ -167,28 +161,31 @@ beep(time, freq)
 	Plays a tone at freq for time seconds through your computer. Both are optional (freq defaults to 2800 and time to 200). A list of common frequencies can be found at http://en.wikipedia.org/wiki/Piano_key_frequencies. 
 
 LCDclear(update)
-	Clears (makes blank) Sparki’s LCD. Note that you must call LCDupdate() to display the message once it’s printed if you set update to False.
+	Clears (makes blank) Sparki's LCD. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 
 LCDdrawLine(X1, Y1, X2, Y2, update)
-	Draws a line from X1, Y1 to X2, Y2 on the LCD. The X coordinates can be from 0 to 127. The Y coordinates can be from 0 to 63. Note that you must call LCDupdate() to display the line once it’s drawn if you set update to False.
+	Draws a line from X1, Y1 to X2, Y2 on the LCD. The X coordinates can be from 0 to 127. The Y coordinates can be from 0 to 63. Note that you must call LCDupdate() to display the line once it's drawn if you set update to False.
 
 LCDdrawPixel(X,Y, update)
-	Draws the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it’s drawn if you set update to False.
+	Draws the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.
 
 LCDdrawString(X, Y, message, update)
-	Prints message to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it’s printed if you set update to False.
+	Prints message to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 	
 LCDprint(message, update)
-	Prints message to the LCD on the back of Sparki. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it’s printed if you set update to False.
+	Prints message to the LCD on the back of Sparki. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 
 LCDprintLn(message, update)
-	Prints message to the LCD on the back of Sparki, and go to the next line. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it’s printed if you set update to False.
+	Prints message to the LCD on the back of Sparki, and go to the next line. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
+
+LCDreadPixel(X,Y)
+	Returns True if the color of the pixel at X, Y on the LCD is black; otherwise returns False. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63.
 
 LCDupdate()
-	Updates the Sparki’s LCD with anything new you’ve printed to it since the last update.
+	Updates the Sparki's LCD with anything new you've printed to it since the last update.
 
 print(message)
-	Prints message to the screen. See the section on Common Variables for an explanation of message. print() is built in to Python and has other useful options, but they go beyond what you’re likely to encounter routinely. 
+	Prints message to the screen. See the section on Common Variables for an explanation of message. print() is built in to Python and has other useful options, but they go beyond what you're likely to encounter routinely. 
 
 setRGBLED(red, green, blue)
 	Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors.
@@ -200,34 +197,34 @@ setStatusLED(brightness)
 Sensor Commands
 -----------------------------------
 compass()
-	Returns Sparki’s current compass heading.
+	Returns Sparki's current compass heading.
 
 getAccel()
-	Returns the current values of Sparki’s 3 accelerometers in a list. Accelerometers measure acceleration (primarily due to gravity) and can tell you the orientation of Sparki. The library includes convenience functions getAccelX(), getAccelY(), and getAccelZ() if you only want one sensor value. 
+	Returns the current values of Sparki's 3 accelerometers in a list. Accelerometers measure acceleration (primarily due to gravity) and can tell you the orientation of Sparki. The library includes convenience functions getAccelX(), getAccelY(), and getAccelZ() if you only want one sensor value. 
 
 getBattery()
-	Returns the current voltage of Sparki’s batteries. Anything below around 4 is low. Should be just below 6 with new batteries.
+	Returns the current voltage of Sparki's batteries. Anything below around 4 is low. Should be just below 6 with new batteries.
 
 getBright(position)
-	Returns the brightness value in front of the robot from position. A higher number indicates more light. position is the literal string “left”, “center”, or “right” (or the number 0 for “left”, 1 for “center”, or 2 for “right”). position may be omitted, in which case this returns a list of three values representing the “left”, “center”, and “right” sensors.
+	Returns the brightness value in front of the robot from position. A higher number indicates more light. position is the literal string "left", "center", or "right" (or the number 0 for "left", 1 for "center", or 2 for "right"). position may be omitted, in which case this returns a list of three values representing the "left", "center", and "right" sensors.
 
 getLine(position)
 	Returns the value of the line sensor in position. The sensor is actually testing the reflection of an infrared light, and is only accurate with a high amount of contrast (e.g. a black line on a white surface). position may be any number 0 through 4: 0 is the line sensor on the left edge, 1 is the left middle, 2 is the middle, 3 is the right middle, and 4 is the left edge. position may be omitted, in which case getLine() returns a list of five values representing all line sensors.
 
 getMag()
-	Returns the current values of Sparki’s 3 magnetometers in a list. Magnetometers measure magnetic fields around the robot. The library includes convenience functions getMagX(), getMagY(), and getMagZ() if you only want one sensor value. 
+	Returns the current values of Sparki's 3 magnetometers in a list. Magnetometers measure magnetic fields around the robot. The library includes convenience functions getMagX(), getMagY(), and getMagZ() if you only want one sensor value. 
 
 getObstacle(position)
-	Returns a number which is the number of centimeters the Sparki believes the closest object is. position is the literal string “left”, “center”, or “right” (or the number of degrees you want to turn the servo – see the servo command for more information). position may be omitted, in which case getObstacle() returns a list of three values representing the “left”, “center”, and “right” values.
+	Returns a number which is the number of centimeters the Sparki believes the closest object is. position is the literal string "left", "center", or "right" (or the number of degrees you want to turn the servo – see the servo command for more information). position may be omitted, in which case getObstacle() returns a list of three values representing the "left", "center", and "right" values.
 
 ping()
-	Returns the number of centimeters to the closest object directly in front of Sparki’s head. You can turn the head with servo(position) and then get a distance with ping(). 
+	Returns the number of centimeters to the closest object directly in front of Sparki's head. You can turn the head with servo(position) and then get a distance with ping(). 
 
 senses()
 	Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text.
 
 servo(position)
-	Turns the servo (sparki’s head) to position. position is a number between -90 and 90, where -90 is directly to the left, 0 is straight ahead, and 90 is directly to the right. 
+	Turns the servo (sparki's head) to position. position is a number between -90 and 90, where -90 is directly to the left, 0 is straight ahead, and 90 is directly to the right. 
 	
 	
 IR Commands
@@ -237,6 +234,23 @@ receiveIR()
 
 sendIR(data)
 	Sends the int data via the IR emitter on the front of the Sparki. *Not well tested*
+	
+	
+EEPROM Commands
+-----------------------------------
+The EEPROM is non-volatile (long-term) storage located on the processor on Sparki (the processor is the chip labeled ATMEGA32U4). The ATMEGA32U4 has 1024 bytes of EEPROM. We use this primarily to store the name of the Sparki (at byte 20), but you can use it to store other stuff. These commands allow you to read and write from the EEPROM.
+
+EEPROMread(location, amount)
+	Reads amount bytes of data at location in the EEPROM. location must be greater than or equal to 0 and less than 1024. Note that it is likely that there's nothing interesting at a particular location unless you've put it there.
+
+EEPROMwrite(location, data)
+	Writes data to location in the EEPROM. location must be greater than or equal to 0 and less than 1024. The length of data plus the location must be less than 1024 (since the EEPROM stops at 1024). Be careful with writing data to the EEPROM, as you don't want to overwrite important things. As a general guideline, keep your writing location greater than 100. 
+
+getName()
+	Returns the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you'll get a garbage value.
+	
+setName(name)
+	Sets the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you'll get a garbage value.
 	
 	
 Synchronization Commands

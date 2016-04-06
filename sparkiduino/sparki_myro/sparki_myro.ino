@@ -43,7 +43,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.0";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 
 /* ***** MESSAGE TERMINATOR ***** */
 const char TERMINATOR = (char)23;      // this terminates every transmission from python
@@ -239,7 +239,6 @@ void LCDerasePixel(int x, int y);
 void LCDprint();
 void motors(int left_speed, int right_speed, float time);
 void setDebugLevel(int level);
-void setRGBLED(int red, int green, int blue);
 void setStatusLED(int brightness);
 void stop();
 void turnBy(float deg);
@@ -951,13 +950,6 @@ void setDebugLevel(int level) {
 #endif // NO_DEBUGS
 
 
-// setRGBLED(int, int, int)
-// sets the RGBLED to the color specified by red, green, and blue
-void setRGBLED(int red, int green, int blue) { 
-  sparki.RGB(red, green, blue);
-} // end setRGBLED()
-
-
 // setStatusLED(int)
 // sets the status LED to brightness -- brightness should be between 0 and 100 (as a percentage)
 void setStatusLED(int brightness) {
@@ -1038,15 +1030,15 @@ void setup() {
   if (battery_level <= LOW_BATTERY) {
     sparki.println("Low batt");
     sparki.updateLCD();
-    setRGBLED( 255, 0, 0 );
+    sparki.RGB( 255, 0, 0 );
     sparki.beep();
   } else {
-    setRGBLED( 0, 255, 0 );
+    sparki.RGB( 0, 255, 0 );
   }
 
   delay(2000);
   
-  setRGBLED( 0, 0, 0 );
+  sparki.RGB( 0, 0, 0 );
 
 #ifdef USE_EEPROM
   char name[EEPROM_NAME_MAX_CHARS];
@@ -1075,11 +1067,22 @@ void loop() {
     }
 #endif // NO_DEBUGS
 
+    /* For any and all commands which have multiple arguments, we must first
+     * get those arguments and then pass them to the function. It appears that
+     * the compiler does not do the getSerial___()'s in the order that they're
+     * written, but the reverse of that -- it's unclear if that's this particular
+     * version of the compiler, or if it's simply that you're not guaranteed
+     * as to the order of calls
+     */
+
     switch (inByte) {
     case COMMAND_BEEP:                // int, int; returns nothing
-      sparki.beep( getSerialInt(), getSerialInt() );
+      {
+      int freq = getSerialInt();
+      int duration = getSerialInt();
+      sparki.beep( freq, duration );
       break;
-
+      }
 #ifndef NO_MAG
     case COMMAND_COMPASS:             // no args; returns float
       sendSerial( sparki.compass() );
@@ -1130,25 +1133,52 @@ void loop() {
 
 #ifndef COMPACT_2
     case COMMAND_LCD_DRAW_CIRCLE:     // int, int, int, int; returns nothing
-      LCDdrawCircle( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() );
+      {
+      int center_x = getSerialInt();
+      int center_y = getSerialInt();
+      int radius = getSerialInt();
+      int filled = getSerialInt();
+      LCDdrawCircle( center_x, center_y, radius, filled );
       break;
+      }
     case COMMAND_LCD_DRAW_RECT:       // int, int, int, int, int; returns nothing
-      LCDdrawRect( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() );
+      {
+      int corner_x = getSerialInt();
+      int corner_y = getSerialInt();
+      int width = getSerialInt();
+      int height = getSerialInt();
+      int filled = getSerialInt();
+      LCDdrawRect( corner_x, corner_y, width, height, filled );
       break;
+      }
 #endif // COMPACT_2
 
     case COMMAND_LCD_DRAW_PIXEL:      // int, int; returns nothing
-      sparki.drawPixel( getSerialInt(), getSerialInt() );
+      {
+      int x = getSerialInt();
+      int y = getSerialInt();
+      sparki.drawPixel( x, y );
       break;
+      }
     case COMMAND_LCD_DRAW_LINE:       // int, int, int, int; returns nothing
-      sparki.drawLine( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() );
+      {
+      int x1 = getSerialInt();
+      int y1 = getSerialInt();
+      int x2 = getSerialInt();
+      int y2 = getSerialInt();
+      sparki.drawLine( x1, y1, x2, y2 );
       break;
+      }
     case COMMAND_LCD_DRAW_STRING:     // int, int, char*; returns nothing
       LCDdrawString();
       break;
     case COMMAND_LCD_ERASE_PIXEL:      // int, int; returns nothing
-      LCDerasePixel( getSerialInt(), getSerialInt() );
+      {
+      int x = getSerialInt();
+      int y = getSerialInt();
+      LCDerasePixel( x, y );
       break;
+      }
     case COMMAND_LCD_PRINT:           // char*; returns nothing
       LCDprint();					  // gets char* in function
       break;
@@ -1157,21 +1187,20 @@ void loop() {
       sparki.println(' ');
       break;
     case COMMAND_LCD_READ_PIXEL:      // int, int; returns nothing
-      sendSerial( sparki.readPixel( getSerialInt(), getSerialInt() ) );
+      {
+      int x = getSerialInt();
+      int y = getSerialInt();
+      sendSerial( sparki.readPixel( x, y ) );
       break;
+      }
     case COMMAND_LCD_UPDATE:          // no args; returns nothing
       sparki.updateLCD();
       break;
     case COMMAND_MOTORS:              // int, int, float; returns nothing
-      { // these braces permit declaration of the below variables for this case only
-        // declaring the variables and assigning them here, and then passing the values to motors
-        // fixes a bug of undetermined origin -- previously, this was done by motors( getSerialInt(), getSerialInt(), getSerialFloat() );
-        // but that resulted in time_length and left_speed being switched -- I have no idea why
-        // for some reason, this fixes the error
+      { 
       int left_speed = getSerialInt();
       int right_speed = getSerialInt();
-      int time_length = getSerialFloat();
-      
+      int time_length = getSerialFloat();     
       motors( left_speed, right_speed, time_length );
       break;
       } // end COMMAND_MOTORS
@@ -1201,8 +1230,13 @@ void loop() {
 #endif // NO_DEBUGS
 
     case COMMAND_SET_RGB_LED:         // int, int, int; returns nothing
-      setRGBLED( getSerialInt(), getSerialInt(), getSerialInt() );
+      {
+      int red = getSerialInt();
+      int green = getSerialInt();
+      int blue = getSerialInt();
+      sparki.RGB( red, green, blue );
       break;
+      }
     case COMMAND_SET_STATUS_LED:      // int; returns nothing
       setStatusLED( getSerialInt() );
       break;
@@ -1221,8 +1255,12 @@ void loop() {
       setName();					  // gets char* in function
       break;
     case COMMAND_EEPROM_READ:         // int, int; returns char*
-      readFromEEPROM( getSerialInt(), getSerialInt() ); // sendSerial is done in the function
+      {
+      int location = getSerialInt();
+      int size = getSerialInt();
+      readFromEEPROM( location, size ); // sendSerial is done in the function
       break;
+      }
     case COMMAND_EEPROM_WRITE:        // int, char*; returns nothing
       writeToEEPROM( getSerialInt() );// gets char* in function
       break;
