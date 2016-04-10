@@ -349,204 +349,450 @@ ul.auto-toc {
 <div class="document" id="sparki-learning-command-quick-reference-v2">
 <h1 class="title">Sparki Learning Command Quick Reference v2</h1>
 
-<p>(this library makes use of Python3  versions of Python &lt;3 but &gt;=2.7 may work)</p>
+<p>(this library makes use of Python3 - versions of Python &lt;3 but &gt;=2.7 may work)</p>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#general-commands" id="id1">General Commands</a></li>
+<li><a class="reference internal" href="#common-variables" id="id2">Common Variables</a></li>
+<li><a class="reference internal" href="#movement-commands" id="id3">Movement Commands</a></li>
+<li><a class="reference internal" href="#grid-commands" id="id4">Grid Commands</a></li>
+<li><a class="reference internal" href="#input-commands" id="id5">Input Commands</a></li>
+<li><a class="reference internal" href="#output-commands" id="id6">Output Commands</a></li>
+<li><a class="reference internal" href="#sensor-commands" id="id7">Sensor Commands</a></li>
+<li><a class="reference internal" href="#ir-commands" id="id8">IR Commands</a></li>
+<li><a class="reference internal" href="#eeprom-commands" id="id9">EEPROM Commands</a></li>
+<li><a class="reference internal" href="#synchronization-commands" id="id10">Synchronization Commands</a></li>
+<li><a class="reference internal" href="#index" id="id11">Index</a></li>
+</ul>
+</div>
 <div class="section" id="general-commands">
-<h1>General Commands</h1>
-<dl class="docutils">
+<h1><a class="toc-backref" href="#id1">General Commands</a></h1>
+<dl class="docutils" id="comment">
 <dt>#</dt>
 <dd>The number sign (often called a hash sign in computer science) indicates the beginning of a comment. Python ignores everything on a line after #. Comments are used to explain what your code is doing and can be very helpful when someone else is reading your code (or you are re-reading it after not having worked on it in some time).</dd>
+</dl>
+<dl class="docutils" id="currenttime">
 <dt>currentTime()</dt>
 <dd>Returns the number of seconds which have occurred since midnight on January 1, 1970. Other functions exist to format this into a more manageable number (like humanTime() below), but this can be used (among other uses) to determine how long a part of a program has taken. For example, to time how long a portion of code takes to execute (in clock time), before the function you could write startingTime = currentTime() and then after the function you could find out the running time with runTime = currentTime() - startingTime</dd>
+</dl>
+<dl class="docutils" id="flrange">
 <dt>flrange(start, stop, step)</dt>
-<dd>Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2. start should be the first value of x you want to calculate, stop should be the last  step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.</dd>
+<dd>Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2. start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.</dd>
+</dl>
+<dl class="docutils" id="importing">
 <dt>from sparki_learning import *</dt>
 <dd>This command imports the sparki_learning module to make all of the Sparki specific commands available. It must appear at the beginning of your Sparki programs. Other modules (also called libraries) exist in python such as string, math, random, sys, os and datetime.</dd>
+</dl>
+<dl class="docutils" id="getuptime">
 <dt>getUptime()</dt>
 <dd>Returns the number of milliseconds since the Sparki was initialized; returns -1 if Sparki has not been initialized.</dd>
+</dl>
+<dl class="docutils" id="humantime">
 <dt>humanTime()</dt>
 <dd>Returns the time in a human readable format like &quot;Fri Apr 5 19:50:05 2016&quot;</dd>
+</dl>
+<dl class="docutils" id="init">
 <dt>init(&quot;[COM?]&quot;)</dt>
 <dd>Connects your computer to the Sparki via Bluetooth. On a Mac, instead of using a COM port, you will use a device path which looks something like &quot;/dev/tty.ArcBotics-DevB&quot;. You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device.</dd>
+</dl>
+<dl class="docutils" id="randint">
 <dt>randint(start, stop)</dt>
-<dd>Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import * ).</dd>
+<dd>Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import randint). Full documentation may be found at <a class="reference external" href="https://docs.python.org/3/library/random.html">https://docs.python.org/3/library/random.html</a></dd>
+</dl>
+<dl class="docutils" id="range">
 <dt>range(start, stop, step)</dt>
-<dd>Returns a list of integers from start to stop by step. start is the number at which the range begins. The range ends one value before stop. The range counts by step. For example, if step is 2, range counts by twos. start and step are optional. start defaults to 0 and step defaults to 1. (This command is built in to Python. In Python 2, you should use the xrange() function instead.)</dd>
+<dd>Returns a list of integers from start to stop by step. start is the number at which the range begins. The range ends one value before stop. The range counts by step. For example, if step is 2, range counts by twos. start and step are optional. start defaults to 0 and step defaults to 1. This command is built in to Python, with full documentation at <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#typesseq-range">https://docs.python.org/3/library/stdtypes.html#typesseq-range</a> . In Python 2, you should use the xrange() function instead with full documentation at <a class="reference external" href="https://docs.python.org/2.7/library/functions.html#xrange">https://docs.python.org/2.7/library/functions.html#xrange</a></dd>
+</dl>
+<dl class="docutils" id="setdebug">
 <dt>setDebug(level)</dt>
 <dd>Sets the level of debug output for the python library. Possible values (from least verbose to most verbose) are DEBUG_ALWAYS, DEBUG_CRITICAL, DEBUG_ERROR, DEBUG_WARN, DEBUG_INFO, DEBUG_DEBUG. The DEBUG levels are constant integer values defined in the sparki_learning library. The default is DEBUG_WARN, which is a fairly sane level of verbosity. DEBUG_INFO will give a message each time a function is entered. DEBUG_DEBUG will output all messages to and from the robot as well.</dd>
+</dl>
+<dl class="docutils" id="setsparkidebug">
 <dt>setSparkiDebug(level)</dt>
 <dd>Sets the level of debug output for the Sparki itself library. The SPARKI_DEBUGS capability must be set to True (and it is False for all &quot;standard&quot; versions of the Sparki library to save memory on the Sparki). Possible values (from least verbose to most verbose) are DEBUG_ALWAYS, DEBUG_CRITICAL, DEBUG_ERROR, DEBUG_WARN, DEBUG_INFO, DEBUG_DEBUG. The DEBUG levels are constant integer values defined in the sparki_learning library. The default is DEBUG_WARN, which is a fairly sane level of verbosity. Messages will be displayed on the Sparki's LCD. You probably never will use this function.</dd>
+</dl>
+<dl class="docutils" id="wait">
 <dt>wait(time)</dt>
 <dd>Waits time seconds before moving to the next command.</dd>
 </dl>
 </div>
 <div class="section" id="common-variables">
-<h1>Common Variables</h1>
+<h1><a class="toc-backref" href="#id2">Common Variables</a></h1>
 <p>Several commands in the myro module use variables for speed and time, including motors(), forward(), backward(), turnLeft(), and turnRight(). wait() makes use only of time. message is used for output and some input functions. file is used for reading data from files and saving data to them.</p>
-<p>distance - a float number of centimeters.</p>
-<p>file - a string value containing an absolute path to a file, or a relative path from the directory where IDLE resides. An absolute path on Windows looks like &quot;C:\Music\musicfile.wav&quot; and on Mac looks like &quot;/home/music/musicfile.wav&quot;. Even on Windows, the backslashes may appear as front slashes.</p>
-<p>message - a value to be output such as a literal string like &quot;Hello, World&quot;, a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be &quot;I am on iteration number &quot; + str(count)</p>
-<p>speed - a value between -1 and 1. Any value less than -1 will be made -1; any value more than 1 will be made 1. A value of 1 means to turn the wheels at full power. A value of -1 means to turn the wheels in the opposite direction at full power. Decimal values mean to use proportionately less than full power (so .5 is half power).</p>
-<p>time - the time in seconds to perform the action. Fractional values will perform for fractional seconds. A value of -1 means to perform the action forever. If time is optional for a command, the value defaults to -1 (meaning that if you omit time, the robot performs the command until you tell it to stop()).</p>
+<p id="distance">distance - a float number of centimeters.</p>
+<p id="file">file - a string value containing an absolute path to a file, or a relative path from the directory where IDLE resides. An absolute path on Windows looks like &quot;C:\Music\musicfile.wav&quot; and on Mac looks like &quot;/home/music/musicfile.wav&quot;. Even on Windows, the backslashes may appear as front slashes.</p>
+<p id="message">message - a value to be output such as a literal string like &quot;Hello, World&quot;, a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be &quot;I am on iteration number &quot; + str(count)</p>
+<p id="speed">speed - a value between -1 and 1. Any value less than -1 will be made -1; any value more than 1 will be made 1. A value of 1 means to turn the wheels at full power. A value of -1 means to turn the wheels in the opposite direction at full power. Decimal values mean to use proportionately less than full power (so .5 is half power).</p>
+<p id="time">time - the time in seconds to perform the action. Fractional values will perform for fractional seconds. A value of -1 means to perform the action forever. If time is optional for a command, the value defaults to -1 (meaning that if you omit time, the robot performs the command until you tell it to stop()).</p>
 </div>
 <div class="section" id="movement-commands">
-<h1>Movement Commands</h1>
-<dl class="docutils">
+<h1><a class="toc-backref" href="#id3">Movement Commands</a></h1>
+<dl class="docutils" id="backward">
 <dt>backward(speed, time)</dt>
-<dd>Move the robot backward at speed speed for time seconds. time is optional and may be omitted. See the section on Common Variables for an explanation of speed and time.</dd>
+<dd>Move the robot backward at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</dd>
+</dl>
+<dl class="docutils" id="forward">
 <dt>forward(speed, time)</dt>
-<dd>Move the robot forward at speed speed for time seconds. time is optional and may be omitted. See the section on Common Variables for an explanation of speed and time.</dd>
+<dd>Move the robot forward at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</dd>
+</dl>
+<dl class="docutils" id="gripperclose">
 <dt>gripperClose(distance)</dt>
-<dd>Closes the gripper on the robot distance centimeters. distance is optional and may be omitted.</dd>
+<dd>Closes the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted.</dd>
+</dl>
+<dl class="docutils" id="gripperopen">
 <dt>gripperOpen(distance)</dt>
-<dd>Opens the gripper on the robot distance centimeters. distance is optional and may be omitted.</dd>
+<dd>Opens the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted.</dd>
+</dl>
+<dl class="docutils" id="gripperstop">
 <dt>gripperStop()</dt>
 <dd>Stops the gripper motor.</dd>
-<dt>motors(LEFT_speed, RIGHT_speed, time)</dt>
-<dd>Starts the robot's wheel motors. The left wheel will move at LEFT_speed. The right wheel will move at RIGHT_speed. The wheels will move for time seconds. time is optional and may be omitted. LEFT_speed and RIGHT_speed are speed variables as defined in the section on Common Variables.</dd>
+</dl>
+<dl class="docutils" id="motors">
+<dt>motors(left_speed, right_speed, time)</dt>
+<dd>Starts the robot's wheel motors. The left wheel will move at left_speed. The right wheel will move at right_speed. The wheels will move for time seconds. time is optional and may be omitted. left_speed and right_speed are <a class="reference internal" href="#speed">speed</a> variables as defined in the section on <a class="reference internal" href="#common-variables">Common Variables</a>.</dd>
+</dl>
+<dl class="docutils" id="movebackwardcm">
 <dt>moveBackwardcm(distance)</dt>
-<dd>Moves the robot backward distance centimeters.</dd>
+<dd>Moves the robot backward <a class="reference internal" href="#distance">distance</a> centimeters.</dd>
+</dl>
+<dl class="docutils" id="moveforwardcm">
 <dt>moveForwardcm(distance)</dt>
-<dd>Moves the robot backward distance centimeters.</dd>
+<dd>Moves the robot backward <a class="reference internal" href="#distance">distance</a> centimeters.</dd>
+</dl>
+<dl class="docutils" id="stop">
 <dt>stop()</dt>
 <dd>Stops the robot's motors immediately. Only necessary if the robot is presently in motion (e.g. for the motors() or move() commands).</dd>
+</dl>
+<dl class="docutils" id="turnby">
 <dt>turnBy(degrees)</dt>
 <dd>Turns the robot by a number of degrees. degrees can be any number. A negative degrees turns the robot left (counterclockwise). A positive degrees turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).</dd>
-<dt>turnTo(degrees)</dt>
-<dd>Turns the robot to the specified heading relative to the value returned by getAngle(). degrees can be any number greater than or equal to 0 and less than 360. A value greater than or equal to 360 or less than 0 will be wrapped around.</dd>
+</dl>
+<dl class="docutils" id="turnleft">
 <dt>turnLeft(speed, time)</dt>
-<dd>Turn the robot left at speed speed for time seconds. time is optional and may be omitted. See the section on Common Variables for an explanation of speed and time.</dd>
+<dd>Turn the robot left at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</dd>
+</dl>
+<dl class="docutils" id="turnright">
 <dt>turnRight(speed, time)</dt>
-<dd>Turn the robot right at speed speed for time seconds. time is optional and may be omitted. See the section on Common Variables for an explanation of speed and time.</dd>
+<dd>Turn the robot right at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</dd>
 </dl>
 </div>
 <div class="section" id="grid-commands">
-<h1>Grid Commands</h1>
+<h1><a class="toc-backref" href="#id4">Grid Commands</a></h1>
 <p>The grid commands implement a pseudo-coordinate plane for use with the Sparki. When you turn the robot on, the robot is assumed to be a 0,0 and facing the positive direction on the y axis. You can use the moveTo() commands to move to a specific point on the grid. Each integer position on the grid is 1cm from the next or previous integer position. For example, 0,1 would be 1cm forward from the starting position of the robot. The robot only updates its grid position when using the grid commands. For example, if you used forward(1,1), that would not update the grid position. If you want to ensure the robot stays somewhere on the grid, only use grid movement commands.</p>
-<dl class="docutils">
+<dl class="docutils" id="drawfunction">
 <dt>drawFunction(function, xvals, scale = 1)</dt>
 <dd>This is a complicated function. drawFunction() draws the function given by the function argument on the coordinate plane. The function argument should be a lambda function. The lambda function given should return the value of the y coordinate given the x. For example, lambda x: x**2 given as the function would graph y=x2. xvals should be an iterator of the values of x you want to use. You may find the flrange() function helpful. For example, drawFunction( lambda x: math.sin(x), flrange(-2, 2.1, .1) ) would draw the sin x from -2 to 2 going a tenth at a time. scale increases the size of the drawing for visibility.</dd>
+</dl>
+<dl class="docutils" id="getangle">
 <dt>getAngle()</dt>
 <dd>Return the number of degrees that Sparki has turned using the turnBy() command, or since setAngle() was last called. turnRight(), turnLeft() and motors() do not update the angle.</dd>
+</dl>
+<dl class="docutils" id="getposition">
 <dt>getPosition()</dt>
 <dd>Return Sparki's current position on the grid as a list. The x position is the first element of the list (i.e. [0]) and the y position is the second element of the list (i.e. [1]).</dd>
+</dl>
+<dl class="docutils" id="moveby">
 <dt>moveBy(x, y, turnBack)</dt>
 <dd>Move the robot to grid position x, y as though the current position were 0,0. For example, if the robot is at 3,4, moveBy(1,1) would move Sparki to 4,5. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.</dd>
+</dl>
+<dl class="docutils" id="moveto">
 <dt>moveTo(x, y, turnBack)</dt>
 <dd>Move the robot to grid position x, y. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.</dd>
+</dl>
+<dl class="docutils" id="resetposition">
 <dt>resetPosition()</dt>
 <dd>Sets Sparki's current position on the grid to 0,0 and its angle to 0. The same as calling setAngle(0) and setPosition(0,0). Does not move the robot.</dd>
+</dl>
+<dl class="docutils" id="setangle">
 <dt>setAngle(newAngle)</dt>
-<dd>Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki  to turn to an angle relative to the robot's starting position, use turnTo().</dd>
+<dd>Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki – to turn to an angle relative to the robot's starting position, use turnTo().</dd>
+</dl>
+<dl class="docutils" id="setposition">
 <dt>setPosition(x, y)</dt>
 <dd>Sets Sparki's current position on the grid. Does not move the robot.</dd>
 </dl>
+<dl class="docutils" id="turnto">
+<dt>turnTo(degrees)</dt>
+<dd>Turns the robot to the specified heading relative to the value returned by getAngle(). degrees can be any number greater than or equal to 0 and less than 360. A value greater than or equal to 360 or less than 0 will be wrapped around. When the robot is initialized, that heading is defined as 0.</dd>
+</dl>
 </div>
 <div class="section" id="input-commands">
-<h1>Input Commands</h1>
+<h1><a class="toc-backref" href="#id5">Input Commands</a></h1>
 <p>Several of the commands (ask(), askQuestion(), joystick(), pickAFile() and yesorno()) will create GUI windows if tkinter is available. If it is not, the library will fall back to pure text.</p>
-<dl class="docutils">
+<dl class="docutils" id="ask">
 <dt>ask(message, title)</dt>
 <dd>Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to &quot;Question&quot;.</dd>
+</dl>
+<dl class="docutils" id="askquestion">
 <dt>askQuestion(message, options, title)</dt>
 <dd>Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to &quot;Question&quot;.</dd>
+</dl>
+<dl class="docutils" id="gamepad">
 <dt>gamepad()</dt>
-<dd>Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or  on the remote to end remote control.</dd>
+<dd>Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or – on the remote to end remote control.</dd>
+</dl>
+<dl class="docutils" id="input">
 <dt>input(message)</dt>
-<dd>Prints message to the shell. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. (This command is built in to Python.)</dd>
+<dd>Prints message to the shell. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. This command is built in to Python.  The full documentation is available at python.org at <a class="reference external" href="https://docs.python.org/3/library/functions.html#input">https://docs.python.org/3/library/functions.html#input</a></dd>
+</dl>
+<dl class="docutils" id="joystick">
 <dt>joystick()</dt>
 <dd>Control Sparki using a GUI window. Allows movement and opening and closing of the gripper.</dd>
+</dl>
+<dl class="docutils" id="pickafile">
 <dt>pickAFile()</dt>
 <dd>Creates window with a file dialog so that the user can pick a file. Might be useful for reading from or saving to a file.</dd>
+</dl>
+<dl class="docutils" id="yesorno">
 <dt>yesorno(message)</dt>
 <dd>Creates window with message, with buttons labeled with &quot;yes&quot; and &quot;no&quot;. Returns the user's response (which will be either &quot;yes&quot; or &quot;no&quot;). See the section on Common Variables for an explanation of message.</dd>
 </dl>
 </div>
 <div class="section" id="output-commands">
-<h1>Output Commands</h1>
-<dl class="docutils">
+<h1><a class="toc-backref" href="#id6">Output Commands</a></h1>
+<dl class="docutils" id="beep">
 <dt>beep(time, freq)</dt>
 <dd>Plays a tone at freq for time seconds through your computer. Both are optional (freq defaults to 2800 and time to 200). A list of common frequencies can be found at <a class="reference external" href="http://en.wikipedia.org/wiki/Piano_key_frequencies">http://en.wikipedia.org/wiki/Piano_key_frequencies</a>.</dd>
+</dl>
+<dl class="docutils" id="lcdclear">
 <dt>LCDclear(update)</dt>
 <dd>Clears (makes blank) Sparki's LCD. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</dd>
+</dl>
+<dl class="docutils" id="lcddrawline">
 <dt>LCDdrawLine(X1, Y1, X2, Y2, update)</dt>
 <dd>Draws a line from X1, Y1 to X2, Y2 on the LCD. The X coordinates can be from 0 to 127. The Y coordinates can be from 0 to 63. Note that you must call LCDupdate() to display the line once it's drawn if you set update to False.</dd>
+</dl>
+<dl class="docutils" id="lcddrawpixel">
 <dt>LCDdrawPixel(X,Y, update)</dt>
 <dd>Draws the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.</dd>
+</dl>
+<dl class="docutils" id="lcddrawstring">
 <dt>LCDdrawString(X, Y, message, update)</dt>
 <dd>Prints message to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</dd>
+</dl>
+<dl class="docutils" id="lcdprint">
 <dt>LCDprint(message, update)</dt>
 <dd>Prints message to the LCD on the back of Sparki. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</dd>
+</dl>
+<dl class="docutils" id="lcdprintln">
 <dt>LCDprintLn(message, update)</dt>
 <dd>Prints message to the LCD on the back of Sparki, and go to the next line. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</dd>
+</dl>
+<dl class="docutils" id="lcdreadpixel">
 <dt>LCDreadPixel(X,Y)</dt>
 <dd>Returns True if the color of the pixel at X, Y on the LCD is black; otherwise returns False. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63.</dd>
+</dl>
+<dl class="docutils" id="lcdupdate">
 <dt>LCDupdate()</dt>
 <dd>Updates the Sparki's LCD with anything new you've printed to it since the last update.</dd>
+</dl>
+<dl class="docutils" id="print">
 <dt>print(message)</dt>
-<dd>Prints message to the screen. See the section on Common Variables for an explanation of message. print() is built in to Python and has other useful options, but they go beyond what you're likely to encounter routinely.</dd>
+<dd>Prints message to the computer screen. See the section on Common Variables for an explanation of message. print() is built in to Python and has other useful options, but they go beyond what you're likely to encounter routinely. The full documentation is available at python.org at <a class="reference external" href="https://docs.python.org/3/library/functions.html#print">https://docs.python.org/3/library/functions.html#print</a></dd>
+</dl>
+<dl class="docutils" id="setrgbled">
 <dt>setRGBLED(red, green, blue)</dt>
 <dd>Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors.</dd>
+</dl>
+<dl class="docutils" id="setstatusled">
 <dt>setStatusLED(brightness)</dt>
 <dd>Sets the status LED to brightness, where brightness is a number from 0 to 100.</dd>
 </dl>
 </div>
 <div class="section" id="sensor-commands">
-<h1>Sensor Commands</h1>
-<dl class="docutils">
+<h1><a class="toc-backref" href="#id7">Sensor Commands</a></h1>
+<dl class="docutils" id="compass">
 <dt>compass()</dt>
 <dd>Returns Sparki's current compass heading.</dd>
+</dl>
+<dl class="docutils" id="getaccel">
 <dt>getAccel()</dt>
 <dd>Returns the current values of Sparki's 3 accelerometers in a list. Accelerometers measure acceleration (primarily due to gravity) and can tell you the orientation of Sparki. The library includes convenience functions getAccelX(), getAccelY(), and getAccelZ() if you only want one sensor value.</dd>
+</dl>
+<dl class="docutils" id="getbattery">
 <dt>getBattery()</dt>
 <dd>Returns the current voltage of Sparki's batteries. Anything below around 4 is low. Should be just below 6 with new batteries.</dd>
+</dl>
+<dl class="docutils" id="getbright">
 <dt>getBright(position)</dt>
 <dd>Returns the brightness value in front of the robot from position. A higher number indicates more light. position is the literal string &quot;left&quot;, &quot;center&quot;, or &quot;right&quot; (or the number 0 for &quot;left&quot;, 1 for &quot;center&quot;, or 2 for &quot;right&quot;). position may be omitted, in which case this returns a list of three values representing the &quot;left&quot;, &quot;center&quot;, and &quot;right&quot; sensors.</dd>
+</dl>
+<dl class="docutils" id="getline">
 <dt>getLine(position)</dt>
 <dd>Returns the value of the line sensor in position. The sensor is actually testing the reflection of an infrared light, and is only accurate with a high amount of contrast (e.g. a black line on a white surface). position may be any number 0 through 4: 0 is the line sensor on the left edge, 1 is the left middle, 2 is the middle, 3 is the right middle, and 4 is the left edge. position may be omitted, in which case getLine() returns a list of five values representing all line sensors.</dd>
+</dl>
+<dl class="docutils" id="getmag">
 <dt>getMag()</dt>
 <dd>Returns the current values of Sparki's 3 magnetometers in a list. Magnetometers measure magnetic fields around the robot. The library includes convenience functions getMagX(), getMagY(), and getMagZ() if you only want one sensor value.</dd>
+</dl>
+<dl class="docutils" id="getobstacle">
 <dt>getObstacle(position)</dt>
-<dd>Returns a number which is the number of centimeters the Sparki believes the closest object is. position is the literal string &quot;left&quot;, &quot;center&quot;, or &quot;right&quot; (or the number of degrees you want to turn the servo  see the servo command for more information). position may be omitted, in which case getObstacle() returns a list of three values representing the &quot;left&quot;, &quot;center&quot;, and &quot;right&quot; values.</dd>
+<dd>Returns a number which is the number of centimeters the Sparki believes the closest object is. position is the literal string &quot;left&quot;, &quot;center&quot;, or &quot;right&quot; (or the number of degrees you want to turn the servo – see the servo command for more information). position may be omitted, in which case getObstacle() returns a list of three values representing the &quot;left&quot;, &quot;center&quot;, and &quot;right&quot; values.</dd>
+</dl>
+<dl class="docutils" id="ping">
 <dt>ping()</dt>
 <dd>Returns the number of centimeters to the closest object directly in front of Sparki's head. You can turn the head with servo(position) and then get a distance with ping().</dd>
+</dl>
+<dl class="docutils" id="senses">
 <dt>senses()</dt>
 <dd>Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text.</dd>
+</dl>
+<dl class="docutils" id="servo">
 <dt>servo(position)</dt>
 <dd>Turns the servo (sparki's head) to position. position is a number between -90 and 90, where -90 is directly to the left, 0 is straight ahead, and 90 is directly to the right.</dd>
 </dl>
 </div>
 <div class="section" id="ir-commands">
-<h1>IR Commands</h1>
-<dl class="docutils">
+<h1><a class="toc-backref" href="#id8">IR Commands</a></h1>
+<dl class="docutils" id="receiveir">
 <dt>receiveIR()</dt>
 <dd>Returns an int received from the IR sensor on the front of the Sparki. You can then convert this int to a more meaningful piece of information. Returns a -1 if no data is available <em>Not well tested</em></dd>
+</dl>
+<dl class="docutils" id="sendir">
 <dt>sendIR(data)</dt>
 <dd>Sends the int data via the IR emitter on the front of the Sparki. <em>Not well tested</em></dd>
 </dl>
 </div>
 <div class="section" id="eeprom-commands">
-<h1>EEPROM Commands</h1>
+<h1><a class="toc-backref" href="#id9">EEPROM Commands</a></h1>
 <p>The EEPROM is non-volatile (long-term) storage located on the processor on Sparki (the processor is the chip labeled ATMEGA32U4). The ATMEGA32U4 has 1024 bytes of EEPROM. We use this primarily to store the name of the Sparki (at byte 20), but you can use it to store other stuff. These commands allow you to read and write from the EEPROM.</p>
-<dl class="docutils">
+<dl class="docutils" id="eepromread">
 <dt>EEPROMread(location, amount)</dt>
 <dd>Reads amount bytes of data at location in the EEPROM. location must be greater than or equal to 0 and less than 1024. Note that it is likely that there's nothing interesting at a particular location unless you've put it there.</dd>
+</dl>
+<dl class="docutils" id="eepromwrite">
 <dt>EEPROMwrite(location, data)</dt>
 <dd>Writes data to location in the EEPROM. location must be greater than or equal to 0 and less than 1024. The length of data plus the location must be less than 1024 (since the EEPROM stops at 1024). Be careful with writing data to the EEPROM, as you don't want to overwrite important things. As a general guideline, keep your writing location greater than 100.</dd>
+</dl>
+<dl class="docutils" id="getname">
 <dt>getName()</dt>
 <dd>Returns the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you'll get a garbage value.</dd>
+</dl>
+<dl class="docutils" id="setname">
 <dt>setName(name)</dt>
 <dd>Sets the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you'll get a garbage value.</dd>
 </dl>
 </div>
 <div class="section" id="synchronization-commands">
-<h1>Synchronization Commands</h1>
+<h1><a class="toc-backref" href="#id10">Synchronization Commands</a></h1>
 <p>The synchronization commands are provided to allow several computers to do something at the same time. In the case of sparki_learning, they are usually used to allow multiple computers to command their respective robots so that the robots can do things together (at the same time). One computer acts as the server, and all other computers act as the clients. The server is told how much time to wait, and then the server communicates that to any clients that connect to the server. When the time expires, the server and clients all return from the synchronization function.</p>
-<dl class="docutils">
+<dl class="docutils" id="start-sync-server">
 <dt>start_sync_server(time, server_port)</dt>
 <dd>Starts the sync server to execute the commands following after time seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open and listen on a port. server_port defaults to port 32216. server_port must be the same on the client and server.</dd>
+</dl>
+<dl class="docutils" id="start-sync-client">
 <dt>start_sync_client(server_ip, server_port)</dt>
 <dd>Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.</dd>
 </dl>
+</div>
+<div class="section" id="index">
+<h1><a class="toc-backref" href="#id11">Index</a></h1>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><a class="reference internal" href="#ask">ask</a></td>
+<td><a class="reference internal" href="#askquestion">askQuestion</a></td>
+<td><a class="reference internal" href="#backward">backward</a></td>
+<td><a class="reference internal" href="#beep">beep</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#comment">comment</a></td>
+<td><a class="reference internal" href="#compass">compass</a></td>
+<td><a class="reference internal" href="#currenttime">currentTime</a></td>
+<td><a class="reference internal" href="#distance">distance</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#drawfunction">drawFunction</a></td>
+<td><a class="reference internal" href="#eepromread">EEPROMread</a></td>
+<td><a class="reference internal" href="#eepromwrite">EEPROMwrite</a></td>
+<td><a class="reference internal" href="#file">file</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#flrange">flrange</a></td>
+<td><a class="reference internal" href="#forward">forward</a></td>
+<td><a class="reference internal" href="#gamepad">gamepad</a></td>
+<td><a class="reference internal" href="#getaccel">getAccel</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#getangle">getAngle</a></td>
+<td><a class="reference internal" href="#getbattery">getBattery</a></td>
+<td><a class="reference internal" href="#getbright">getBright</a></td>
+<td><a class="reference internal" href="#getline">getLine</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#getmag">getMag</a></td>
+<td><a class="reference internal" href="#getname">getName</a></td>
+<td><a class="reference internal" href="#getobstacle">getObstacle</a></td>
+<td><a class="reference internal" href="#getposition">getPosition</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#getuptime">getUptime</a></td>
+<td><a class="reference internal" href="#gripperclose">gripperClose</a></td>
+<td><a class="reference internal" href="#gripperopen">gripperOpen</a></td>
+<td><a class="reference internal" href="#gripperstop">gripperStop</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#humantime">humanTime</a></td>
+<td><a class="reference internal" href="#importing">importing</a></td>
+<td><a class="reference internal" href="#init">init</a></td>
+<td><a class="reference internal" href="#input">input</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#joystick">joystick</a></td>
+<td><a class="reference internal" href="#lcdclear">LCDclear</a></td>
+<td><a class="reference internal" href="#lcddrawline">LCDdrawLine</a></td>
+<td><a class="reference internal" href="#lcddrawpixel">LCDdrawPixel</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#lcddrawstring">LCDdrawString</a></td>
+<td><a class="reference internal" href="#lcdprint">LCDprint</a></td>
+<td><a class="reference internal" href="#lcdprintln">LCDprintLn</a></td>
+<td><a class="reference internal" href="#lcdreadpixel">LCDreadPixel</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#lcdupdate">LCDupdate</a></td>
+<td><a class="reference internal" href="#message">message</a></td>
+<td><a class="reference internal" href="#motors">motors</a></td>
+<td><a class="reference internal" href="#movebackwardcm">moveBackwardcm</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#moveby">moveBy</a></td>
+<td><a class="reference internal" href="#moveforwardcm">moveForwardcm</a></td>
+<td><a class="reference internal" href="#moveto">moveTo</a></td>
+<td><a class="reference internal" href="#pickafile">pickAFile</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#ping">ping</a></td>
+<td><a class="reference internal" href="#print">print</a></td>
+<td><a class="reference internal" href="#randint">randint</a></td>
+<td><a class="reference internal" href="#range">range</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#receiveir">receiveIR</a></td>
+<td><a class="reference internal" href="#resetposition">resetPosition</a></td>
+<td><a class="reference internal" href="#sendir">sendIR</a></td>
+<td><a class="reference internal" href="#senses">senses</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#servo">servo</a></td>
+<td><a class="reference internal" href="#setangle">setAngle</a></td>
+<td><a class="reference internal" href="#setdebug">setDebug</a></td>
+<td><a class="reference internal" href="#setname">setName</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#setposition">setPosition</a></td>
+<td><a class="reference internal" href="#setrgbled">setRGBLED</a></td>
+<td><a class="reference internal" href="#setsparkidebug">setSparkiDebug</a></td>
+<td><a class="reference internal" href="#setstatusled">setStatusLED</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#speed">speed</a></td>
+<td><a class="reference internal" href="#start-sync-client">start_sync_client</a></td>
+<td><a class="reference internal" href="#start-sync-server">start_sync_server</a></td>
+<td><a class="reference internal" href="#stop">stop</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#time">time</a></td>
+<td><a class="reference internal" href="#turnby">turnBy</a></td>
+<td><a class="reference internal" href="#turnleft">turnLeft</a></td>
+<td><a class="reference internal" href="#turnright">turnRight</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#turnto">turnTo</a></td>
+<td><a class="reference internal" href="#wait">wait</a></td>
+<td><a class="reference internal" href="#yesorno">yesorno</a></td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </body>
