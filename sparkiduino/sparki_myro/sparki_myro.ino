@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - April 6, 2016 */
+   last modified - April 11, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -97,13 +97,13 @@ const char COMMAND_LCD_PRINT = '6';     // requires 1 argument: char* string; re
 const char COMMAND_LCD_PRINTLN = '7';   // requires 1 argument: char* string; returns nothing
 const char COMMAND_LCD_READ_PIXEL = '8';    // requires 2 arguments: int x&y; returns int color of pixel at that point
 const char COMMAND_LCD_UPDATE = '9';    // no arguments; returns nothing
-const char COMMAND_MOTORS = 'A';        // requires 3 arguments: int left_speed (1-100), int right_speed (1-100), & float time
+const char COMMAND_MOTORS = 'A';        // requires 3 arguments: int left_speed (-100 to 100), int right_speed (-100 to 100), & float time
                                         // if time < 0, motors will begin immediately and will not stop; returns nothing
 const char COMMAND_BACKWARD_CM = 'B';   // requires 1 argument: int cm to move backward; returns nothing
 const char COMMAND_FORWARD_CM = 'C';    // requires 1 argument: int cm to move forward; returns nothing
 const char COMMAND_PING = 'D';          // no arguments; returns ping at current servo position
-const char COMMAND_RECEIVE_IR = 'E';
-const char COMMAND_SEND_IR = 'F';
+const char COMMAND_RECEIVE_IR = 'E';    // no arguments; returns int IR receiver value (-1 indicates no data available)
+const char COMMAND_SEND_IR = 'F';       // requires 1 argument: int data; returns nothing
 const char COMMAND_SERVO = 'G';         // requires 1 argument: int servo position; returns nothing
 
 #ifndef NO_DEBUGS
@@ -904,7 +904,7 @@ void motors(int left_speed, int right_speed, float time) {
 
 // motors(int,int)
 // moves Sparki's left wheel at left_speed and right wheel at right_speed
-// speed should be a number from 1 to 100 indicating the percentage of power used
+// speed should be a number from -100 to 100 indicating the percentage of power used
 // if the speed is positive, that indicates forward motion on that wheel
 void motors(int left_speed, int right_speed) { 
 #ifndef NO_DEBUGS
@@ -914,7 +914,7 @@ void motors(int left_speed, int right_speed) {
   printDebug(right_speed, DEBUG_DEBUG, 1);
 #endif // NO_DEBUGS
 
-  if (left_speed > 0) {
+  if (left_speed >= 0) {
     sparki.motorRotate(MOTOR_LEFT, DIR_CCW, left_speed);
 //    sparki.println("left_speed is positive");
   } 
@@ -923,7 +923,7 @@ void motors(int left_speed, int right_speed) {
 //    sparki.println("left_speed is negative");
   }
 
-  if (right_speed > 0) {
+  if (right_speed >= 0) {
     sparki.motorRotate(MOTOR_RIGHT, DIR_CW, right_speed);
 //    sparki.println("right_speed is positive");
   } 
