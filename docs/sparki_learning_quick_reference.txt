@@ -2,7 +2,7 @@
 Sparki Learning Command Quick Reference v2
 ======================================================
 
-(this library makes use of Python3 - versions of Python <3 but >=2.7 may work)
+(this library makes use of Python3 - versions of Python <3 but >=2.7 should work)
 
 .. contents:: Contents
 
@@ -147,11 +147,6 @@ moveForwardcm(distance)
 stop()
 	Stops the robot's motors immediately. Only necessary if the robot is presently in motion (e.g. for the motors() or move() commands).
 
-.. _turnBy:
-
-turnBy(degrees)
-	Turns the robot by a number of degrees. degrees can be any number. A negative degrees turns the robot left (counterclockwise). A positive degrees turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).
-
 .. _turnLeft:
 
 turnLeft(speed, time)
@@ -167,7 +162,7 @@ turnRight(speed, time)
 
 Grid Commands
 -----------------------------------
-The grid commands implement a pseudo-coordinate plane for use with the Sparki. When you turn the robot on, the robot is assumed to be a 0,0 and facing the positive direction on the y axis. You can use the moveTo() commands to move to a specific point on the grid. Each integer position on the grid is 1cm from the next or previous integer position. For example, 0,1 would be 1cm forward from the starting position of the robot. The robot only updates its grid position when using the grid commands. For example, if you used forward(1,1), that would not update the grid position. If you want to ensure the robot stays somewhere on the grid, only use grid movement commands.
+The grid commands implement a pseudo-coordinate plane for use with the Sparki. When you turn the robot on, the robot is assumed to be a 0,0 and facing the positive direction on the y axis. You can use the moveTo() commands to move to a specific point on the grid. Each integer position on the grid is 1cm from the next or previous integer position. For example, 0,1 would be 1cm forward from the starting position of the robot. The robot only updates its grid position when using the grid commands. For example, if you used forward(1,1), that would not update the grid position. If you want to ensure the robot stays somewhere on the grid, only use grid movement commands. If you don't care about the grid position, mixing commands is perfectly fine!
 
 .. _drawFunction:
 
@@ -208,6 +203,11 @@ setAngle(newAngle)
 
 setPosition(x, y)
 	Sets Sparki's current position on the grid. Does not move the robot.
+
+.. _turnBy:
+
+turnBy(degrees)
+	Turns the robot by a number of degrees. degrees can be any number. A negative degrees turns the robot left (counterclockwise). A positive degrees turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).
 
 .. _turnTo:
 
@@ -287,6 +287,11 @@ LCDdrawPixel(X,Y, update)
 LCDdrawString(X, Y, message, update)
 	Prints message to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 
+.. _LCDerasePixel:
+
+LCDerasePixel(X,Y, update)
+	Erases the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.
+
 .. _LCDprint:
 	
 LCDprint(message, update)
@@ -296,6 +301,11 @@ LCDprint(message, update)
 
 LCDprintLn(message, update)
 	Prints message to the LCD on the back of Sparki, and go to the next line. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
+
+.. _LCDsetColor:
+
+LCDsetColor(color)
+	Sets the drawing color of the LCD command. Can be used to erase previously drawn things. color of 0 is black, and that's how it starts. color of 1 is white, and would erase things that are black.
 
 .. _LCDreadPixel:
 
@@ -443,7 +453,6 @@ start_sync_client(server_ip, server_port)
 
 Index
 -----------------------------------
-
 ================== ================== ================== ================== 
 
 
@@ -465,25 +474,27 @@ humanTime_         importing_         init_              input_
 
 joystick_          LCDclear_          LCDdrawLine_       LCDdrawPixel_      
 
-LCDdrawString_     LCDprint_          LCDprintLn_        LCDreadPixel_      
+LCDdrawString_     LCDerasePixel_     LCDprint_          LCDprintLn_        
 
-LCDupdate_         message_           motors_            moveBackwardcm_    
+LCDreadPixel_      LCDsetColor_       LCDupdate_         message_           
 
-moveBy_            moveForwardcm_     moveTo_            pickAFile_         
+motors_            moveBackwardcm_    moveBy_            moveForwardcm_     
 
-ping_              print_             randint_           range_             
+moveTo_            pickAFile_         ping_              print_             
 
-receiveIR_         resetPosition_     sendIR_            senses_            
+randint_           range_             receiveIR_         resetPosition_     
 
-servo_             setAngle_          setDebug_          setName_           
+sendIR_            senses_            servo_             setAngle_          
 
-setPosition_       setRGBLED_         setSparkiDebug_    setStatusLED_      
+setDebug_          setName_           setPosition_       setRGBLED_         
 
-speed_             start_sync_client_ start_sync_server_ stop_              
+setSparkiDebug_    setStatusLED_      speed_             start_sync_client_ 
 
-time_              turnBy_            turnLeft_          turnRight_         
+start_sync_server_ stop_              time_              turnBy_            
 
-turnTo_            wait_              yesorno_           
+turnLeft_          turnRight_         turnTo_            wait_              
+
+yesorno_           
 
 ================== ================== ================== ================== 
 

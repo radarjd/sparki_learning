@@ -349,7 +349,7 @@ ul.auto-toc {
 <div class="document" id="sparki-learning-command-quick-reference-v2">
 <h1 class="title">Sparki Learning Command Quick Reference v2</h1>
 
-<p>(this library makes use of Python3 - versions of Python &lt;3 but &gt;=2.7 may work)</p>
+<p>(this library makes use of Python3 - versions of Python &lt;3 but &gt;=2.7 should work)</p>
 <div class="contents topic" id="contents">
 <p class="topic-title first">Contents</p>
 <ul class="simple">
@@ -464,10 +464,6 @@ ul.auto-toc {
 <dt>stop()</dt>
 <dd>Stops the robot's motors immediately. Only necessary if the robot is presently in motion (e.g. for the motors() or move() commands).</dd>
 </dl>
-<dl class="docutils" id="turnby">
-<dt>turnBy(degrees)</dt>
-<dd>Turns the robot by a number of degrees. degrees can be any number. A negative degrees turns the robot left (counterclockwise). A positive degrees turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).</dd>
-</dl>
 <dl class="docutils" id="turnleft">
 <dt>turnLeft(speed, time)</dt>
 <dd>Turn the robot left at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</dd>
@@ -479,7 +475,7 @@ ul.auto-toc {
 </div>
 <div class="section" id="grid-commands">
 <h1><a class="toc-backref" href="#id4">Grid Commands</a></h1>
-<p>The grid commands implement a pseudo-coordinate plane for use with the Sparki. When you turn the robot on, the robot is assumed to be a 0,0 and facing the positive direction on the y axis. You can use the moveTo() commands to move to a specific point on the grid. Each integer position on the grid is 1cm from the next or previous integer position. For example, 0,1 would be 1cm forward from the starting position of the robot. The robot only updates its grid position when using the grid commands. For example, if you used forward(1,1), that would not update the grid position. If you want to ensure the robot stays somewhere on the grid, only use grid movement commands.</p>
+<p>The grid commands implement a pseudo-coordinate plane for use with the Sparki. When you turn the robot on, the robot is assumed to be a 0,0 and facing the positive direction on the y axis. You can use the moveTo() commands to move to a specific point on the grid. Each integer position on the grid is 1cm from the next or previous integer position. For example, 0,1 would be 1cm forward from the starting position of the robot. The robot only updates its grid position when using the grid commands. For example, if you used forward(1,1), that would not update the grid position. If you want to ensure the robot stays somewhere on the grid, only use grid movement commands. If you don't care about the grid position, mixing commands is perfectly fine!</p>
 <dl class="docutils" id="drawfunction">
 <dt>drawFunction(function, xvals, scale = 1)</dt>
 <dd>This is a complicated function. drawFunction() draws the function given by the function argument on the coordinate plane. The function argument should be a lambda function. The lambda function given should return the value of the y coordinate given the x. For example, lambda x: x**2 given as the function would graph y=x2. xvals should be an iterator of the values of x you want to use. You may find the flrange() function helpful. For example, drawFunction( lambda x: math.sin(x), flrange(-2, 2.1, .1) ) would draw the sin x from -2 to 2 going a tenth at a time. scale increases the size of the drawing for visibility.</dd>
@@ -511,6 +507,10 @@ ul.auto-toc {
 <dl class="docutils" id="setposition">
 <dt>setPosition(x, y)</dt>
 <dd>Sets Sparki's current position on the grid. Does not move the robot.</dd>
+</dl>
+<dl class="docutils" id="turnby">
+<dt>turnBy(degrees)</dt>
+<dd>Turns the robot by a number of degrees. degrees can be any number. A negative degrees turns the robot left (counterclockwise). A positive degrees turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).</dd>
 </dl>
 <dl class="docutils" id="turnto">
 <dt>turnTo(degrees)</dt>
@@ -571,6 +571,10 @@ ul.auto-toc {
 <dt>LCDdrawString(X, Y, message, update)</dt>
 <dd>Prints message to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</dd>
 </dl>
+<dl class="docutils" id="lcderasepixel">
+<dt>LCDerasePixel(X,Y, update)</dt>
+<dd>Erases the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.</dd>
+</dl>
 <dl class="docutils" id="lcdprint">
 <dt>LCDprint(message, update)</dt>
 <dd>Prints message to the LCD on the back of Sparki. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</dd>
@@ -578,6 +582,10 @@ ul.auto-toc {
 <dl class="docutils" id="lcdprintln">
 <dt>LCDprintLn(message, update)</dt>
 <dd>Prints message to the LCD on the back of Sparki, and go to the next line. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</dd>
+</dl>
+<dl class="docutils" id="lcdsetcolor">
+<dt>LCDsetColor(color)</dt>
+<dd>Sets the drawing color of the LCD command. Can be used to erase previously drawn things. color of 0 is black, and that's how it starts. color of 1 is white, and would erase things that are black.</dd>
 </dl>
 <dl class="docutils" id="lcdreadpixel">
 <dt>LCDreadPixel(X,Y)</dt>
@@ -742,53 +750,58 @@ ul.auto-toc {
 <td><a class="reference internal" href="#lcddrawpixel">LCDdrawPixel</a></td>
 </tr>
 <tr><td><a class="reference internal" href="#lcddrawstring">LCDdrawString</a></td>
+<td><a class="reference internal" href="#lcderasepixel">LCDerasePixel</a></td>
 <td><a class="reference internal" href="#lcdprint">LCDprint</a></td>
 <td><a class="reference internal" href="#lcdprintln">LCDprintLn</a></td>
-<td><a class="reference internal" href="#lcdreadpixel">LCDreadPixel</a></td>
 </tr>
-<tr><td><a class="reference internal" href="#lcdupdate">LCDupdate</a></td>
+<tr><td><a class="reference internal" href="#lcdreadpixel">LCDreadPixel</a></td>
+<td><a class="reference internal" href="#lcdsetcolor">LCDsetColor</a></td>
+<td><a class="reference internal" href="#lcdupdate">LCDupdate</a></td>
 <td><a class="reference internal" href="#message">message</a></td>
-<td><a class="reference internal" href="#motors">motors</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#motors">motors</a></td>
 <td><a class="reference internal" href="#movebackwardcm">moveBackwardcm</a></td>
-</tr>
-<tr><td><a class="reference internal" href="#moveby">moveBy</a></td>
+<td><a class="reference internal" href="#moveby">moveBy</a></td>
 <td><a class="reference internal" href="#moveforwardcm">moveForwardcm</a></td>
-<td><a class="reference internal" href="#moveto">moveTo</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#moveto">moveTo</a></td>
 <td><a class="reference internal" href="#pickafile">pickAFile</a></td>
-</tr>
-<tr><td><a class="reference internal" href="#ping">ping</a></td>
+<td><a class="reference internal" href="#ping">ping</a></td>
 <td><a class="reference internal" href="#print">print</a></td>
-<td><a class="reference internal" href="#randint">randint</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#randint">randint</a></td>
 <td><a class="reference internal" href="#range">range</a></td>
-</tr>
-<tr><td><a class="reference internal" href="#receiveir">receiveIR</a></td>
+<td><a class="reference internal" href="#receiveir">receiveIR</a></td>
 <td><a class="reference internal" href="#resetposition">resetPosition</a></td>
-<td><a class="reference internal" href="#sendir">sendIR</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#sendir">sendIR</a></td>
 <td><a class="reference internal" href="#senses">senses</a></td>
-</tr>
-<tr><td><a class="reference internal" href="#servo">servo</a></td>
+<td><a class="reference internal" href="#servo">servo</a></td>
 <td><a class="reference internal" href="#setangle">setAngle</a></td>
-<td><a class="reference internal" href="#setdebug">setDebug</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#setdebug">setDebug</a></td>
 <td><a class="reference internal" href="#setname">setName</a></td>
-</tr>
-<tr><td><a class="reference internal" href="#setposition">setPosition</a></td>
+<td><a class="reference internal" href="#setposition">setPosition</a></td>
 <td><a class="reference internal" href="#setrgbled">setRGBLED</a></td>
-<td><a class="reference internal" href="#setsparkidebug">setSparkiDebug</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#setsparkidebug">setSparkiDebug</a></td>
 <td><a class="reference internal" href="#setstatusled">setStatusLED</a></td>
-</tr>
-<tr><td><a class="reference internal" href="#speed">speed</a></td>
+<td><a class="reference internal" href="#speed">speed</a></td>
 <td><a class="reference internal" href="#start-sync-client">start_sync_client</a></td>
-<td><a class="reference internal" href="#start-sync-server">start_sync_server</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#start-sync-server">start_sync_server</a></td>
 <td><a class="reference internal" href="#stop">stop</a></td>
-</tr>
-<tr><td><a class="reference internal" href="#time">time</a></td>
+<td><a class="reference internal" href="#time">time</a></td>
 <td><a class="reference internal" href="#turnby">turnBy</a></td>
-<td><a class="reference internal" href="#turnleft">turnLeft</a></td>
-<td><a class="reference internal" href="#turnright">turnRight</a></td>
 </tr>
-<tr><td><a class="reference internal" href="#turnto">turnTo</a></td>
+<tr><td><a class="reference internal" href="#turnleft">turnLeft</a></td>
+<td><a class="reference internal" href="#turnright">turnRight</a></td>
+<td><a class="reference internal" href="#turnto">turnTo</a></td>
 <td><a class="reference internal" href="#wait">wait</a></td>
-<td><a class="reference internal" href="#yesorno">yesorno</a></td>
+</tr>
+<tr><td><a class="reference internal" href="#yesorno">yesorno</a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>

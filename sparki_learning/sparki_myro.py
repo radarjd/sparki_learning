@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: April 6, 2016
+# Last Modified: April 14, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -36,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.2.0"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.2.1"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -61,6 +61,9 @@ EXT_LCD_1 = False           # EEPROMread(), EEPROMwrite(), LCDdrawLine(), LCDdra
 SECS_PER_CM = .42       # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
 SECS_PER_DEGREE = .035  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
 MAX_TRANSMISSION = 20   # maximum message length is 20 to conserve Sparki's limited RAM
+
+LCD_BLACK = 0           # set in Sparki.h
+LCD_WHITE = 1           # set in Sparki.h
 
 
 # ***** SERIAL TIMEOUT ***** #
@@ -91,10 +94,10 @@ COMMAND_CODES = {
                     'LCD_DRAW_PIXEL':'3', # requires 2 arguments: int x&y; returns nothing
                     ##'LCD_DRAW_RECT':'4',# requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing 
                     'LCD_DRAW_STRING':'5',# requires 3 arguments: int x (column), int line_number, and char* string; returns nothing; EXT_LCD_1 must be True
-                    'LCD_ERASE_PIXEL':'T',# requires 2 arguments: int x&y; returns nothing
                     'LCD_PRINT':'6',      # requires 1 argument: char* string; returns nothing
                     'LCD_PRINTLN':'7',    # requires 1 argument: char* string; returns nothing
                     'LCD_READ_PIXEL':'8', # requires 2 arguments: int x&y; returns int color of pixel at that point; EXT_LCD_1 must be True
+                    'LCD_SET_COLOR':'T',  # requires 1 argument: int color; returns nothing; EXT_LCD_1 must be True
                     'LCD_UPDATE':'9',     # no arguments; returns nothing
                     'MOTORS':'A',         # requires 3 arguments: int left_speed (1-100), int right_speed (1-100), & float time
                                                             # if time < 0, motors will begin immediately and will not stop; returns nothing
@@ -168,6 +171,7 @@ SPARKI_CAPABILITIES = { "z": [ True, True, False, False, False, False, False ],
                        "DEBUG": [ True, True, True, False, False, False, False ],
                        "DEBUG-ACCEL": [ False, True, True, False, False, False, False ],
                        "DEBUG-EEPROM": [ True, True, True, True, False, False, False ],
+                       "DEBUG-LCD": [ False, False, True, False, True, False, False ],
                        "DEBUG-MAG": [ True, False, True, False, False, False, False ],
                        "0.2 No Mag / No Accel": [ True, True, False, False, False, False, False ],
                        "0.8.3 Mag / Accel On": [ False, False, False, False, False, False, False ],
@@ -177,7 +181,8 @@ SPARKI_CAPABILITIES = { "z": [ True, True, False, False, False, False, False ],
                        "1.0.0": [ False, False, False, True, False, False, False ],   
                        "1.0.1": [ False, False, False, True, True, False, False ],   
                        "1.1.0": [ False, False, False, True, True, False, False ],   
-                       "1.1.1": [ False, False, False, True, True, False, False ] }   
+                       "1.1.1": [ False, False, False, True, True, False, False ],   
+                       "1.1.2": [ False, False, False, True, True, False, False ] }   
 
 ########### END OF CONSTANTS ###########
 
@@ -188,6 +193,8 @@ centimeters_moved = 0           # this stores the sum of centimeters moved forwa
                                 # or moveBackwardcm() functions; forward movement is positive, and backwards movement is negative
                                 # used implicitly by moveTo() and moveBy()
                                 # I don't have a use for this right now either...
+
+current_lcd_color = LCD_BLACK   # this is the color that an LCDdraw command will draw in -- can be LCD_BLACK or LCD_WHITE
                                 
 degrees_turned = 0              # this stores the sum of degrees turned using the turnBy() function; positive is clockwise
                                 # and negative is counterclockwise
@@ -1470,7 +1477,7 @@ def LCDdrawString(x, y, message, update = True):
         nothing
     """
     if not EXT_LCD_1:
-        printDebug("LCDdrawString not be implemented on Sparki", DEBUG_CRITICAL)
+        printDebug("LCDdrawString not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
     printDebug("In LCDdrawString, x is " + str(x) + ", y is " + str(y) + ", message is " + str(message), DEBUG_INFO)
@@ -1484,6 +1491,28 @@ def LCDdrawString(x, y, message, update = True):
 
     if update:
         LCDupdate()
+        
+
+def LCDerasePixel(x, y, update = True):
+    """ Erases (makes blank) a pixel on the LCD
+
+        arguments:
+        x - int x coordinate for the pixel, must be <= 127
+        y - int y coordinate for the pixel, must be <= 63
+        update - True (default) if you want Sparki to update the display
+
+        returns:
+        nothing
+    """
+    if not EXT_LCD_1:
+        printDebug("LCDerasePixel not implemented on Sparki", DEBUG_CRITICAL)
+        raise NotImplementedError
+
+    printDebug("In LCDerasePixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
+
+    LCDsetColor( LCD_WHITE )
+    LCDdrawPixel( x, y, update )
+    LCDsetColor( LCD_BLACK )
 
 
 def LCDprint(message, update = True):
@@ -1533,7 +1562,7 @@ def LCDreadPixel(x, y):
         bool - True if the pixel is black
     """
     if not EXT_LCD_1:
-        printDebug("LCDreadPixel not be implemented on Sparki", DEBUG_CRITICAL)
+        printDebug("LCDreadPixel not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
     printDebug("In LCDredPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
@@ -1550,6 +1579,32 @@ def LCDreadPixel(x, y):
         return True
     else:
         return False
+        
+
+def LCDsetColor(color = LCD_BLACK):
+    """ Erases (makes blank) a pixel on the LCD
+
+        arguments:
+        x - int x coordinate for the pixel, must be <= 127
+        y - int y coordinate for the pixel, must be <= 63
+        update - True (default) if you want Sparki to update the display
+
+        returns:
+        nothing
+    """
+    global current_lcd_color
+
+    if not EXT_LCD_1:
+        printDebug("LCDsetColor not implemented on Sparki", DEBUG_CRITICAL)
+        raise NotImplementedError
+
+    printDebug("In LCDsetColor, color is " + str(color), DEBUG_INFO)
+
+    args = [ color ]
+
+    sendSerial( COMMAND_CODES["LCD_SET_COLOR"], args )
+
+    current_lcd_color = color
 
 
 def LCDupdate():
