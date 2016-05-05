@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: April 14, 2016
+# Last Modified: April 30, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -36,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.2.1"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.2.2"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -167,22 +167,22 @@ SERVO_RIGHT = 80
 # this is used in init to update the capabilities of the Sparki -- you could use this so that the library can
 #   work with different versions of the Sparki library
 # The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
-SPARKI_CAPABILITIES = { "z": [ True, True, False, False, False, False, False ],
-                       "DEBUG": [ True, True, True, False, False, False, False ],
-                       "DEBUG-ACCEL": [ False, True, True, False, False, False, False ],
-                       "DEBUG-EEPROM": [ True, True, True, True, False, False, False ],
-                       "DEBUG-LCD": [ False, False, True, False, True, False, False ],
-                       "DEBUG-MAG": [ True, False, True, False, False, False, False ],
-                       "0.2 No Mag / No Accel": [ True, True, False, False, False, False, False ],
-                       "0.8.3 Mag / Accel On": [ False, False, False, False, False, False, False ],
-                       "0.9.6": [ False, False, False, True, False, False, False ],
-                       "0.9.7": [ False, False, False, True, False, False, False ],   
-                       "0.9.8": [ False, False, False, True, False, False, False ],   
-                       "1.0.0": [ False, False, False, True, False, False, False ],   
-                       "1.0.1": [ False, False, False, True, True, False, False ],   
-                       "1.1.0": [ False, False, False, True, True, False, False ],   
-                       "1.1.1": [ False, False, False, True, True, False, False ],   
-                       "1.1.2": [ False, False, False, True, True, False, False ] }   
+SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
+                       "DEBUG": ( True, True, True, False, False, False, False ),
+                       "DEBUG-ACCEL": ( False, True, True, False, False, False, False ),
+                       "DEBUG-EEPROM": ( True, True, True, True, False, False, False ),
+                       "DEBUG-LCD": ( False, False, True, False, True, False, False ),
+                       "DEBUG-MAG": ( True, False, True, False, False, False, False ),
+                       "0.2 No Mag / No Accel": ( True, True, False, False, False, False, False ),
+                       "0.8.3 Mag / Accel On": ( False, False, False, False, False, False, False ),
+                       "0.9.6": ( False, False, False, True, False, False, False ),
+                       "0.9.7": ( False, False, False, True, False, False, False ),   
+                       "0.9.8": ( False, False, False, True, False, False, False ),   
+                       "1.0.0": ( False, False, False, True, False, False, False ),   
+                       "1.0.1": ( False, False, False, True, True, False, False ),   
+                       "1.1.0": ( False, False, False, True, True, False, False ),   
+                       "1.1.1": ( False, False, False, True, True, False, False ),   
+                       "1.1.2": ( False, False, False, True, True, False, False ) }   
 
 ########### END OF CONSTANTS ###########
 
@@ -501,7 +501,7 @@ def sendSerial(command, args = None):
         printDebug("No command given", DEBUG_ALWAYS)
         raise RuntimeError
 
-    command_queue.append( [ command, args ] )  # keep track of every command sent
+    command_queue.append( ( command, args ) )  # keep track of every command sent
 
     waitForSync()           # be sure Sparki is available before sending    
     printDebug("In sendSerial, Sending command - " + command, DEBUG_DEBUG)
@@ -835,7 +835,7 @@ def EEPROMwrite(location, data):
     printDebug("In EEPROMwrite, location is " + str(location) + " and data is " + str(data), DEBUG_INFO)
 
     if location > EEPROM_MAX_ADDRESS:
-        printDebug("In EEPROMread, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
+        printDebug("In EEPROMwrite, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
 
     location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
 
@@ -899,7 +899,7 @@ def getAccel():
         none
         
         returns:
-        list of 3 floats representing the X, Y, and Z sensors (in that order)
+        tuple of 3 floats representing the X, Y, and Z sensors (in that order)
     """
     if NO_ACCEL:
         printDebug("Accelerometers not implemented on Sparki", DEBUG_CRITICAL)
@@ -908,7 +908,7 @@ def getAccel():
     printDebug("In getAccel", DEBUG_INFO)
         
     sendSerial( COMMAND_CODES["GET_ACCEL"] )
-    result = [ getSerialFloat(), getSerialFloat(), getSerialFloat() ]
+    result = ( getSerialFloat(), getSerialFloat(), getSerialFloat() )
     return result
     
     
@@ -992,7 +992,7 @@ def getBright(position = LIGHT_SENS_RIGHT + 3):
         
         returns:
         int - value of sensor at position OR
-        list of ints - values of left, middle, and right sensors (in that order)
+        tuple of ints - values of left, middle, and right sensors (in that order)
     """
     
     return getLight(position)           # for library compatibility, this is just a synonym of getLight()
@@ -1013,7 +1013,7 @@ def getLight(position = LIGHT_SENS_RIGHT + 3):
         
         returns:
         int - value of sensor at position OR
-        list of ints - values of left, middle, and right sensors (in that order)
+        tuple of ints - values of left, middle, and right sensors (in that order)
     """
     printDebug("In getLight, position is " + str(position), DEBUG_INFO)
     
@@ -1042,7 +1042,7 @@ def getLine(position = LINE_EDGE_RIGHT + 5):
         
         returns:
         int - value of sensor at position OR
-        list of ints - values of edge left, left, middle, right, and edge right sensors (in that order)
+        tuple of ints - values of edge left, left, middle, right, and edge right sensors (in that order)
     """
     printDebug("In getLine, position is " + str(position), DEBUG_INFO)
     
@@ -1069,7 +1069,7 @@ def getMag():
         none
         
         returns:
-        list of 3 floats representing the X, Y, and Z sensors (in that order)
+        tuple of 3 floats representing the X, Y, and Z sensors (in that order)
     """
     if NO_MAG:
         printDebug("Magnetometers not implemented on Sparki", DEBUG_CRITICAL)
@@ -1078,7 +1078,7 @@ def getMag():
     printDebug("In getMag", DEBUG_INFO)
         
     sendSerial( COMMAND_CODES["GET_MAG"] )
-    result = [ getSerialFloat(), getSerialFloat(), getSerialFloat() ]
+    result = ( getSerialFloat(), getSerialFloat(), getSerialFloat() )
     return result
     
     
@@ -1153,18 +1153,18 @@ def getObstacle(position = "all"):
 
         returns:
         integer - value of sensor at position OR
-        list of integers - value of sensor at each position
+        tuple of integers - value of sensor at each position [left, center, right]
     """
     printDebug("In getObstacle, position is " + str(position), DEBUG_INFO)
     
     if position == "left":
         position = SERVO_LEFT
-    elif position == "center":
+    elif position == "center" or position == "middle":
         position = SERVO_CENTER
     elif position == "right":
         position = SERVO_RIGHT
     elif position == "all":
-        result = [ getObstacle( SERVO_RIGHT ), getObstacle( SERVO_LEFT ), getObstacle( SERVO_CENTER ) ] # recursion
+        result = ( getObstacle( SERVO_LEFT ), getObstacle( SERVO_CENTER ), getObstacle( SERVO_RIGHT ) ) # recursion
         return result
 
     position = int( constrain( position, SERVO_LEFT, SERVO_RIGHT ) )
@@ -1185,13 +1185,13 @@ def getPosition():
         none
 
         returns:
-        list containing xpos,ypos (xpos is [0], ypos is [1])
+        tuple containing xpos,ypos (xpos is [0], ypos is [1])
     """
     global xpos, ypos
 
     printDebug("In getPosition", DEBUG_INFO)
     
-    return [xpos, ypos]
+    return (xpos, ypos)
 
     
 def getUptime():
@@ -1332,6 +1332,7 @@ def init(com_port):
         except KeyError:
             printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Learning Python library", DEBUG_ALWAYS)
             printDebug("(to upgrade the library type: easy_install sparki-learning)", DEBUG_ALWAYS)
+            printDebug("Sparki Capabilities will be limited", DEBUG_ALWAYS)
     else:
         printDebug("Sparki communication failed", DEBUG_ALWAYS)
         serial_is_connected = False
@@ -1423,6 +1424,7 @@ def LCDdrawPixel(x, y, update = True):
         returns:
         nothing
     """
+    # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
     printDebug("In LCDdrawPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
     x = int(constrain(x, 0, 127))    # the LCD is 128 x 64
@@ -1449,6 +1451,7 @@ def LCDdrawLine(x1, y1, x2, y2, update = True):
         returns:
         nothing
     """
+    # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
     printDebug("In LCDdrawLine, x1 is " + str(x1) + ", y1 is " + str(y1) + "x2 is " + str(x2) + ", y2 is " + str(y2), DEBUG_INFO)
 
     x1 = int(constrain(x1, 0, 127))    # the LCD is 128 x 64
@@ -1504,6 +1507,7 @@ def LCDerasePixel(x, y, update = True):
         returns:
         nothing
     """
+    # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
     if not EXT_LCD_1:
         printDebug("LCDerasePixel not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
@@ -1582,17 +1586,17 @@ def LCDreadPixel(x, y):
         
 
 def LCDsetColor(color = LCD_BLACK):
-    """ Erases (makes blank) a pixel on the LCD
+    """ Sets the color that LCDdraw commands will draw with; LCD_BLACK will be normal drawing, LCD_WHITE will erase
 
         arguments:
-        x - int x coordinate for the pixel, must be <= 127
-        y - int y coordinate for the pixel, must be <= 63
-        update - True (default) if you want Sparki to update the display
+        color - int color value; should be LCD_BLACK or LCD_WHITE
 
         returns:
         nothing
     """
     global current_lcd_color
+
+    # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
 
     if not EXT_LCD_1:
         printDebug("LCDsetColor not implemented on Sparki", DEBUG_CRITICAL)
@@ -1759,7 +1763,7 @@ def moveBy(dX, dY, turnBack = False):
     """ Moves to the relative x,y coordinate specified (i.e. treats the current position as 0,0 and does a moveTo, but
         maintains the x,y coordinates correctly; for example, if the robot is currently at 3,4, and you give it moveBy(1,2)
         it will move to 4,5)
-		
+        
         When turned on, the robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
 
         The robot's heading is changed from "facing the positive coordinates of the Y axis" every time turnBy() is called
@@ -1808,7 +1812,7 @@ def moveBy(dX, dY, turnBack = False):
 
 def moveTo(newX, newY, turnBack = False): 
     """ Moves to the x,y coordinate specified 
-		
+        
         When turned on, the robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
 
         The robot's heading is changed from "facing the positive coordinates of the Y axis" every time turnBy() is called
@@ -1877,7 +1881,7 @@ def receiveIR():
         none
         
         returns:
-        int - reading 
+        int - reading (-1 indicates no data is available)
     """
     printDebug("In receiveIR", DEBUG_INFO)
 
@@ -2403,7 +2407,7 @@ def turnRight(speed, time = -1):
         printDebug("In turnRight, speed > 1.0, reducing to 1", DEBUG_ERROR)
         speed = 1
         
-    motors( speed, -speed, time)
+    motors( speed, -speed, time )
 
 
 def wait(wait_time):
@@ -2422,7 +2426,7 @@ def wait(wait_time):
     
     wait_time = constrain(wait_time, 0, 600)    # don't wait longer than ten minutes
     
-    time.sleep(wait_time)    # in Python > 3.5, it will wait at least wait_time seconds; prior to that it could be less
+    time.sleep(wait_time)    # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
 
 
 def yesorno(message):

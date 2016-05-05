@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - April 11, 2016 */
+   last modified - April 14, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -43,7 +43,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.2";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 
 /* ***** MESSAGE TERMINATOR ***** */
 const char TERMINATOR = (char)23;      // this terminates every transmission from python
@@ -92,10 +92,10 @@ const char COMMAND_LCD_DRAW_RECT = '4'; // requires 5 arguments: int x&y for sta
 const char COMMAND_LCD_DRAW_LINE = '2'; // requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
 const char COMMAND_LCD_DRAW_PIXEL = '3';    // requires 2 arguments: int x&y; returns nothing
 const char COMMAND_LCD_DRAW_STRING = '5';   // requires 3 arguments: int x (column), int line_number, and char* string; returns nothing
-const char COMMAND_LCD_ERASE_PIXEL = 'T';   // requires 2 arguments: int x&y; returns nothing -- not yet implemented
 const char COMMAND_LCD_PRINT = '6';     // requires 1 argument: char* string; returns nothing
 const char COMMAND_LCD_PRINTLN = '7';   // requires 1 argument: char* string; returns nothing
 const char COMMAND_LCD_READ_PIXEL = '8';    // requires 2 arguments: int x&y; returns int color of pixel at that point
+const char COMMAND_LCD_SET_COLOR = 'T'; // requires 1 argument: int color; returns nothing
 const char COMMAND_LCD_UPDATE = '9';    // no arguments; returns nothing
 const char COMMAND_MOTORS = 'A';        // requires 3 arguments: int left_speed (-100 to 100), int right_speed (-100 to 100), & float time
                                         // if time < 0, motors will begin immediately and will not stop; returns nothing
@@ -234,9 +234,9 @@ void LCDdrawCircle(int center_x, int center_y, int radius, int filled);
 void LCDdrawRect(int corner_x, int corner_y, int width, int height, int filled);
 #endif // COMPACT_2
 
-void LCDdrawString();
-void LCDerasePixel(int x, int y);
+void LCDdrawString(int x, int y);
 void LCDprint();
+void LCDsetColor(int color);
 void motors(int left_speed, int right_speed, float time);
 void setDebugLevel(int level);
 void setStatusLED(int brightness);
@@ -777,24 +777,16 @@ void LCDdrawRect(int corner_x, int corner_y, int width, int height, int filled) 
 #endif // COMPACT_2
 
 
-// LCDdrawString()
+// LCDdrawString(int, int)
 // gets a line number and position, then gets a string from the serial port and prints it
-void LCDdrawString() {
+void LCDdrawString(int x, int y) {
   int maxChars = 20;
   char buf[maxChars];
-  int x = getSerialInt();
-  int y = getSerialInt();
-  
+ 
   getSerialBytes( buf, maxChars );
 
   sparki.drawString( x, y, buf);  
-} // end LCDprint()
-
-
-// LCDerasePixel(int, int) - *not yet implemented*
-// erases the pixel at x,y
-void LCDerasePixel(int x, int y) {
-} // end LCDprint()
+} // end LCDdrawString(int, int)
 
 
 // LCDprint()
@@ -807,6 +799,13 @@ void LCDprint() {
 
   sparki.print(buf);  
 } // end LCDprint()
+
+
+// LCDsetColor(int)
+// sets the drawing color where the color is a constant defined in Sparki.h
+void LCDsetColor(int color) {
+  sparki.setPixelColor( color );  // WHITE is defined in Sparki.h
+} // end LCDsetColor(int)
 
 
 #ifdef USE_EEPROM
@@ -1170,15 +1169,15 @@ void loop() {
       break;
       }
     case COMMAND_LCD_DRAW_STRING:     // int, int, char*; returns nothing
-      LCDdrawString();
-      break;
-    case COMMAND_LCD_ERASE_PIXEL:      // int, int; returns nothing
       {
       int x = getSerialInt();
       int y = getSerialInt();
-      LCDerasePixel( x, y );
+      LCDdrawString( x, y );
       break;
       }
+    case COMMAND_LCD_SET_COLOR:      // int; returns nothing
+      LCDsetColor( getSerialInt() );
+      break;
     case COMMAND_LCD_PRINT:           // char*; returns nothing
       LCDprint();					  // gets char* in function
       break;

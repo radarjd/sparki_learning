@@ -3,10 +3,17 @@ from __future__ import print_function
 
 from sparki_learning import *
 
-# for version 1.1.1 of the library
+# for version 1.1.1 and above of the library
+
+com_port = None     # replace with your COM port or /dev/
+
+setDebug(DEBUG_INFO)
+
+while not com_port:
+    com_port = input("What is your com port or /dev/? ")
 
 print("initializing")
-init("COM3")            # change to your COM port (or /dev/)
+init(com_port)
 
 print("Sparki's name is " + getName())
 
@@ -65,10 +72,10 @@ gripperClose()
 print("turning 90 degrees (right / clockwise)")
 turnBy(90)
 
-print("turning -90 degrees (left / counter-clockwise)")
-turnBy(-90)
+print("turning -30 degrees (left / counter-clockwise)")
+turnBy(-30)
 
-print("turning to 0 degrees (probably incorrect - compass is inconsistent)")
+print("turning to 0 degrees (the original orientation of the robot)")
 turnTo(0)
 
 print("Brightening RGB LED")

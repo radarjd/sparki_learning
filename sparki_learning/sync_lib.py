@@ -1,7 +1,7 @@
 # Sync two or more machines using inet sockets
 #
 # Created: November 19, 2012 by Jeremy Eglen
-# Last Modified: March 22, 2016
+# Last Modified: April 30, 2016
 #
 # included with the sparki_learning library, though that is not required
 #
@@ -164,7 +164,7 @@ def start_sync_server(wait_time = 15, port = PORT):
     try:
         _sync_server( start_time + wait_time, port )
     except:
-        print("timeout or socket error")
+        print("timeout, socket error, or (probably) GO TIME")
     
     print("server go")
 

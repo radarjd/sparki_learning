@@ -3,8 +3,14 @@ from __future__ import print_function
 
 from sparki_learning import *
 
+com_port = None     # replace with your COM port or /dev/
+
 setDebug(DEBUG_INFO)
-init("COM4")
+
+while not com_port:
+    com_port = input("What is your com port or /dev/? ")
+
+init(com_port)
 
 print("Drawing a string on the LCD")
 LCDdrawString(30, 5, "a string")
@@ -38,3 +44,11 @@ else:
 
 print("Drawing a line from 2,2 to 8,10")
 LCDdrawLine( 2, 2, 8, 10 )
+
+print("Erasing a pixel on the LCD at 2,2")
+LCDerasePixel(2,2)
+
+if LCDreadPixel(2,2):
+    print("The pixel at 2,2 is black")
+else:
+    print("The pixel at 2,2 is white")
