@@ -601,7 +601,7 @@ ul.auto-toc {
 </dl>
 <dl class="docutils" id="setrgbled">
 <dt>setRGBLED(red, green, blue)</dt>
-<dd>Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors.</dd>
+<dd>Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors. Hardware limitations prevent this function from working to its full capability. The LED simply cannot display all values, and in particular cannot display values where red is equal to the other values. If you want to display &quot;white&quot;, Arcbotics recommends values of 60,100,90 -- the library contains values for other colors in the setRGBLED function code.</dd>
 </dl>
 <dl class="docutils" id="setstatusled">
 <dt>setStatusLED(brightness)</dt>
@@ -620,7 +620,7 @@ ul.auto-toc {
 </dl>
 <dl class="docutils" id="getbattery">
 <dt>getBattery()</dt>
-<dd>Returns the current voltage of Sparki's batteries. Anything below around 4 is low. Should be just below 6 with new batteries.</dd>
+<dd>Returns the current voltage of Sparki's batteries. ArcBotics reports that the underlying system call is unreliable, and as such any value returned by this function is suspect (a value &lt; 2 should always be disregarded). If it is working, anything below around 4 is low. Should be just below 6 with new batteries.</dd>
 </dl>
 <dl class="docutils" id="getbright">
 <dt>getBright(position)</dt>

@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - April 14, 2016 */
+   last modified - May 8, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -43,17 +43,15 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.2";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.2r2";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+												// versions having the same number (before the lower case r)
+												// should always have the same capabilities
 
 /* ***** MESSAGE TERMINATOR ***** */
 const char TERMINATOR = (char)23;      // this terminates every transmission from python
 
 /* ***** ACTION TERMINATOR ***** */
 const char SYNC = (char)22;            // send this when in the command loop waiting for instructions
-
-
-/* ***** LOW BATTERY VOLTAGE ***** */
-const float LOW_BATTERY = 4.0;         // 6.0 should be a full power battery
 
 
 /* ***** COMMAND CHARACTER CODES ***** */
@@ -70,7 +68,7 @@ const char COMMAND_GAMEPAD = 'e';       // no arguments; returns nothing
 const char COMMAND_GET_ACCEL = 'f';     // no arguments; returns array of 3 floats with values of x, y, and z
 #endif // NO_ACCEL
 
-const char COMMAND_GET_BATTERY = 'j';   // no arguments; returns float of voltage remaining
+const char COMMAND_GET_BATTERY = 'j';   // no arguments; returns float of voltage remaining; per arcbotics, the systemVoltage() function should not be relied upon
 const char COMMAND_GET_LIGHT = 'k';     // no arguments; returns array of 3 ints with values of left, center & right light sensor                                    
 const char COMMAND_GET_LINE = 'm';      // no arguments; returns array of 5 ints with values of left edge, left, center, right & right edge line sensor
 
@@ -110,7 +108,8 @@ const char COMMAND_SERVO = 'G';         // requires 1 argument: int servo positi
 const char COMMAND_SET_DEBUG_LEVEL = 'H';   // requires 1 argument: int debug level (0-5); returns nothing
 #endif // NO_DEBUGS
 
-const char COMMAND_SET_RGB_LED = 'I';   // requires 3 arguments: int red, int green, int blue; returns nothing
+const char COMMAND_SET_RGB_LED = 'I';   // requires 3 arguments: int red, int green, int blue; returns nothing; note hardware limitations 
+                                        // will prevent some values of red, green, and blue from showing up
 const char COMMAND_SET_STATUS_LED = 'J';    // requires 1 argument: int brightness of LED; returns nothing
 const char COMMAND_STOP = 'K';          // no arguments; returns nothing
 const char COMMAND_TURN_BY = 'L';       // requires 1 argument: float degrees to turn - if degrees is positive, turn clockwise,
@@ -1012,31 +1011,13 @@ void setup() {
 //  sparki.println("Prepare for motion");
   sparki.updateLCD();
 
-/*
-  sparki.servo(SERVO_RIGHT); 
-  delay(500); 
-  sparki.servo(SERVO_LEFT);  
-  delay(500);
-*/
   sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
 
 
 //  sparki.println("Connecting to Bluetooth");
 //  sparki.updateLCD();
   serial.begin(9600);
-
-  float battery_level = sparki.systemVoltage();
-  if (battery_level <= LOW_BATTERY) {
-    sparki.println("Low batt");
-    sparki.updateLCD();
-    sparki.RGB( 255, 0, 0 );
-    sparki.beep();
-  } else {
-    sparki.RGB( 0, 255, 0 );
-  }
-
-  delay(2000);
-  
+ 
   sparki.RGB( 0, 0, 0 );
 
 #ifdef USE_EEPROM
@@ -1099,6 +1080,7 @@ void loop() {
 #endif // NO_ACCEL
 
     case COMMAND_GET_BATTERY:         // no args; returns float
+      // per arcbotics, the systemVoltage() function should not be relied upon
       sendSerial( sparki.systemVoltage() );
       break;
     case COMMAND_GET_LIGHT:           // no args; returns array of 3 ints
@@ -1230,6 +1212,22 @@ void loop() {
 
     case COMMAND_SET_RGB_LED:         // int, int, int; returns nothing
       {
+	    /* arcbotics states that underlying hardware limitations can cause colors not to appear as intended
+	       specifically, the LEDs draw different voltages, red more than green and green more than blue
+	       as a side effect, if you have a situation where red == green == blue, only red will show */
+		 
+	    /* arcbotics recommends the following values for the specified colors:
+         blue   0,   0,   100
+         green  0,   100, 0
+         indigo 20,  0,   100
+         orange 90,  100, 0
+         pink   90,  0,   100
+         red    100, 0,   0
+         violet 60,  0,   100
+         white  60,  100, 90
+         yellow 60,  100, 0
+         off    0,   0,   0 */
+
       int red = getSerialInt();
       int green = getSerialInt();
       int blue = getSerialInt();

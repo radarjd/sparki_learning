@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: April 30, 2016
+# Last Modified: May 8, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -36,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.2.2"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.2.3"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -167,6 +167,8 @@ SERVO_RIGHT = 80
 # this is used in init to update the capabilities of the Sparki -- you could use this so that the library can
 #   work with different versions of the Sparki library
 # The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
+# If a version number contains a lower case r, everything after the r will be stripped when determining the capabilities
+#   that is, 1.1.2r1 and 1.1.2r5 will have the same capabilities
 SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
                        "DEBUG": ( True, True, True, False, False, False, False ),
                        "DEBUG-ACCEL": ( False, True, True, False, False, False, False ),
@@ -969,7 +971,7 @@ def getAngle():
 
 
 def getBattery():
-    """ Returns the voltage left in the batteries on the Sparki
+    """ Returns the voltage left in the batteries on the Sparki (not very accurate)
     
         arguments:
         none
@@ -977,6 +979,8 @@ def getBattery():
         returns:
         float - voltage level
     """
+    # the underlying sparki library causes this function not to be accurate, or to be inconsistent at the very least
+    
     printDebug("In getBattery", DEBUG_INFO)
 
     sendSerial( COMMAND_CODES["GET_BATTERY"] )
@@ -1323,15 +1327,16 @@ def init(com_port):
         printDebug("  Robot library version is " + robot_library_version, DEBUG_ALWAYS)
 
         # use the version number to try to figure out capabilities
+        # if the version has a lower case r, strip off the r and anything to the right of it (that's what .partition() does below)
         try:
             # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
-            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, reserved3 = SPARKI_CAPABILITIES[robot_library_version]
+            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, reserved3 = SPARKI_CAPABILITIES[robot_library_version.partition('r')[0]]
             printDebug("Sparki Capabilities:", DEBUG_INFO)
             printDebug("\tNO_ACCEL:\tNO_MAG:\tSPARKI_DEBUGS:\tUSE_EEPROM:\tEXT_LCD_1:", DEBUG_INFO)
             printDebug("\t" + str(NO_ACCEL) + "\t\t" + str(NO_MAG) + "\t" + str(SPARKI_DEBUGS) + "\t\t" + str(USE_EEPROM) + "\t\t" + str(EXT_LCD_1), DEBUG_INFO)
         except KeyError:
             printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Learning Python library", DEBUG_ALWAYS)
-            printDebug("(to upgrade the library type: easy_install sparki-learning)", DEBUG_ALWAYS)
+            printDebug("(to upgrade the library type: pip sparki-learning --upgrade)", DEBUG_ALWAYS)
             printDebug("Sparki Capabilities will be limited", DEBUG_ALWAYS)
     else:
         printDebug("Sparki communication failed", DEBUG_ALWAYS)
@@ -2150,8 +2155,11 @@ def setLEDBack(brightness):
         returns:
         nothing
     """
+    # the RGB LED is limited in terms of what it can display -- red takes the most voltage, green second, and blue third
+    # a single resistor works on all lights, and they cannot be turned on to the same brightness; Arcbotics recommends
+    # that to turn on the LED to white color, that we use 60, 100, 90 for the values
 
-    setRGBLED( brightness, brightness, brightness )
+    setRGBLED( (brightness / 100) * 60, brightness, (brightness / 100) * 90 )
 
 
 def setLEDFront(brightness):
@@ -2220,10 +2228,25 @@ def setRGBLED(red, green, blue):
         green - int between 0 and 100 which is an amount of brightness for that LED
         blue - int between 0 and 100 which is an amount of brightness for that LED
 
+        arcbotics recommends the following values for the specified colors:
+        blue   0,   0,   100
+        green  0,   100, 0
+        indigo 20,  0,   100
+        orange 90,  100, 0
+        pink   90,  0,   100
+        red    100, 0,   0
+        violet 60,  0,   100
+        white  60,  100, 90
+        yellow 60,  100, 0
+        off    0,   0,   0
+
         returns:
         nothing
     """
     printDebug("In setRGBLED, red is " + str(red) + ", green is " + str(green) + ", blue is " + str(blue), DEBUG_INFO)
+
+    if red == green and red == blue and red != 0:
+        printDebug("In setRGBLED, red, green and blue are the same - hardware limitations will cause this to be fully red", DEBUG_WARN)
     
     red = int(constrain(red, 0, 100))
     green = int(constrain(green, 0, 100))
