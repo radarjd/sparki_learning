@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: May 8, 2016
+# Last Modified: May 19, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -36,7 +36,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.2.3"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.2.4"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -168,7 +168,7 @@ SERVO_RIGHT = 80
 #   work with different versions of the Sparki library
 # The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
 # If a version number contains a lower case r, everything after the r will be stripped when determining the capabilities
-#   that is, 1.1.2r1 and 1.1.2r5 will have the same capabilities
+#   for example, 1.1.2r1 and 1.1.2r5 will have the same capabilities
 SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
                        "DEBUG": ( True, True, True, False, False, False, False ),
                        "DEBUG-ACCEL": ( False, True, True, False, False, False, False ),
@@ -2500,10 +2500,8 @@ def takePicture(args = None):
     printDebug("takePicture cannot be implemented on Sparki (because there's no camera)", DEBUG_CRITICAL)
     raise NotImplementedError
     
-def speak(message, async = False):
-    printDebug("speak cannot be implemented on Sparki; printing instead", DEBUG_WARN)
-    print(message)
-    
+## speak is implemented in sparki_leaning.speak
+
 def show(args = None):
     printDebug("show cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
