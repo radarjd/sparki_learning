@@ -3,13 +3,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.12: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.13: http://docutils.sourceforge.net/" />
 <title>Sparki Learning Command Quick Reference v2</title>
 <style type="text/css">
 
 /*
 :Author: David Goodger (goodger@python.org)
-:Id: $Id: html4css1.css 7614 2013-02-21 15:55:51Z milde $
+:Id: $Id: html4css1.css 7856 2015-03-30 14:41:00Z milde $
 :Copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -36,6 +36,14 @@ table.borderless td, table.borderless th {
 
 .hidden {
   display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
 
 a.toc-backref {
   text-decoration: none ;
@@ -463,7 +471,7 @@ Returns the number of seconds which have occurred since midnight on January 1, 1
 <div class="section" id="flrange-start-stop-step">
 <h2><a class="toc-backref" href="#id5">flrange(start, stop, step)</a></h2>
 <blockquote>
-Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2. start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.</blockquote>
+Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2 (see <a class="reference internal" href="#range">range</a> below). start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.</blockquote>
 </div>
 <div class="section" id="from-sparki-learning-import">
 <h2><a class="toc-backref" href="#id6">from sparki_learning import *</a></h2>
@@ -491,7 +499,7 @@ Connects your computer to the Sparki via Bluetooth. On a Mac, instead of using a
 Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import randint). Full documentation may be found at <a class="reference external" href="https://docs.python.org/3/library/random.html">https://docs.python.org/3/library/random.html</a></blockquote>
 </div>
 <div class="section" id="range-start-stop-step">
-<h2><a class="toc-backref" href="#id11">range(start, stop, step)</a></h2>
+<span id="range"></span><h2><a class="toc-backref" href="#id11">range(start, stop, step)</a></h2>
 <blockquote>
 Returns a list of integers from start to stop by step. start is the number at which the range begins. The range ends one value before stop. The range counts by step. For example, if step is 2, range counts by twos. start and step are optional. start defaults to 0 and step defaults to 1. This command is built in to Python, with full documentation at <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#typesseq-range">https://docs.python.org/3/library/stdtypes.html#typesseq-range</a> . In Python 2, you should use the xrange() function instead with full documentation at <a class="reference external" href="https://docs.python.org/2.7/library/functions.html#xrange">https://docs.python.org/2.7/library/functions.html#xrange</a></blockquote>
 </div>
@@ -522,6 +530,7 @@ Waits time seconds before moving to the next command.</blockquote>
 </div>
 <div class="section" id="movement-commands">
 <h1><a class="toc-backref" href="#id16">Movement Commands</a></h1>
+<p>In addition to the below, the <a class="reference internal" href="#grid-commands">Grid Commands</a> also move the robot.</p>
 <div class="section" id="backward-speed-time">
 <h2><a class="toc-backref" href="#id17">backward(speed, time)</a></h2>
 <blockquote>
@@ -535,12 +544,12 @@ Move the robot forward at <a class="reference internal" href="#speed">speed</a> 
 <div class="section" id="gripperclose-distance">
 <h2><a class="toc-backref" href="#id19">gripperClose(distance)</a></h2>
 <blockquote>
-Closes the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted.</blockquote>
+Closes the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally closed.</blockquote>
 </div>
 <div class="section" id="gripperopen-distance">
 <h2><a class="toc-backref" href="#id20">gripperOpen(distance)</a></h2>
 <blockquote>
-Opens the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted.</blockquote>
+Opens the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally closed.</blockquote>
 </div>
 <div class="section" id="gripperstop">
 <h2><a class="toc-backref" href="#id21">gripperStop()</a></h2>
@@ -550,7 +559,7 @@ Stops the gripper motor.</blockquote>
 <div class="section" id="motors-left-speed-right-speed-time">
 <h2><a class="toc-backref" href="#id22">motors(left_speed, right_speed, time)</a></h2>
 <blockquote>
-Starts the robot's wheel motors. The left wheel will move at left_speed. The right wheel will move at right_speed. The wheels will move for time seconds. time is optional and may be omitted. left_speed and right_speed are <a class="reference internal" href="#speed">speed</a> variables as defined in the section on <a class="reference internal" href="#common-variables">Common Variables</a>.</blockquote>
+Starts the robot's wheel motors. The left wheel will move at left_speed. The right wheel will move at right_speed. The wheels will move for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. left_speed and right_speed are <a class="reference internal" href="#speed">speed</a> variables, and time is a <a class="reference internal" href="#time">time</a> variable, as defined in the section on <a class="reference internal" href="#common-variables">Common Variables</a>.</blockquote>
 </div>
 <div class="section" id="movebackwardcm-distance">
 <h2><a class="toc-backref" href="#id23">moveBackwardcm(distance)</a></h2>
@@ -561,6 +570,7 @@ Moves the robot backward <a class="reference internal" href="#distance">distance
 <h2><a class="toc-backref" href="#id24">moveForwardcm(distance)</a></h2>
 <blockquote>
 Moves the robot backward <a class="reference internal" href="#distance">distance</a> centimeters.</blockquote>
+<p>** <a class="reference internal" href="#servo">servo</a> (defined below) will turn the Sparki's head **</p>
 </div>
 <div class="section" id="stop">
 <h2><a class="toc-backref" href="#id25">stop()</a></h2>
@@ -614,7 +624,7 @@ Sets Sparki's current position on the grid to 0,0 and its angle to 0. The same a
 <div class="section" id="setangle-newangle">
 <h2><a class="toc-backref" href="#id35">setAngle(newAngle)</a></h2>
 <blockquote>
-Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki â€“ to turn to an angle relative to the robot's starting position, use turnTo().</blockquote>
+Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki - if you want to turn to an angle relative to the robot's starting position, use turnTo().</blockquote>
 </div>
 <div class="section" id="setposition-x-y">
 <h2><a class="toc-backref" href="#id36">setPosition(x, y)</a></h2>
@@ -648,7 +658,7 @@ Creates window with message, with buttons labeled with options. options must be 
 <div class="section" id="gamepad">
 <h2><a class="toc-backref" href="#id42">gamepad()</a></h2>
 <blockquote>
-Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or â€“ on the remote to end remote control.</blockquote>
+Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or – on the remote to end remote control.</blockquote>
 </div>
 <div class="section" id="input-message">
 <h2><a class="toc-backref" href="#id43">input(message)</a></h2>
@@ -784,7 +794,7 @@ Returns the current values of Sparki's 3 magnetometers in a list. Magnetometers 
 <div class="section" id="getobstacle-position">
 <h2><a class="toc-backref" href="#id70">getObstacle(position)</a></h2>
 <blockquote>
-Returns a number which is the number of centimeters the Sparki believes the closest object is. position is the literal string &quot;left&quot;, &quot;center&quot;, or &quot;right&quot; (or the number of degrees you want to turn the servo â€“ see the servo command for more information). position may be omitted, in which case getObstacle() returns a list of three values representing the &quot;left&quot;, &quot;center&quot;, and &quot;right&quot; values.</blockquote>
+Returns a number which is the number of centimeters the Sparki believes the closest object is. position is the literal string &quot;left&quot;, &quot;center&quot;, or &quot;right&quot; (or the number of degrees you want to turn the servo – see the servo command for more information). position may be omitted, in which case getObstacle() returns a list of three values representing the &quot;left&quot;, &quot;center&quot;, and &quot;right&quot; values.</blockquote>
 </div>
 <div class="section" id="ping">
 <h2><a class="toc-backref" href="#id71">ping()</a></h2>
@@ -797,7 +807,7 @@ Returns the number of centimeters to the closest object directly in front of Spa
 Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text.</blockquote>
 </div>
 <div class="section" id="servo-position">
-<h2><a class="toc-backref" href="#id73">servo(position)</a></h2>
+<span id="servo"></span><h2><a class="toc-backref" href="#id73">servo(position)</a></h2>
 <blockquote>
 Turns the servo (sparki's head) to position. position is a number between -90 and 90, where -90 is directly to the left, 0 is straight ahead, and 90 is directly to the right.</blockquote>
 </div>

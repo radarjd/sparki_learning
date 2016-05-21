@@ -25,7 +25,7 @@ currentTime()
 
 flrange(start, stop, step)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2. start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
+	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2 (see range_ below). start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
 
 
 	
@@ -57,7 +57,7 @@ randint(start, stop)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import randint). Full documentation may be found at https://docs.python.org/3/library/random.html
 
-
+.. _range:
 
 range(start, stop, step)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,7 +113,7 @@ time - the time in seconds to perform the action. Fractional values will perform
 
 Movement Commands
 -----------------------------------
-
+In addition to the below, the `Grid Commands`_ also move the robot.
 
 
 backward(speed, time)
@@ -130,13 +130,13 @@ forward(speed, time)
 
 gripperClose(distance)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Closes the gripper on the robot distance_ centimeters. distance is optional and may be omitted. 
+	Closes the gripper on the robot distance_ centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally closed. 
 
 
 
 gripperOpen(distance)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Opens the gripper on the robot distance_ centimeters. distance is optional and may be omitted. 
+	Opens the gripper on the robot distance_ centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally closed. 
 
 
 
@@ -148,7 +148,7 @@ gripperStop()
 
 motors(left_speed, right_speed, time)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Starts the robot's wheel motors. The left wheel will move at left_speed. The right wheel will move at right_speed. The wheels will move for time seconds. time is optional and may be omitted. left_speed and right_speed are speed_ variables as defined in the section on `Common Variables`_.
+	Starts the robot's wheel motors. The left wheel will move at left_speed. The right wheel will move at right_speed. The wheels will move for time_ seconds. time is optional and may be omitted. left_speed and right_speed are speed_ variables, and time is a time_ variable, as defined in the section on `Common Variables`_.
 
 
 
@@ -162,7 +162,7 @@ moveForwardcm(distance)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Moves the robot backward distance_ centimeters. 
 
-
+** servo_ (defined below) will turn the Sparki's head **
 
 stop()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -227,7 +227,7 @@ resetPosition()
 
 setAngle(newAngle)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki – to turn to an angle relative to the robot's starting position, use turnTo(). 
+	Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki - if you want to turn to an angle relative to the robot's starting position, use turnTo(). 
 
 
 
@@ -452,7 +452,7 @@ senses()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text.
 
-
+.. _servo:
 
 servo(position)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
