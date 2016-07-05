@@ -21,7 +21,7 @@
  */
 
 /* most recent version developed in Sparkiduino 1.6.8.2 -- there do appear to be differences in compiled progam size 
- * among different versions of Sparkiduino
+ * among different versions of Sparkiduino; verified to work with 1.6.9.1
 */
 
 // for simplicity of installation, we're keeping the constants and prototypes in the cpp file
@@ -43,7 +43,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.2r2";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.2r3";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
