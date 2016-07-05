@@ -13,7 +13,7 @@ General Commands
 
 #
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	The number sign (often called a hash sign in computer science) indicates the beginning of a comment. Python ignores everything on a line after #. Comments are used to explain what your code is doing and can be very helpful when someone else is reading your code (or you are re-reading it after not having worked on it in some time).
+	The number sign (also called the pound sign or the hash sign) indicates the beginning of a comment. Python ignores everything on a line after #. Comments are used to explain what your code is doing and can be very helpful when someone else is reading your code (or you are re-reading it after not having worked on it in some time).
 
 
 
@@ -47,15 +47,15 @@ humanTime()
 
 
 
-init("[COM?]")
+init(com_port)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Connects your computer to the Sparki via Bluetooth. On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device.
+	Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like "COM5" or "COM40". On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device.
 
 
 
 randint(start, stop)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import randint). Full documentation may be found at https://docs.python.org/3/library/random.html
+	Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import randint). The random library has a variety of other functions to generate (semi-)random numbers. Full documentation may be found at https://docs.python.org/3/library/random.html
 
 .. _range:
 
@@ -136,7 +136,7 @@ gripperClose(distance)
 
 gripperOpen(distance)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Opens the gripper on the robot distance_ centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally closed. 
+	Opens the gripper on the robot distance_ centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally opened. 
 
 
 
@@ -256,13 +256,13 @@ Several of the commands (ask(), askQuestion(), joystick(), pickAFile() and yesor
 
 
 
-ask(message, title)
+ask(message, title = "Question")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to "Question".
 
 
 
-askQuestion(message, options, title)
+askQuestion(message, options, title = "Question")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to "Question".
 
@@ -516,13 +516,13 @@ The synchronization commands are provided to allow several computers to do somet
 
 
 
-start_sync_server(time, server_port)
+start_sync_server(time = 15, server_port = 32216)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Starts the sync server to execute the commands following after time seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open and listen on a port. server_port defaults to port 32216. server_port must be the same on the client and server.
 
 
 	
-start_sync_client(server_ip, server_port)
+start_sync_client(server_ip, server_port = 32216)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.
 

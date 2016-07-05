@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: May 19, 2016
+# Last Modified: July 5, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -20,6 +20,7 @@ from __future__ import division, print_function    # in case this is run from Py
 import datetime
 import math
 import os
+import platform
 import sys
 import serial                   # developed with pyserial 2.7, but also tested with 3.1
 import time
@@ -36,7 +37,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.2.4"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.2.6"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -494,6 +495,7 @@ def sendSerial(command, args = None):
     global command_queue
     global serial_conn
     global serial_is_connected
+    global serial_port
 
     if not serial_is_connected:
         printDebug("Sparki is not connected - use init()", DEBUG_ALWAYS)
@@ -505,7 +507,23 @@ def sendSerial(command, args = None):
 
     command_queue.append( ( command, args ) )  # keep track of every command sent
 
-    waitForSync()           # be sure Sparki is available before sending    
+    try:
+        waitForSync()           # be sure Sparki is available before sending
+    except serial.SerialTimeoutException:       # Macs seem to be sensitive to disconnecting, so we try to reconnect if we have a problem
+        # if there's a failure, try to reconnect unless we're init'ing
+        if command != COMMAND_CODES["INIT"]:
+            init(serial_port, False)
+            try:
+                waitForSync()
+            except:
+                printDebug("In sendSerial, retry failed", DEBUG_CRITICAL)
+                printUnableToConnect()
+                raise
+        else:
+            printDebug("In sendSerial, serial timeout on init", DEBUG_CRITICAL)
+            printUnableToConnect()
+            raise
+        
     printDebug("In sendSerial, Sending command - " + command, DEBUG_DEBUG)
          
     values = [ ]            # this will hold what we're actually sending to Sparki
@@ -587,23 +605,27 @@ def waitForSync():
 
     serial_conn.flushInput()    # get rid of any waiting bytes
 
-    inByte = -1
-    retries = 5                 # the number of times to retry connecting in the case of a timeout
     start_time = currentTime()
-    loop_wait = .1              # pause this long each time through the loop
+
+    inByte = -1
+
+    if platform.system() == "Darwin":    # Macs seem to be extremely likely to timeout -- this is attempting to deal with that quickly
+        retries = 1                 # the number of times to retry connecting in the case of a timeout
+        loop_wait = 0               # pause this long each time through the loop
+    else:
+        retries = 5                 # the number of times to retry connecting in the case of a timeout
+        loop_wait = .1              # pause this long each time through the loop
 
     while inByte != SYNC.encode():  # loop, doing nothing substantive, while we wait for SYNC
+        if currentTime() > start_time + (CONN_TIMEOUT * retries):
+            printDebug("In waitForSync, unable to sync with Sparki", DEBUG_ERROR)
+            raise serial.SerialTimeoutException
+
         try:
             inByte = serial_conn.read()
         except serial.SerialTimeoutException:
-            printDebug("SerialTimeoutException caught in waitForSync, unable to sync with Sparki", DEBUG_CRITICAL)
-            printUnableToConnect()
+            printDebug("SerialTimeoutException caught in waitForSync, unable to sync with Sparki", DEBUG_ERROR)
             raise
-
-        if currentTime() > start_time + (CONN_TIMEOUT * retries):
-            printDebug("In waitForSync, unable to sync with Sparki", DEBUG_CRITICAL)
-            printUnableToConnect()
-            raise serial.SerialTimeoutException
 
         wait(loop_wait)
 
@@ -1283,12 +1305,13 @@ def humanTime():
     return time.ctime()
 
 
-def init(com_port):
+def init(com_port, print_versions = True):
     """ Connects to the Sparki robot on com_port; if it is already connected, this will disconnect and reconnect on the given port
         Note that Sparki MUST already be paired with the computer over Bluetooth
         
         arguments:
         com_port - a string designating which port Sparki is on (windows looks like "COM??"; mac and linux look like "/dev/????"
+        print_versions - boolean whether or not to print connection message
         
         returns:
         nothing
@@ -1321,10 +1344,11 @@ def init(com_port):
     
     if robot_library_version:
         init_time = currentTime()
-    
-        printDebug("Sparki connection successful", DEBUG_ALWAYS)
-        printDebug("  Python library version is " + SPARKI_MYRO_VERSION, DEBUG_ALWAYS)
-        printDebug("  Robot library version is " + robot_library_version, DEBUG_ALWAYS)
+
+        if print_versions: # done this way to avoid reprinting it for Mac connection issues
+            printDebug("Sparki connection successful", DEBUG_ALWAYS)
+            printDebug("  Python library version is " + SPARKI_MYRO_VERSION, DEBUG_ALWAYS)
+            printDebug("  Robot library version is " + robot_library_version, DEBUG_ALWAYS)
 
         # use the version number to try to figure out capabilities
         # if the version has a lower case r, strip off the r and anything to the right of it (that's what .partition() does below)

@@ -3,7 +3,12 @@ from __future__ import print_function
 
 from sparki_learning import *
 
-init("COM4")        # change for your COM port (or /dev/)
+com_port = None     # replace with your COM port or /dev/
+
+setDebug(DEBUG_INFO)
+
+while not com_port:
+    com_port = input("What is your com port or /dev/? ")
 
 print("Drawing first right triangle")
 
