@@ -1,8 +1,8 @@
 # draw regular polygons with the sparki
 # 
 # written by Jeremy Eglen
-# Created: September 13, 2012
-# Last Modified: April 12, 2016
+# Created: September 13, 2012 (originally for the Scribbler 2 / Fluke)
+# Last Modified: July 19, 2016
 
 from __future__ import division,print_function
 
@@ -47,8 +47,23 @@ def drawFigure(numSides, sideLength=1):
     angle = getExteriorAngle(numSides)
 
     for x in range(0, numSides):
-        forward( 1, sideLength )
-        wait(.1)
+        forward(1, sideLength)
+        turnBy(angle)
+
+		
+def drawFigurecm(numSides, sideLength=10):
+    """ Draws an equilateral polygon of numSides
+
+    arguments:
+    numSides -- integer number of sides
+    sideLength -- float length of side in cm
+
+    returns:
+    nothing """
+    angle = getExteriorAngle(numSides)
+
+    for x in range(0, numSides):
+        moveForwardcm(sideLength)
         turnBy(angle)
 
 
@@ -61,21 +76,20 @@ def main():
     init(myCom)
 
     numSides = int( ask("How many sides does the figure have? ") )
-    sideLength = float( ask("How long should I make each side? ") )
+    sideLength = float( ask("How long should I make each side (in cm)? ") )
 
     while numSides > 2 and sideLength > 0:
         print("I am going to draw a figure with " + str(numSides) + " sides")
         print("If you'd like to draw, please insert a pen or marker")
         ask("Press okay once you have placed a pen or marker in me")
         
-        drawFigure(numSides, sideLength)
+        drawFigurecm(numSides, sideLength)
 
         print("Please remove the marker")
         ask("Press okay once you have removed the marker from me")
 
         # move a little so that figures don't overlap
         turnBy( -90 )
-        wait(1)
         forward( 1, 2 )
         turnBy( 90 )
         
