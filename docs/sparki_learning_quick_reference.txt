@@ -15,7 +15,13 @@ General Commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	The number sign (also called the pound sign or the hash sign) indicates the beginning of a comment. Python ignores everything on a line after #. Comments are used to explain what your code is doing and can be very helpful when someone else is reading your code (or you are re-reading it after not having worked on it in some time).
 
+	
 
+constrain(n, min_n, max_n)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Returns a value that is greater than or equal to min_n and less than or equal to max_n (i.e. it does bounds checking). This function is used when you have a value (n) that you want to be sure is no less than min_n and no more than max_n. If n is between min_n and max_n, it returns n. If n is less than min_n, it returns min_n. If n is greater than max_n, it returns max_n. Used heavily within the library -- you may or may not find it useful.
+
+	
 
 currentTime()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,7 +31,7 @@ currentTime()
 
 flrange(start, stop, step)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2 (see range_ below). start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
+	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2 (see range_ below). None of the arguments have default values. start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
 
 
 	
@@ -106,7 +112,7 @@ speed - a value between -1 and 1. Any value less than -1 will be made -1; any va
 
 .. _time:
 
-time - the time in seconds to perform the action. Fractional values will perform for fractional seconds. A value of -1 means to perform the action forever. If time is optional for a command, the value defaults to -1 (meaning that if you omit time, the robot performs the command until you tell it to stop()).
+time - the time in seconds to perform the action. Fractional values will perform for fractional seconds. A value of -1 means to perform the action forever. If time is optional for a command, the value defaults to -1 (meaning that if you omit time, the robot performs the command until you tell it to `stop()`_).
 
 
 
@@ -116,25 +122,25 @@ Movement Commands
 In addition to the below, the `Grid Commands`_ also move the robot.
 
 
-backward(speed, time)
+backward(speed, time = -1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Move the robot backward at speed_ speed for time_ seconds. time is optional and may be omitted. See the section on `Common Variables`_ for an explanation of speed and time.
 
 
 
-forward(speed, time)
+forward(speed, time = -1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Move the robot forward at speed_ speed for time_ seconds. time is optional and may be omitted. See the section on `Common Variables`_ for an explanation of speed and time.
 
 
 
-gripperClose(distance)
+gripperClose(distance = 7)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Closes the gripper on the robot distance_ centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally closed. 
 
 
 
-gripperOpen(distance)
+gripperOpen(distance = 7)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Opens the gripper on the robot distance_ centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally opened. 
 
@@ -146,7 +152,7 @@ gripperStop()
 
 
 
-motors(left_speed, right_speed, time)
+motors(left_speed, right_speed, time = -1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Starts the robot's wheel motors. The left wheel will move at left_speed. The right wheel will move at right_speed. The wheels will move for time_ seconds. time is optional and may be omitted. left_speed and right_speed are speed_ variables, and time is a time_ variable, as defined in the section on `Common Variables`_.
 
@@ -162,7 +168,7 @@ moveForwardcm(distance)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Moves the robot backward distance_ centimeters. 
 
-** servo_ (defined below) will turn the Sparki's head **
+** `servo(position)`_ (defined below) will turn the Sparki's head **
 
 stop()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -170,13 +176,13 @@ stop()
 
 
 
-turnLeft(speed, time)
+turnLeft(speed, time = -1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Turn the robot left at speed_ speed for time_ seconds. time is optional and may be omitted. See the section on `Common Variables`_ for an explanation of speed and time.
 
 
 
-turnRight(speed, time)
+turnRight(speed, time = -1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Turn the robot right at speed_ speed for time_ seconds. time is optional and may be omitted. See the section on `Common Variables`_ for an explanation of speed and time.
 
@@ -207,13 +213,13 @@ getPosition()
 
 
 
-moveBy(x, y, turnBack)
+moveBy(x, y, turnBack = False)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Move the robot to grid position x, y as though the current position were 0,0. For example, if the robot is at 3,4, moveBy(1,1) would move Sparki to 4,5. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.
 
 
 
-moveTo(x, y, turnBack)
+moveTo(x, y, turnBack = False)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Move the robot to grid position x, y. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.
 
@@ -304,49 +310,49 @@ Output Commands
 
 
 
-beep(time, freq)
+beep(time = 200, freq = 2800)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Plays a tone at freq for time seconds through your computer. Both are optional (freq defaults to 2800 and time to 200). A list of common frequencies can be found at http://en.wikipedia.org/wiki/Piano_key_frequencies. 
 
 
 
-LCDclear(update)
+LCDclear(update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Clears (makes blank) Sparki's LCD. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 
 
 
-LCDdrawLine(X1, Y1, X2, Y2, update)
+LCDdrawLine(X1, Y1, X2, Y2, update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Draws a line from X1, Y1 to X2, Y2 on the LCD. The X coordinates can be from 0 to 127. The Y coordinates can be from 0 to 63. Note that you must call LCDupdate() to display the line once it's drawn if you set update to False.
 
 
 
-LCDdrawPixel(X,Y, update)
+LCDdrawPixel(X,Y, update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Draws the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.
 
 
 
-LCDdrawString(X, Y, message, update)
+LCDdrawString(X, Y, message, update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Prints message to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 
 
 
-LCDerasePixel(X,Y, update)
+LCDerasePixel(X,Y, update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Erases the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.
 
 
 	
-LCDprint(message, update)
+LCDprint(message, update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Prints message to the LCD on the back of Sparki. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 
 
 
-LCDprintLn(message, update)
+LCDprintLn(message, update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Prints message to the LCD on the back of Sparki, and go to the next line. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.
 
@@ -375,7 +381,13 @@ print(message)
 	Prints message to the computer screen. See the section on Common Variables for an explanation of message. print() is built in to Python and has other useful options, but they go beyond what you're likely to encounter routinely. The full documentation is available at python.org at https://docs.python.org/3/library/functions.html#print
 
 
+	
+printDebug(message, priority = DEBUG_WARN, output = sys.stderr)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Prints message to output if the current debug level (set by `setDebug(level)`_ and defaulting to DEBUG_WARN) is greater than or equal to priority. output defaults to standard error. Included for convenience of writing your own functions.
+	
 
+	
 setRGBLED(red, green, blue)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors. Hardware limitations prevent this function from working to its full capability. The LED simply cannot display all values, and in particular cannot display values where red is equal to the other values. If you want to display "white", Arcbotics recommends values of 60,100,90 -- the library contains values for other colors in the setRGBLED function code.
@@ -452,7 +464,7 @@ senses()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text.
 
-.. _servo:
+
 
 servo(position)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
