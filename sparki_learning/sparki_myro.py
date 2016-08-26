@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: July 5, 2016
+# Last Modified: July 25, 2016
 # written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -37,7 +37,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.2.6"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.2.7"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -1385,11 +1385,12 @@ def joystick():
     """
     printDebug("In joystick", DEBUG_INFO)
 
-    # grid is 4 rows by 3 columns
+    # grid is 5 rows by 3 columns
     #          |   forward   |    
     #   left   |     stop    |  right      
     #          |   backward  |
     #   open   |             |  close
+    #   left   |   center    |  right     (these are for the "head" servo)
     if USE_GUI:
         # start a new window
         control = tk.Toplevel()
@@ -1402,22 +1403,27 @@ def joystick():
         tk.Button(control, text="forward", command=lambda: forward(1)).grid(row=0, column=1)
 
         # 2nd row
-        tk.Button(control, text="left", command=lambda: turnLeft(1)).grid(row=1, column=0)
+        tk.Button(control, text="turn left", command=lambda: turnLeft(1)).grid(row=1, column=0)
         tk.Button(control, text="stop", command=stop).grid(row=1, column=1)    # no argument needed for stop
-        tk.Button(control, text="right", command=lambda: turnRight(1)).grid(row=1, column=2)
+        tk.Button(control, text="turn right", command=lambda: turnRight(1)).grid(row=1, column=2)
 
         # 3rd row
         tk.Button(control, text="backward", command=lambda: backward(1)).grid(row=2, column=1)
 
         # 4th row
-        tk.Button(control, text="open grip", command=lambda: gripperOpen(.5)).grid(row=3, column=0)
-        tk.Button(control, text="close grip", command=lambda: gripperClose(.5)).grid(row=3, column=2)
+        tk.Button(control, text="open grip", command=lambda: gripperOpen(1)).grid(row=3, column=0)
+        tk.Button(control, text="close grip", command=lambda: gripperClose(1)).grid(row=3, column=2)
+
+        # 5th row
+        tk.Button(control, text="head left", command=lambda: servo(SERVO_LEFT)).grid(row=4, column=0)
+        tk.Button(control, text="head center", command=lambda: servo(SERVO_CENTER)).grid(row=4, column=1)
+        tk.Button(control, text="head right", command=lambda: servo(SERVO_RIGHT)).grid(row=4, column=2)
 
         # weights for resizing
         for i in range(3):
             control.columnconfigure(i, weight=1)
 
-        for i in range(4):
+        for i in range(5):
             control.rowconfigure(i, weight=1)
 
         control.wait_window(control)

@@ -276,7 +276,7 @@ askQuestion(message, options, title = "Question")
 
 gamepad()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or – on the remote to end remote control.
+	Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or - on the remote to end remote control.
 
 
 

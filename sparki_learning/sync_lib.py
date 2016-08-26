@@ -128,7 +128,7 @@ def start_sync_client(server_ip = None, server_port = PORT):
         returns:
         nothing
     """
-    if server_ip == None:
+    if server_ip is None:
         server_ip = input("What is the server's IP? ")
 
     wait_time = _sync_client(server_ip, server_port)
@@ -153,7 +153,7 @@ def start_sync_server(wait_time = 15, port = PORT):
         returns:
         nothing
     """
-    max_wait_time = 24 * 60 * 60                
+    max_wait_time = 24 * 60 * 60                # 60 seconds * 60 minutes * 24 hours = number of seconds in a day
 
     if wait_time > max_wait_time:               # can't wait more than 24 hours
         raise RuntimeError("wait time given was more than 24 hours")
