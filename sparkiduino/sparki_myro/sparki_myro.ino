@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - May 8, 2016 */
+   last modified - August 30, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -21,7 +21,7 @@
  */
 
 /* most recent version developed in Sparkiduino 1.6.8.2 -- there do appear to be differences in compiled progam size 
- * among different versions of Sparkiduino; verified to work with 1.6.9.1
+ * among different versions of Sparkiduino; verified to work with 1.6.9.1; verified to work with 1.6.9.4
 */
 
 // for simplicity of installation, we're keeping the constants and prototypes in the cpp file
@@ -34,6 +34,7 @@
 #define NO_DEBUGS	// save more memory by excluding any DEBUG_DEBUG lines
 #define COMPACT_2  // remove certain LCD functions (there was once a COMPACT)
 #define USE_EEPROM // use EEPROM to store certain values
+#define STATUS_ACK // if this is defined, the status light will be lit when the Sparki is processing a command
 
 #include <Sparki.h>
 
@@ -1034,10 +1035,16 @@ void setup() {
 
 // main loop()
 void loop() {
+#ifdef STATUS_ACK
   setStatusLED(0);                      // turn off the LED
+#endif // STATUS_ACK
+
   if (serial.available()) {
     char inByte = getSerialChar();
+
+#ifdef STATUS_ACK
     setStatusLED(100);                  // turn on the LED while we're processing a command
+#endif  // STATUS_ACK
 
 #ifndef NO_DEBUGS
     if (debug_level >= DEBUG_DEBUG) {
