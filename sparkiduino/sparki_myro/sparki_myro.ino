@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.2r3";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.2r4";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 

@@ -12,8 +12,8 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: July 25, 2016
-# written targeting Python 3.4, but likely works with other versions; limited testing has been successful with Python 2.7
+# Last Modified: September 2, 2016
+# Originally developed on Python 3.4, and recently on 3.5; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
 
@@ -37,7 +37,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.2.7"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.3.1"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -68,7 +68,10 @@ LCD_WHITE = 1           # set in Sparki.h
 
 
 # ***** SERIAL TIMEOUT ***** #
-CONN_TIMEOUT = 5        # in seconds
+if platform.system() == "Darwin":    # Macs seem to be extremely likely to timeout -- so this is a lower value
+    CONN_TIMEOUT = 3        # in seconds
+else:
+    CONN_TIMEOUT = 5        # in seconds
 
 
 # ***** COMMAND CHARACTER CODES ***** #
@@ -618,7 +621,10 @@ def waitForSync():
 
     while inByte != SYNC.encode():  # loop, doing nothing substantive, while we wait for SYNC
         if currentTime() > start_time + (CONN_TIMEOUT * retries):
-            printDebug("In waitForSync, unable to sync with Sparki", DEBUG_ERROR)
+            if platform.system() == "Darwin":    # Macs seem to be extremely likely to timeout -- so we report at a different debug level
+                printDebug("In waitForSync, unable to sync with Sparki (if you're on a Mac, this may not be a big deal)", DEBUG_INFO)
+            else:
+                printDebug("In waitForSync, unable to sync with Sparki", DEBUG_ERROR)
             raise serial.SerialTimeoutException
 
         try:
@@ -634,7 +640,7 @@ def wrapAngle(angle):
     """ Ensures angle is between -360 and 360
     
         arguments:
-        angle - float angle that needs to be between -360 and 360
+        angle - float angle that you want to be between -360 and 360
         
         returns:
         float - angle between -360 and 360
@@ -2341,6 +2347,29 @@ def stop():
     printDebug("In stop", DEBUG_INFO)
 
     sendSerial( COMMAND_CODES["STOP"] )
+
+
+def timer(duration):
+    """ Generator which yields the time since the instantiation, and ends after start_time + duration (seconds)
+
+        This is provided for compatibility with the myro library
+    
+        arguments:
+        duration - the float number of seconds until the generator should end
+        
+        yield:
+        float - number of seconds since the first call
+    """
+    printDebug("In timer, duration is " + str(duration), DEBUG_INFO)
+
+    if duration > 0:
+        start_time = currentTime()
+        
+        while currentTime() < start_time + duration:
+            yield currentTime() - start_time
+    else:
+        printDebug("In timer, invalid value for duration", DEBUG_ERROR)
+        raise StopIteration
 
 
 def translate(speed):
