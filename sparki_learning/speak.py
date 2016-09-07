@@ -1,7 +1,7 @@
 # speak input over the computer
 #
 # Created: May 18, 2016 by Jeremy Eglen with assistance from Kelly Schmidt for the Mac function
-# Last Modified: May 19, 2016
+# Last Modified: September 7, 2016
 #
 # included with the sparki_learning library, though that is not required
 #
@@ -12,17 +12,18 @@ import os
 import platform
 import sys
 
-def speak( message ):
+def speak( *message ):  # the * syntax allows multiple arguments to be passed, which will be stored in the list message
     """ Speaks the message over the computer speaker; relies on underlying operating system services
 
         arguments:
-        message - data to speak; must be able to be converted to a string or this throws an error
+        message - data to speak; can be multiple arguments (like print) but all must be able to be converted to a string or this throws an error
+                  for example, speak("Hello", 2, "day") should be a valid call
 
         returns:
         nothing
     """
     currentOS = platform.system()
-    message = str( message )
+    message = ' '.join([str(arg) for arg in message])   # concatenate all the arguments into one string
     
     if currentOS == "Darwin":
         speak_mac( message )

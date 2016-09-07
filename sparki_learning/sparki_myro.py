@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: September 2, 2016
+# Last Modified: September 7, 2016
 # Originally developed on Python 3.4, and recently on 3.5; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -22,7 +22,7 @@ import math
 import os
 import platform
 import sys
-import serial                   # developed with pyserial 2.7, but also tested with 3.1
+import serial                   # developed with pyserial 2.7, but also tested extensively with 3.1
 import time
 
 # try to import tkinter -- but make a note if we can't
@@ -37,7 +37,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.3.1"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.3.2"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -1432,7 +1432,8 @@ def joystick():
         for i in range(5):
             control.rowconfigure(i, weight=1)
 
-        control.wait_window(control)
+        control.lift()                  # move the window to the top to make it more visible
+        control.wait_window(control)    # wait for this window to be destroyed (closed) before moving on
     else:
         printDebug("No GUI for joystick control", DEBUG_CRITICAL)
     
@@ -2120,7 +2121,8 @@ def senses():
 
         sensesUpdate()
         master.after( updatePause, sensesUpdate )   # schedule the update of the window
-        master.wait_window(master)
+        master.lift()               # lift this window to the front to make it more visible
+        master.wait_window(master)  # wait until this window is destroyed to continue executing
         # end USE_GUI
     else:
         senses_text()

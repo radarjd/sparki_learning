@@ -3,12 +3,17 @@ Sparki Learning Command Quick Reference
 ======================================================
 
 ------------------------------------------------------
-for version 1.3.1 of the python library
+for version 1.3.2 of the python library
 ------------------------------------------------------
 
 (this library makes use of Python3 - versions of Python <3 but >=2.7 should work)
 
 .. contents:: Contents
+
+
+Sparki Commands
+===================================
+
 
 General Commands
 -----------------------------------
@@ -113,7 +118,7 @@ file - a string value containing an absolute path to a file, or a relative path 
 
 .. _message:
 
-message - a value to be output such as a literal string like "Hello, World", a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be "I am on iteration number " + str(count)
+message - a value to be output such as a literal string like "Hello, World", a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be "I am on iteration number " + str(count). In the two special cases of `print(message)`_ and `speak(message)`_, message may actually be multiple arguments instead of a string. That is, in the case of those two functions only, you can do something like print("Hello", 2, "you") or speak("Hello", 2, "you").
 
 .. _speed:
 
@@ -177,7 +182,10 @@ moveForwardcm(distance)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Moves the robot backward distance_ centimeters. 
 
-** `servo(position)`_ (defined below) will turn the Sparki's head **
+	
+`servo(position)`_ (defined below) will turn the Sparki's head
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 stop()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -273,13 +281,13 @@ Several of the commands (ask(), askQuestion(), joystick(), pickAFile() and yesor
 
 ask(message, title = "Question")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to "Question".
+	Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to "Question". (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)
 
 
 
 askQuestion(message, options, title = "Question")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to "Question".
+	Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to "Question". (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)
 
 
 
@@ -297,7 +305,7 @@ input(message)
 
 joystick()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Control Sparki using a GUI window. Allows movement and opening and closing of the gripper.
+	Control Sparki using a GUI window. Allows movement and opening and closing of the gripper. (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)
 
 
 
@@ -321,7 +329,7 @@ Output Commands
 
 beep(time = 200, freq = 2800)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Plays a tone at freq for time seconds through your computer. Both are optional (freq defaults to 2800 and time to 200). A list of common frequencies can be found at http://en.wikipedia.org/wiki/Piano_key_frequencies. 
+	Plays a tone at freq for time milliseconds through the Sparki. Both are optional (freq defaults to 2800 and time to 200). A list of common frequencies can be found at http://en.wikipedia.org/wiki/Piano_key_frequencies. 
 
 
 
@@ -393,13 +401,13 @@ print(message)
 	
 printDebug(message, priority = DEBUG_WARN, output = sys.stderr)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Prints message to output if the current debug level (set by `setDebug(level)`_ and defaulting to DEBUG_WARN) is greater than or equal to priority. output defaults to standard error. Included for convenience of writing your own functions.
+	Prints message to output if the current debug level (set by `setDebug(level)`_ and defaulting to DEBUG_WARN) is greater than or equal to priority. output defaults to standard error. Included for convenience of writing your own functions. message must be a string (i.e. message does not accept multiple arguments like speak or print).
 	
 
 	
 setRGBLED(red, green, blue)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors. Hardware limitations prevent this function from working to its full capability. The LED simply cannot display all values, and in particular cannot display values where red is equal to the other values. If you want to display "white", Arcbotics recommends values of 60,100,90 -- the library contains values for other colors in the setRGBLED function code.
+	Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors. Hardware limitations prevent this function from working to its full capability. The LED simply cannot display all values, and in particular cannot display values where red is equal to the other values. If you want to display "white", Arcbotics recommends values of 60,100,90 -- the library contains suggested values for other colors in the setRGBLED function code.
 
 
 
@@ -411,7 +419,7 @@ setStatusLED(brightness)
 	
 speak(message)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Speaks the given message. *Relies on operating system features, not python -- only implemented for Mac and Windows.* On Windows, this command may create a window which is open briefly during the actual speech. The speak function is implemented with a hack and may be unreliable.
+	Speaks the given message. Can be given an argument like print -- e.g. speak("Hello", 2, "you") should work as well as speak("Hello to you"). *Relies on operating system features, not python -- only implemented for Mac and Windows.* On Windows, this command may create a window which is open briefly during the actual speech. The speak function is implemented with a hack and may be unreliable.
 
 
 
@@ -471,7 +479,7 @@ ping()
 
 senses()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text.
+	Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text. (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)
 
 
 
@@ -529,6 +537,8 @@ setName(name)
 	Sets the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you'll get a garbage value.
 
 
+Related Commands
+===================================
 	
 	
 Synchronization Commands

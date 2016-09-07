@@ -7,13 +7,13 @@
 #
 # written by Jeremy Eglen
 # Created: February 24, 2016
-# Last Modified: September 2, 2016
+# Last Modified: September 7, 2016
 # originally written targeting Python 3.4, but recently developed on Python 3.5, and has been lightly tested with Python 2.7
 
 from setuptools import setup, find_packages
 setup(
     name = "sparki_learning",
-    version = "1.3.6.1",
+    version = "1.3.6.2",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets
@@ -32,7 +32,7 @@ setup(
     license = "Apache License Version 2.0",
     keywords = "sparki learning myro robot",
     url = "https://github.com/radarjd/sparki_learning",   # project home page
-    download_url = "https://github.com/radarjd/sparki_learning/tarball/v1.3.6",
+    download_url = "https://github.com/radarjd/sparki_learning/tarball/v1.3.6.2",
     classifiers = [
                    'Development Status :: 4 - Beta',
                    'Intended Audience :: Education',
