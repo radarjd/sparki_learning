@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - August 30, 2016 */
+   last modified - September 13, 2016 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.2r4";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.2r5";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -1188,7 +1188,7 @@ void loop() {
       { 
       int left_speed = getSerialInt();
       int right_speed = getSerialInt();
-      int time_length = getSerialFloat();     
+      float time_length = getSerialFloat();     
       motors( left_speed, right_speed, time_length );
       break;
       } // end COMMAND_MOTORS
