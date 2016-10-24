@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: September 7, 2016
+# Last Modified: October 5, 2016
 # Originally developed on Python 3.4, and recently on 3.5; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -28,7 +28,8 @@ import time
 # try to import tkinter -- but make a note if we can't
 try:
     import tkinter as tk        # for the senses, joystick, ask, and askQuestion functions
-    root = tk.Tk().withdraw()   # hide the main window -- we're not going to use it
+    root = tk.Tk()              
+    root.withdraw()             # hide the main window -- we're not going to use it
     USE_GUI = True
 except:
     print("Unable to use tkinter; no GUI available", file = sys.stderr)
@@ -37,7 +38,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.3.2"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.3.3"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -664,17 +665,16 @@ def ask(message, mytitle = "Question"):
         returns:
         string response from the user
     """
+    global root
     printDebug("In ask", DEBUG_INFO)
 
-    if USE_GUI:
-        try:
-            result = tk.simpledialog.askstring(mytitle, message)
-        except:
-            result = None
+    try:
+        result = tk.simpledialog.askstring(mytitle, message, parent = root)
+    except Exception as err:
+        printDebug(str(err), DEBUG_DEBUG)
+        result = input(message)
     
-        return result
-    else:
-        return input(message)
+    return result
 
 
 def askQuestion(message, options, mytitle = "Question"):
@@ -688,17 +688,18 @@ def askQuestion(message, options, mytitle = "Question"):
         returns:
         string response from the user
     """
+    global root
     printDebug("In askQuestion", DEBUG_INFO)
 
-    if USE_GUI:
-        try:
-            result = tk.simpledialog(title = mytitle, text = message, buttons = options)
-        except:
-            result = None
+    try:
+        questionDialog = tk.simpledialog.SimpleDialog(root, title = mytitle, text = message, buttons = options)
+        result = questionDialog.go()
+    except Exception as err:
+        printDebug(str(err), DEBUG_DEBUG)
+##        result = askQuestion_text(message, options, False)
+        raise
     
-        return result
-    else:
-        return askQuestion_text(message, options)
+    return result
 
 
 def backward(speed, time = -1):
@@ -1030,6 +1031,39 @@ def getBright(position = LIGHT_SENS_RIGHT + 3):
     return getLight(position)           # for library compatibility, this is just a synonym of getLight()
 
 
+def getCentimetersMoved():
+    """ Returns a float containing the number of centimeters Sparki has moved since the library was first imported
+        Only movement using the grid commands is counted in this number
+        
+        arguments:
+        none
+        
+        returns:
+        float - number of cm moved since beginning of program
+    """
+    global centimeters_moved
+
+    printDebug("In getCentimetersMoved", DEBUG_INFO)
+    
+    return centimeters_moved
+
+
+def getCommandQueue():
+    """ Returns a tuple containing all commands sent to sparki since the library was first imported
+        
+        arguments:
+        none
+        
+        returns:
+        tuple of tuples - each inner tuple is a command code plus arguments
+    """
+    global command_queue
+
+    printDebug("In getCommandQueue", DEBUG_INFO)
+    
+    return tuple(command_queue)
+
+
 def getDistance():
     """ Synonym for ping() -- use ping()
     """
@@ -1186,6 +1220,8 @@ def getObstacle(position = "all"):
         returns:
         integer - value of sensor at position OR
         tuple of integers - value of sensor at each position [left, center, right]
+
+        a value of -1 in the return indicates that nothing was found
     """
     printDebug("In getObstacle, position is " + str(position), DEBUG_INFO)
     
@@ -1762,7 +1798,7 @@ def moveBackwardcm(centimeters):
         moveForwardcm(-centimeters)
         return
 
-    centimeters_moved = centimeters_moved - centimeters
+    centimeters_moved += centimeters
     
     args = [ centimeters ]
 
@@ -1793,7 +1829,7 @@ def moveForwardcm(centimeters):
         moveBackwardcm(-centimeters)
         return
 
-    centimeters_moved = centimeters_moved + centimeters
+    centimeters_moved += centimeters
     
     args = [ centimeters ]
 
@@ -1907,7 +1943,7 @@ def ping():
         none
 
         returns:
-        int - approximate distance in centimeters from nearest object
+        int - approximate distance in centimeters from nearest object (-1 means nothing was found)
     """
     printDebug("In ping", DEBUG_INFO)
 
@@ -2528,7 +2564,7 @@ def yesorno(message):
         try:
             result = askQuestion(message, ["yes", "no"], "Yes or No?")
         except:
-            result = None
+            result = askQuestion_text(message, ["yes", "no", "y", "n" ], False)
     
         return result
     else:

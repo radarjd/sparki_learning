@@ -3,10 +3,10 @@ Sparki Learning Command Quick Reference
 ======================================================
 
 ------------------------------------------------------
-for version 1.3.2 of the python library
+for version 1.3.3 of the python library
 ------------------------------------------------------
 
-(this library makes use of Python3 - versions of Python <3 but >=2.7 should work)
+(this library makes use of Python 3; Python 2.7 should work, but testing is limited)
 
 .. contents:: Contents
 
@@ -47,6 +47,12 @@ flrange(start, stop, step)
 from sparki_learning import *
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	This command imports the sparki_learning module to make all of the Sparki specific commands available. It must appear at the beginning of your Sparki programs. Other modules (also called libraries) exist in python such as string, math, random, sys, os and datetime. 
+
+
+
+getCommandQueue()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Returns the a tuple containing the commands (with arguments) that have been sent to the Sparki.
 
 
 
@@ -220,8 +226,14 @@ drawFunction(function, xvals, scale = 1)
 
 getAngle()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Return the number of degrees that Sparki has turned using the turnBy() command, or since setAngle() was last called. turnRight(), turnLeft() and motors() do not update the angle.
+	Return the number of degrees that Sparki has turned using the turnBy() command, or since setAngle() was last called. turnRight(), turnLeft() and motors() do not update the angle. Increases on positive angle turns and decreases on negative angle turns.
 
+
+
+getCentimetersMoved()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Returns the float number of centimeters Sparki has moved using moveForwardcm(), moveBackwardcm(), and the grid commands. Always increases.
+	
 
 
 getPosition()

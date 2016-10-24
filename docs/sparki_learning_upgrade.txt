@@ -1,0 +1,12 @@
+On Windows:
+    1. open the start menu
+    2. type cmd
+    3. launch the command prompt
+    4. type 'pip install sparki-learning --upgrade' without the quotation marks
+
+
+On Mac:
+    1. click on the spotlight icon
+    2. search for terminal
+    3. launch the terminal
+    4. type '/usr/local/bin/pip3 install sparki-learning --upgrade' without the quotation marks

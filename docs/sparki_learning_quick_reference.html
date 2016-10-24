@@ -340,9 +340,9 @@ ul.auto-toc {
 <body>
 <div class="document" id="sparki-learning-command-quick-reference">
 <h1 class="title">Sparki Learning Command Quick Reference</h1>
-<h2 class="subtitle" id="for-version-1-3-2-of-the-python-library">for version 1.3.2 of the python library</h2>
+<h2 class="subtitle" id="for-version-1-3-3-of-the-python-library">for version 1.3.3 of the python library</h2>
 
-<p>(this library makes use of Python3 - versions of Python &lt;3 but &gt;=2.7 should work)</p>
+<p>(this library makes use of Python 3; Python 2.7 should work, but testing is limited)</p>
 <div class="contents topic" id="contents">
 <p class="topic-title first">Contents</p>
 <ul class="simple">
@@ -353,106 +353,108 @@ ul.auto-toc {
 <li><a class="reference internal" href="#currenttime" id="id6">currentTime()</a></li>
 <li><a class="reference internal" href="#flrange-start-stop-step" id="id7">flrange(start, stop, step)</a></li>
 <li><a class="reference internal" href="#from-sparki-learning-import" id="id8">from sparki_learning import *</a></li>
-<li><a class="reference internal" href="#getuptime" id="id9">getUptime()</a></li>
-<li><a class="reference internal" href="#humantime" id="id10">humanTime()</a></li>
-<li><a class="reference internal" href="#init-com-port" id="id11">init(com_port)</a></li>
-<li><a class="reference internal" href="#randint-start-stop" id="id12">randint(start, stop)</a></li>
-<li><a class="reference internal" href="#range-start-stop-step" id="id13">range(start, stop, step)</a></li>
-<li><a class="reference internal" href="#setdebug-level" id="id14">setDebug(level)</a></li>
-<li><a class="reference internal" href="#setsparkidebug-level" id="id15">setSparkiDebug(level)</a></li>
-<li><a class="reference internal" href="#timer-duration" id="id16">timer(duration)</a></li>
-<li><a class="reference internal" href="#wait-time" id="id17">wait(time)</a></li>
+<li><a class="reference internal" href="#getcommandqueue" id="id9">getCommandQueue()</a></li>
+<li><a class="reference internal" href="#getuptime" id="id10">getUptime()</a></li>
+<li><a class="reference internal" href="#humantime" id="id11">humanTime()</a></li>
+<li><a class="reference internal" href="#init-com-port" id="id12">init(com_port)</a></li>
+<li><a class="reference internal" href="#randint-start-stop" id="id13">randint(start, stop)</a></li>
+<li><a class="reference internal" href="#range-start-stop-step" id="id14">range(start, stop, step)</a></li>
+<li><a class="reference internal" href="#setdebug-level" id="id15">setDebug(level)</a></li>
+<li><a class="reference internal" href="#setsparkidebug-level" id="id16">setSparkiDebug(level)</a></li>
+<li><a class="reference internal" href="#timer-duration" id="id17">timer(duration)</a></li>
+<li><a class="reference internal" href="#wait-time" id="id18">wait(time)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#common-variables" id="id18">Common Variables</a></li>
-<li><a class="reference internal" href="#movement-commands" id="id19">Movement Commands</a><ul>
-<li><a class="reference internal" href="#backward-speed-time-1" id="id20">backward(speed, time = -1)</a></li>
-<li><a class="reference internal" href="#forward-speed-time-1" id="id21">forward(speed, time = -1)</a></li>
-<li><a class="reference internal" href="#gripperclose-distance-7" id="id22">gripperClose(distance = 7)</a></li>
-<li><a class="reference internal" href="#gripperopen-distance-7" id="id23">gripperOpen(distance = 7)</a></li>
-<li><a class="reference internal" href="#gripperstop" id="id24">gripperStop()</a></li>
-<li><a class="reference internal" href="#motors-left-speed-right-speed-time-1" id="id25">motors(left_speed, right_speed, time = -1)</a></li>
-<li><a class="reference internal" href="#movebackwardcm-distance" id="id26">moveBackwardcm(distance)</a></li>
-<li><a class="reference internal" href="#moveforwardcm-distance" id="id27">moveForwardcm(distance)</a></li>
-<li><a class="reference internal" href="#servo-position-defined-below-will-turn-the-sparki-s-head" id="id28">servo(position) (defined below) will turn the Sparki's head</a></li>
-<li><a class="reference internal" href="#stop" id="id29">stop()</a></li>
-<li><a class="reference internal" href="#turnleft-speed-time-1" id="id30">turnLeft(speed, time = -1)</a></li>
-<li><a class="reference internal" href="#turnright-speed-time-1" id="id31">turnRight(speed, time = -1)</a></li>
+<li><a class="reference internal" href="#common-variables" id="id19">Common Variables</a></li>
+<li><a class="reference internal" href="#movement-commands" id="id20">Movement Commands</a><ul>
+<li><a class="reference internal" href="#backward-speed-time-1" id="id21">backward(speed, time = -1)</a></li>
+<li><a class="reference internal" href="#forward-speed-time-1" id="id22">forward(speed, time = -1)</a></li>
+<li><a class="reference internal" href="#gripperclose-distance-7" id="id23">gripperClose(distance = 7)</a></li>
+<li><a class="reference internal" href="#gripperopen-distance-7" id="id24">gripperOpen(distance = 7)</a></li>
+<li><a class="reference internal" href="#gripperstop" id="id25">gripperStop()</a></li>
+<li><a class="reference internal" href="#motors-left-speed-right-speed-time-1" id="id26">motors(left_speed, right_speed, time = -1)</a></li>
+<li><a class="reference internal" href="#movebackwardcm-distance" id="id27">moveBackwardcm(distance)</a></li>
+<li><a class="reference internal" href="#moveforwardcm-distance" id="id28">moveForwardcm(distance)</a></li>
+<li><a class="reference internal" href="#servo-position-defined-below-will-turn-the-sparki-s-head" id="id29">servo(position) (defined below) will turn the Sparki's head</a></li>
+<li><a class="reference internal" href="#stop" id="id30">stop()</a></li>
+<li><a class="reference internal" href="#turnleft-speed-time-1" id="id31">turnLeft(speed, time = -1)</a></li>
+<li><a class="reference internal" href="#turnright-speed-time-1" id="id32">turnRight(speed, time = -1)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#grid-commands" id="id32">Grid Commands</a><ul>
-<li><a class="reference internal" href="#drawfunction-function-xvals-scale-1" id="id33">drawFunction(function, xvals, scale = 1)</a></li>
-<li><a class="reference internal" href="#getangle" id="id34">getAngle()</a></li>
-<li><a class="reference internal" href="#getposition" id="id35">getPosition()</a></li>
-<li><a class="reference internal" href="#moveby-x-y-turnback-false" id="id36">moveBy(x, y, turnBack = False)</a></li>
-<li><a class="reference internal" href="#moveto-x-y-turnback-false" id="id37">moveTo(x, y, turnBack = False)</a></li>
-<li><a class="reference internal" href="#resetposition" id="id38">resetPosition()</a></li>
-<li><a class="reference internal" href="#setangle-newangle" id="id39">setAngle(newAngle)</a></li>
-<li><a class="reference internal" href="#setposition-x-y" id="id40">setPosition(x, y)</a></li>
-<li><a class="reference internal" href="#turnby-degrees" id="id41">turnBy(degrees)</a></li>
-<li><a class="reference internal" href="#turnto-degrees" id="id42">turnTo(degrees)</a></li>
+<li><a class="reference internal" href="#grid-commands" id="id33">Grid Commands</a><ul>
+<li><a class="reference internal" href="#drawfunction-function-xvals-scale-1" id="id34">drawFunction(function, xvals, scale = 1)</a></li>
+<li><a class="reference internal" href="#getangle" id="id35">getAngle()</a></li>
+<li><a class="reference internal" href="#getcentimetersmoved" id="id36">getCentimetersMoved()</a></li>
+<li><a class="reference internal" href="#getposition" id="id37">getPosition()</a></li>
+<li><a class="reference internal" href="#moveby-x-y-turnback-false" id="id38">moveBy(x, y, turnBack = False)</a></li>
+<li><a class="reference internal" href="#moveto-x-y-turnback-false" id="id39">moveTo(x, y, turnBack = False)</a></li>
+<li><a class="reference internal" href="#resetposition" id="id40">resetPosition()</a></li>
+<li><a class="reference internal" href="#setangle-newangle" id="id41">setAngle(newAngle)</a></li>
+<li><a class="reference internal" href="#setposition-x-y" id="id42">setPosition(x, y)</a></li>
+<li><a class="reference internal" href="#turnby-degrees" id="id43">turnBy(degrees)</a></li>
+<li><a class="reference internal" href="#turnto-degrees" id="id44">turnTo(degrees)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#input-commands" id="id43">Input Commands</a><ul>
-<li><a class="reference internal" href="#ask-message-title-question" id="id44">ask(message, title = &quot;Question&quot;)</a></li>
-<li><a class="reference internal" href="#askquestion-message-options-title-question" id="id45">askQuestion(message, options, title = &quot;Question&quot;)</a></li>
-<li><a class="reference internal" href="#gamepad" id="id46">gamepad()</a></li>
-<li><a class="reference internal" href="#input-message" id="id47">input(message)</a></li>
-<li><a class="reference internal" href="#joystick" id="id48">joystick()</a></li>
-<li><a class="reference internal" href="#pickafile" id="id49">pickAFile()</a></li>
-<li><a class="reference internal" href="#yesorno-message" id="id50">yesorno(message)</a></li>
+<li><a class="reference internal" href="#input-commands" id="id45">Input Commands</a><ul>
+<li><a class="reference internal" href="#ask-message-title-question" id="id46">ask(message, title = &quot;Question&quot;)</a></li>
+<li><a class="reference internal" href="#askquestion-message-options-title-question" id="id47">askQuestion(message, options, title = &quot;Question&quot;)</a></li>
+<li><a class="reference internal" href="#gamepad" id="id48">gamepad()</a></li>
+<li><a class="reference internal" href="#input-message" id="id49">input(message)</a></li>
+<li><a class="reference internal" href="#joystick" id="id50">joystick()</a></li>
+<li><a class="reference internal" href="#pickafile" id="id51">pickAFile()</a></li>
+<li><a class="reference internal" href="#yesorno-message" id="id52">yesorno(message)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#output-commands" id="id51">Output Commands</a><ul>
-<li><a class="reference internal" href="#beep-time-200-freq-2800" id="id52">beep(time = 200, freq = 2800)</a></li>
-<li><a class="reference internal" href="#lcdclear-update-true" id="id53">LCDclear(update = True)</a></li>
-<li><a class="reference internal" href="#lcddrawline-x1-y1-x2-y2-update-true" id="id54">LCDdrawLine(X1, Y1, X2, Y2, update = True)</a></li>
-<li><a class="reference internal" href="#lcddrawpixel-x-y-update-true" id="id55">LCDdrawPixel(X,Y, update = True)</a></li>
-<li><a class="reference internal" href="#lcddrawstring-x-y-message-update-true" id="id56">LCDdrawString(X, Y, message, update = True)</a></li>
-<li><a class="reference internal" href="#lcderasepixel-x-y-update-true" id="id57">LCDerasePixel(X,Y, update = True)</a></li>
-<li><a class="reference internal" href="#lcdprint-message-update-true" id="id58">LCDprint(message, update = True)</a></li>
-<li><a class="reference internal" href="#lcdprintln-message-update-true" id="id59">LCDprintLn(message, update = True)</a></li>
-<li><a class="reference internal" href="#lcdsetcolor-color" id="id60">LCDsetColor(color)</a></li>
-<li><a class="reference internal" href="#lcdreadpixel-x-y" id="id61">LCDreadPixel(X,Y)</a></li>
-<li><a class="reference internal" href="#lcdupdate" id="id62">LCDupdate()</a></li>
-<li><a class="reference internal" href="#print-message" id="id63">print(message)</a></li>
-<li><a class="reference internal" href="#printdebug-message-priority-debug-warn-output-sys-stderr" id="id64">printDebug(message, priority = DEBUG_WARN, output = sys.stderr)</a></li>
-<li><a class="reference internal" href="#setrgbled-red-green-blue" id="id65">setRGBLED(red, green, blue)</a></li>
-<li><a class="reference internal" href="#setstatusled-brightness" id="id66">setStatusLED(brightness)</a></li>
-<li><a class="reference internal" href="#speak-message" id="id67">speak(message)</a></li>
+<li><a class="reference internal" href="#output-commands" id="id53">Output Commands</a><ul>
+<li><a class="reference internal" href="#beep-time-200-freq-2800" id="id54">beep(time = 200, freq = 2800)</a></li>
+<li><a class="reference internal" href="#lcdclear-update-true" id="id55">LCDclear(update = True)</a></li>
+<li><a class="reference internal" href="#lcddrawline-x1-y1-x2-y2-update-true" id="id56">LCDdrawLine(X1, Y1, X2, Y2, update = True)</a></li>
+<li><a class="reference internal" href="#lcddrawpixel-x-y-update-true" id="id57">LCDdrawPixel(X,Y, update = True)</a></li>
+<li><a class="reference internal" href="#lcddrawstring-x-y-message-update-true" id="id58">LCDdrawString(X, Y, message, update = True)</a></li>
+<li><a class="reference internal" href="#lcderasepixel-x-y-update-true" id="id59">LCDerasePixel(X,Y, update = True)</a></li>
+<li><a class="reference internal" href="#lcdprint-message-update-true" id="id60">LCDprint(message, update = True)</a></li>
+<li><a class="reference internal" href="#lcdprintln-message-update-true" id="id61">LCDprintLn(message, update = True)</a></li>
+<li><a class="reference internal" href="#lcdsetcolor-color" id="id62">LCDsetColor(color)</a></li>
+<li><a class="reference internal" href="#lcdreadpixel-x-y" id="id63">LCDreadPixel(X,Y)</a></li>
+<li><a class="reference internal" href="#lcdupdate" id="id64">LCDupdate()</a></li>
+<li><a class="reference internal" href="#print-message" id="id65">print(message)</a></li>
+<li><a class="reference internal" href="#printdebug-message-priority-debug-warn-output-sys-stderr" id="id66">printDebug(message, priority = DEBUG_WARN, output = sys.stderr)</a></li>
+<li><a class="reference internal" href="#setrgbled-red-green-blue" id="id67">setRGBLED(red, green, blue)</a></li>
+<li><a class="reference internal" href="#setstatusled-brightness" id="id68">setStatusLED(brightness)</a></li>
+<li><a class="reference internal" href="#speak-message" id="id69">speak(message)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#sensor-commands" id="id68">Sensor Commands</a><ul>
-<li><a class="reference internal" href="#compass" id="id69">compass()</a></li>
-<li><a class="reference internal" href="#getaccel" id="id70">getAccel()</a></li>
-<li><a class="reference internal" href="#getbattery" id="id71">getBattery()</a></li>
-<li><a class="reference internal" href="#getbright-position" id="id72">getBright(position)</a></li>
-<li><a class="reference internal" href="#getline-position" id="id73">getLine(position)</a></li>
-<li><a class="reference internal" href="#getmag" id="id74">getMag()</a></li>
-<li><a class="reference internal" href="#getobstacle-position" id="id75">getObstacle(position)</a></li>
-<li><a class="reference internal" href="#ping" id="id76">ping()</a></li>
-<li><a class="reference internal" href="#senses" id="id77">senses()</a></li>
-<li><a class="reference internal" href="#servo-position" id="id78">servo(position)</a></li>
+<li><a class="reference internal" href="#sensor-commands" id="id70">Sensor Commands</a><ul>
+<li><a class="reference internal" href="#compass" id="id71">compass()</a></li>
+<li><a class="reference internal" href="#getaccel" id="id72">getAccel()</a></li>
+<li><a class="reference internal" href="#getbattery" id="id73">getBattery()</a></li>
+<li><a class="reference internal" href="#getbright-position" id="id74">getBright(position)</a></li>
+<li><a class="reference internal" href="#getline-position" id="id75">getLine(position)</a></li>
+<li><a class="reference internal" href="#getmag" id="id76">getMag()</a></li>
+<li><a class="reference internal" href="#getobstacle-position" id="id77">getObstacle(position)</a></li>
+<li><a class="reference internal" href="#ping" id="id78">ping()</a></li>
+<li><a class="reference internal" href="#senses" id="id79">senses()</a></li>
+<li><a class="reference internal" href="#servo-position" id="id80">servo(position)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ir-commands" id="id79">IR Commands</a><ul>
-<li><a class="reference internal" href="#receiveir" id="id80">receiveIR()</a></li>
-<li><a class="reference internal" href="#sendir-data" id="id81">sendIR(data)</a></li>
+<li><a class="reference internal" href="#ir-commands" id="id81">IR Commands</a><ul>
+<li><a class="reference internal" href="#receiveir" id="id82">receiveIR()</a></li>
+<li><a class="reference internal" href="#sendir-data" id="id83">sendIR(data)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#eeprom-commands" id="id82">EEPROM Commands</a><ul>
-<li><a class="reference internal" href="#eepromread-location-amount" id="id83">EEPROMread(location, amount)</a></li>
-<li><a class="reference internal" href="#eepromwrite-location-data" id="id84">EEPROMwrite(location, data)</a></li>
-<li><a class="reference internal" href="#getname" id="id85">getName()</a></li>
-<li><a class="reference internal" href="#setname-name" id="id86">setName(name)</a></li>
+<li><a class="reference internal" href="#eeprom-commands" id="id84">EEPROM Commands</a><ul>
+<li><a class="reference internal" href="#eepromread-location-amount" id="id85">EEPROMread(location, amount)</a></li>
+<li><a class="reference internal" href="#eepromwrite-location-data" id="id86">EEPROMwrite(location, data)</a></li>
+<li><a class="reference internal" href="#getname" id="id87">getName()</a></li>
+<li><a class="reference internal" href="#setname-name" id="id88">setName(name)</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#related-commands" id="id87">Related Commands</a><ul>
-<li><a class="reference internal" href="#synchronization-commands" id="id88">Synchronization Commands</a><ul>
-<li><a class="reference internal" href="#start-sync-server-time-15-server-port-32216" id="id89">start_sync_server(time = 15, server_port = 32216)</a></li>
-<li><a class="reference internal" href="#start-sync-client-server-ip-server-port-32216" id="id90">start_sync_client(server_ip, server_port = 32216)</a></li>
+<li><a class="reference internal" href="#related-commands" id="id89">Related Commands</a><ul>
+<li><a class="reference internal" href="#synchronization-commands" id="id90">Synchronization Commands</a><ul>
+<li><a class="reference internal" href="#start-sync-server-time-15-server-port-32216" id="id91">start_sync_server(time = 15, server_port = 32216)</a></li>
+<li><a class="reference internal" href="#start-sync-client-server-ip-server-port-32216" id="id92">start_sync_client(server_ip, server_port = 32216)</a></li>
 </ul>
 </li>
 </ul>
@@ -488,54 +490,59 @@ Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2
 <blockquote>
 This command imports the sparki_learning module to make all of the Sparki specific commands available. It must appear at the beginning of your Sparki programs. Other modules (also called libraries) exist in python such as string, math, random, sys, os and datetime.</blockquote>
 </div>
+<div class="section" id="getcommandqueue">
+<h3><a class="toc-backref" href="#id9">getCommandQueue()</a></h3>
+<blockquote>
+Returns the a tuple containing the commands (with arguments) that have been sent to the Sparki.</blockquote>
+</div>
 <div class="section" id="getuptime">
-<h3><a class="toc-backref" href="#id9">getUptime()</a></h3>
+<h3><a class="toc-backref" href="#id10">getUptime()</a></h3>
 <blockquote>
 Returns the number of milliseconds since the Sparki was initialized; returns -1 if Sparki has not been initialized.</blockquote>
 </div>
 <div class="section" id="humantime">
-<h3><a class="toc-backref" href="#id10">humanTime()</a></h3>
+<h3><a class="toc-backref" href="#id11">humanTime()</a></h3>
 <blockquote>
 Returns the time in a human readable format like &quot;Fri Apr 5 19:50:05 2016&quot;</blockquote>
 </div>
 <div class="section" id="init-com-port">
-<h3><a class="toc-backref" href="#id11">init(com_port)</a></h3>
+<h3><a class="toc-backref" href="#id12">init(com_port)</a></h3>
 <blockquote>
 Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like &quot;COM5&quot; or &quot;COM40&quot;. On a Mac, instead of using a COM port, you will use a device path which looks something like &quot;/dev/tty.ArcBotics-DevB&quot;. You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device.</blockquote>
 </div>
 <div class="section" id="randint-start-stop">
-<h3><a class="toc-backref" href="#id12">randint(start, stop)</a></h3>
+<h3><a class="toc-backref" href="#id13">randint(start, stop)</a></h3>
 <blockquote>
 Returns an integer between (and including) the start and stop bounds. To use this function, you must import it from the random library (e.g. from random import randint). The random library has a variety of other functions to generate (semi-)random numbers. Full documentation may be found at <a class="reference external" href="https://docs.python.org/3/library/random.html">https://docs.python.org/3/library/random.html</a></blockquote>
 </div>
 <div class="section" id="range-start-stop-step">
-<span id="range"></span><h3><a class="toc-backref" href="#id13">range(start, stop, step)</a></h3>
+<span id="range"></span><h3><a class="toc-backref" href="#id14">range(start, stop, step)</a></h3>
 <blockquote>
 Returns a list of integers from start to stop by step. start is the number at which the range begins. The range ends one value before stop. The range counts by step. For example, if step is 2, range counts by twos. start and step are optional. start defaults to 0 and step defaults to 1. This command is built in to Python, with full documentation at <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#typesseq-range">https://docs.python.org/3/library/stdtypes.html#typesseq-range</a> . In Python 2, you should use the xrange() function instead with full documentation at <a class="reference external" href="https://docs.python.org/2.7/library/functions.html#xrange">https://docs.python.org/2.7/library/functions.html#xrange</a></blockquote>
 </div>
 <div class="section" id="setdebug-level">
-<h3><a class="toc-backref" href="#id14">setDebug(level)</a></h3>
+<h3><a class="toc-backref" href="#id15">setDebug(level)</a></h3>
 <blockquote>
 Sets the level of debug output for the python library. Possible values (from least verbose to most verbose) are DEBUG_ALWAYS, DEBUG_CRITICAL, DEBUG_ERROR, DEBUG_WARN, DEBUG_INFO, DEBUG_DEBUG. The DEBUG levels are constant integer values defined in the sparki_learning library. The default is DEBUG_WARN, which is a fairly sane level of verbosity. DEBUG_INFO will give a message each time a function is entered. DEBUG_DEBUG will output all messages to and from the robot as well.</blockquote>
 </div>
 <div class="section" id="setsparkidebug-level">
-<h3><a class="toc-backref" href="#id15">setSparkiDebug(level)</a></h3>
+<h3><a class="toc-backref" href="#id16">setSparkiDebug(level)</a></h3>
 <blockquote>
 Sets the level of debug output for the Sparki itself library. The SPARKI_DEBUGS capability must be set to True (and it is False for all &quot;standard&quot; versions of the Sparki library to save memory on the Sparki). Possible values (from least verbose to most verbose) are DEBUG_ALWAYS, DEBUG_CRITICAL, DEBUG_ERROR, DEBUG_WARN, DEBUG_INFO, DEBUG_DEBUG. The DEBUG levels are constant integer values defined in the sparki_learning library. The default is DEBUG_WARN, which is a fairly sane level of verbosity. Messages will be displayed on the Sparki's LCD. You probably never will use this function.</blockquote>
 </div>
 <div class="section" id="timer-duration">
-<h3><a class="toc-backref" href="#id16">timer(duration)</a></h3>
+<h3><a class="toc-backref" href="#id17">timer(duration)</a></h3>
 <blockquote>
 Generator which returns (yields) the amount of time which has passed since it was first called. Ends when the time of the original call plus the duration is greater than the current time. In practice, this function is usually used to create a for loop which executes for duration. (e.g. for x in timer(120): [insert code you want to run for 120 seconds])</blockquote>
 </div>
 <div class="section" id="wait-time">
-<h3><a class="toc-backref" href="#id17">wait(time)</a></h3>
+<h3><a class="toc-backref" href="#id18">wait(time)</a></h3>
 <blockquote>
 Waits time seconds before moving to the next command.</blockquote>
 </div>
 </div>
 <div class="section" id="common-variables">
-<h2><a class="toc-backref" href="#id18">Common Variables</a></h2>
+<h2><a class="toc-backref" href="#id19">Common Variables</a></h2>
 <p>Several commands in the myro module use variables for speed and time, including motors(), forward(), backward(), turnLeft(), and turnRight(). wait() makes use only of time. message is used for output and some input functions. file is used for reading data from files and saving data to them.</p>
 <p id="distance">distance - a float number of centimeters.</p>
 <p id="file">file - a string value containing an absolute path to a file, or a relative path from the directory where IDLE resides. An absolute path on Windows looks like &quot;C:\Music\musicfile.wav&quot; and on Mac looks like &quot;/home/music/musicfile.wav&quot;. Even on Windows, the backslashes may appear as front slashes.</p>
@@ -544,45 +551,45 @@ Waits time seconds before moving to the next command.</blockquote>
 <p id="time">time - the time in seconds to perform the action. Fractional values will perform for fractional seconds. A value of -1 means to perform the action forever. If time is optional for a command, the value defaults to -1 (meaning that if you omit time, the robot performs the command until you tell it to <a class="reference internal" href="#stop">stop()</a>).</p>
 </div>
 <div class="section" id="movement-commands">
-<h2><a class="toc-backref" href="#id19">Movement Commands</a></h2>
+<h2><a class="toc-backref" href="#id20">Movement Commands</a></h2>
 <p>In addition to the below, the <a class="reference internal" href="#grid-commands">Grid Commands</a> also move the robot.</p>
 <div class="section" id="backward-speed-time-1">
-<h3><a class="toc-backref" href="#id20">backward(speed, time = -1)</a></h3>
+<h3><a class="toc-backref" href="#id21">backward(speed, time = -1)</a></h3>
 <blockquote>
 Move the robot backward at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</blockquote>
 </div>
 <div class="section" id="forward-speed-time-1">
-<h3><a class="toc-backref" href="#id21">forward(speed, time = -1)</a></h3>
+<h3><a class="toc-backref" href="#id22">forward(speed, time = -1)</a></h3>
 <blockquote>
 Move the robot forward at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</blockquote>
 </div>
 <div class="section" id="gripperclose-distance-7">
-<h3><a class="toc-backref" href="#id22">gripperClose(distance = 7)</a></h3>
+<h3><a class="toc-backref" href="#id23">gripperClose(distance = 7)</a></h3>
 <blockquote>
 Closes the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally closed.</blockquote>
 </div>
 <div class="section" id="gripperopen-distance-7">
-<h3><a class="toc-backref" href="#id23">gripperOpen(distance = 7)</a></h3>
+<h3><a class="toc-backref" href="#id24">gripperOpen(distance = 7)</a></h3>
 <blockquote>
 Opens the gripper on the robot <a class="reference internal" href="#distance">distance</a> centimeters. distance is optional and may be omitted -- if omitted, the gripper will be totally opened.</blockquote>
 </div>
 <div class="section" id="gripperstop">
-<h3><a class="toc-backref" href="#id24">gripperStop()</a></h3>
+<h3><a class="toc-backref" href="#id25">gripperStop()</a></h3>
 <blockquote>
 Stops the gripper motor.</blockquote>
 </div>
 <div class="section" id="motors-left-speed-right-speed-time-1">
-<h3><a class="toc-backref" href="#id25">motors(left_speed, right_speed, time = -1)</a></h3>
+<h3><a class="toc-backref" href="#id26">motors(left_speed, right_speed, time = -1)</a></h3>
 <blockquote>
 Starts the robot's wheel motors. The left wheel will move at left_speed. The right wheel will move at right_speed. The wheels will move for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. left_speed and right_speed are <a class="reference internal" href="#speed">speed</a> variables, and time is a <a class="reference internal" href="#time">time</a> variable, as defined in the section on <a class="reference internal" href="#common-variables">Common Variables</a>.</blockquote>
 </div>
 <div class="section" id="movebackwardcm-distance">
-<h3><a class="toc-backref" href="#id26">moveBackwardcm(distance)</a></h3>
+<h3><a class="toc-backref" href="#id27">moveBackwardcm(distance)</a></h3>
 <blockquote>
 Moves the robot backward <a class="reference internal" href="#distance">distance</a> centimeters.</blockquote>
 </div>
 <div class="section" id="moveforwardcm-distance">
-<h3><a class="toc-backref" href="#id27">moveForwardcm(distance)</a></h3>
+<h3><a class="toc-backref" href="#id28">moveForwardcm(distance)</a></h3>
 <blockquote>
 Moves the robot backward <a class="reference internal" href="#distance">distance</a> centimeters.</blockquote>
 </div>
@@ -590,300 +597,305 @@ Moves the robot backward <a class="reference internal" href="#distance">distance
 <h3><a class="reference internal" href="#servo-position">servo(position)</a> (defined below) will turn the Sparki's head</h3>
 </div>
 <div class="section" id="stop">
-<h3><a class="toc-backref" href="#id29">stop()</a></h3>
+<h3><a class="toc-backref" href="#id30">stop()</a></h3>
 <blockquote>
 Stops the robot's motors immediately. Only necessary if the robot is presently in motion (e.g. for the motors() or move() commands).</blockquote>
 </div>
 <div class="section" id="turnleft-speed-time-1">
-<h3><a class="toc-backref" href="#id30">turnLeft(speed, time = -1)</a></h3>
+<h3><a class="toc-backref" href="#id31">turnLeft(speed, time = -1)</a></h3>
 <blockquote>
 Turn the robot left at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</blockquote>
 </div>
 <div class="section" id="turnright-speed-time-1">
-<h3><a class="toc-backref" href="#id31">turnRight(speed, time = -1)</a></h3>
+<h3><a class="toc-backref" href="#id32">turnRight(speed, time = -1)</a></h3>
 <blockquote>
 Turn the robot right at <a class="reference internal" href="#speed">speed</a> speed for <a class="reference internal" href="#time">time</a> seconds. time is optional and may be omitted. See the section on <a class="reference internal" href="#common-variables">Common Variables</a> for an explanation of speed and time.</blockquote>
 </div>
 </div>
 <div class="section" id="grid-commands">
-<h2><a class="toc-backref" href="#id32">Grid Commands</a></h2>
+<h2><a class="toc-backref" href="#id33">Grid Commands</a></h2>
 <p>The grid commands implement a pseudo-coordinate plane for use with the Sparki. When you turn the robot on, the robot is assumed to be a 0,0 and facing the positive direction on the y axis. You can use the moveTo() commands to move to a specific point on the grid. Each integer position on the grid is 1cm from the next or previous integer position. For example, 0,1 would be 1cm forward from the starting position of the robot. The robot only updates its grid position when using the grid commands. For example, if you used forward(1,1), that would not update the grid position. If you want to ensure the robot stays somewhere on the grid, only use grid movement commands. If you don't care about the grid position, mixing commands is perfectly fine!</p>
 <div class="section" id="drawfunction-function-xvals-scale-1">
-<h3><a class="toc-backref" href="#id33">drawFunction(function, xvals, scale = 1)</a></h3>
+<h3><a class="toc-backref" href="#id34">drawFunction(function, xvals, scale = 1)</a></h3>
 <blockquote>
 This is a complicated function. drawFunction() draws the function given by the function argument on the coordinate plane. The function argument should be a lambda function. The lambda function given should return the value of the y coordinate given the x. For example, lambda x: x**2 given as the function would graph y=x2. xvals should be an iterator of the values of x you want to use. You may find the flrange() function helpful. For example, drawFunction( lambda x: math.sin(x), flrange(-2, 2.1, .1) ) would draw the sin x from -2 to 2 going a tenth at a time. scale increases the size of the drawing for visibility.</blockquote>
 </div>
 <div class="section" id="getangle">
-<h3><a class="toc-backref" href="#id34">getAngle()</a></h3>
+<h3><a class="toc-backref" href="#id35">getAngle()</a></h3>
 <blockquote>
-Return the number of degrees that Sparki has turned using the turnBy() command, or since setAngle() was last called. turnRight(), turnLeft() and motors() do not update the angle.</blockquote>
+Return the number of degrees that Sparki has turned using the turnBy() command, or since setAngle() was last called. turnRight(), turnLeft() and motors() do not update the angle. Increases on positive angle turns and decreases on negative angle turns.</blockquote>
+</div>
+<div class="section" id="getcentimetersmoved">
+<h3><a class="toc-backref" href="#id36">getCentimetersMoved()</a></h3>
+<blockquote>
+Returns the float number of centimeters Sparki has moved using moveForwardcm(), moveBackwardcm(), and the grid commands. Always increases.</blockquote>
 </div>
 <div class="section" id="getposition">
-<h3><a class="toc-backref" href="#id35">getPosition()</a></h3>
+<h3><a class="toc-backref" href="#id37">getPosition()</a></h3>
 <blockquote>
 Return Sparki's current position on the grid as a list. The x position is the first element of the list (i.e. [0]) and the y position is the second element of the list (i.e. [1]).</blockquote>
 </div>
 <div class="section" id="moveby-x-y-turnback-false">
-<h3><a class="toc-backref" href="#id36">moveBy(x, y, turnBack = False)</a></h3>
+<h3><a class="toc-backref" href="#id38">moveBy(x, y, turnBack = False)</a></h3>
 <blockquote>
 Move the robot to grid position x, y as though the current position were 0,0. For example, if the robot is at 3,4, moveBy(1,1) would move Sparki to 4,5. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.</blockquote>
 </div>
 <div class="section" id="moveto-x-y-turnback-false">
-<h3><a class="toc-backref" href="#id37">moveTo(x, y, turnBack = False)</a></h3>
+<h3><a class="toc-backref" href="#id39">moveTo(x, y, turnBack = False)</a></h3>
 <blockquote>
 Move the robot to grid position x, y. If turnBack is True (not the default), the robot will turn back to the heading it was on prior to the command.</blockquote>
 </div>
 <div class="section" id="resetposition">
-<h3><a class="toc-backref" href="#id38">resetPosition()</a></h3>
+<h3><a class="toc-backref" href="#id40">resetPosition()</a></h3>
 <blockquote>
 Sets Sparki's current position on the grid to 0,0 and its angle to 0. The same as calling setAngle(0) and setPosition(0,0). Does not move the robot.</blockquote>
 </div>
 <div class="section" id="setangle-newangle">
-<h3><a class="toc-backref" href="#id39">setAngle(newAngle)</a></h3>
+<h3><a class="toc-backref" href="#id41">setAngle(newAngle)</a></h3>
 <blockquote>
 Sets the number of degrees that Sparki has turned, which is used by moveBy() and moveTo(). When Sparki is initialized, the angle is 0, so to reset the angle as though the robot were just turned on, use setAngle(0). newAngle defaults to 0. turnRight(), turnLeft() and motors() do not update the angle. Does not move Sparki - if you want to turn to an angle relative to the robot's starting position, use turnTo().</blockquote>
 </div>
 <div class="section" id="setposition-x-y">
-<h3><a class="toc-backref" href="#id40">setPosition(x, y)</a></h3>
+<h3><a class="toc-backref" href="#id42">setPosition(x, y)</a></h3>
 <blockquote>
 Sets Sparki's current position on the grid. Does not move the robot.</blockquote>
 </div>
 <div class="section" id="turnby-degrees">
-<h3><a class="toc-backref" href="#id41">turnBy(degrees)</a></h3>
+<h3><a class="toc-backref" href="#id43">turnBy(degrees)</a></h3>
 <blockquote>
 Turns the robot by a number of degrees. degrees can be any number. A negative degrees turns the robot left (counterclockwise). A positive degrees turns the robot right (clockwise). Note that this behavior is different than the Myro library - for the Myro library, a negative value turns right (clockwise).</blockquote>
 </div>
 <div class="section" id="turnto-degrees">
-<h3><a class="toc-backref" href="#id42">turnTo(degrees)</a></h3>
+<h3><a class="toc-backref" href="#id44">turnTo(degrees)</a></h3>
 <blockquote>
 Turns the robot to the specified heading relative to the value returned by getAngle(). degrees can be any number greater than or equal to 0 and less than 360. A value greater than or equal to 360 or less than 0 will be wrapped around. When the robot is initialized, that heading is defined as 0.</blockquote>
 </div>
 </div>
 <div class="section" id="input-commands">
-<h2><a class="toc-backref" href="#id43">Input Commands</a></h2>
+<h2><a class="toc-backref" href="#id45">Input Commands</a></h2>
 <p>Several of the commands (ask(), askQuestion(), joystick(), pickAFile() and yesorno()) will create GUI windows if tkinter is available. If it is not, the library will fall back to pure text.</p>
 <div class="section" id="ask-message-title-question">
-<h3><a class="toc-backref" href="#id44">ask(message, title = &quot;Question&quot;)</a></h3>
+<h3><a class="toc-backref" href="#id46">ask(message, title = &quot;Question&quot;)</a></h3>
 <blockquote>
 Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to &quot;Question&quot;. (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)</blockquote>
 </div>
 <div class="section" id="askquestion-message-options-title-question">
-<h3><a class="toc-backref" href="#id45">askQuestion(message, options, title = &quot;Question&quot;)</a></h3>
+<h3><a class="toc-backref" href="#id47">askQuestion(message, options, title = &quot;Question&quot;)</a></h3>
 <blockquote>
 Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to &quot;Question&quot;. (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)</blockquote>
 </div>
 <div class="section" id="gamepad">
-<h3><a class="toc-backref" href="#id46">gamepad()</a></h3>
+<h3><a class="toc-backref" href="#id48">gamepad()</a></h3>
 <blockquote>
 Control Sparki using the remote control. The Sparki will not accept commands while it is under remote control. Press + or - on the remote to end remote control.</blockquote>
 </div>
 <div class="section" id="input-message">
-<h3><a class="toc-backref" href="#id47">input(message)</a></h3>
+<h3><a class="toc-backref" href="#id49">input(message)</a></h3>
 <blockquote>
 Prints message to the shell. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. This command is built in to Python.  The full documentation is available at python.org at <a class="reference external" href="https://docs.python.org/3/library/functions.html#input">https://docs.python.org/3/library/functions.html#input</a></blockquote>
 </div>
 <div class="section" id="joystick">
-<h3><a class="toc-backref" href="#id48">joystick()</a></h3>
+<h3><a class="toc-backref" href="#id50">joystick()</a></h3>
 <blockquote>
 Control Sparki using a GUI window. Allows movement and opening and closing of the gripper. (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)</blockquote>
 </div>
 <div class="section" id="pickafile">
-<h3><a class="toc-backref" href="#id49">pickAFile()</a></h3>
+<h3><a class="toc-backref" href="#id51">pickAFile()</a></h3>
 <blockquote>
 Creates window with a file dialog so that the user can pick a file. Might be useful for reading from or saving to a file.</blockquote>
 </div>
 <div class="section" id="yesorno-message">
-<h3><a class="toc-backref" href="#id50">yesorno(message)</a></h3>
+<h3><a class="toc-backref" href="#id52">yesorno(message)</a></h3>
 <blockquote>
 Creates window with message, with buttons labeled with &quot;yes&quot; and &quot;no&quot;. Returns the user's response (which will be either &quot;yes&quot; or &quot;no&quot;). See the section on Common Variables for an explanation of message.</blockquote>
 </div>
 </div>
 <div class="section" id="output-commands">
-<h2><a class="toc-backref" href="#id51">Output Commands</a></h2>
+<h2><a class="toc-backref" href="#id53">Output Commands</a></h2>
 <div class="section" id="beep-time-200-freq-2800">
-<h3><a class="toc-backref" href="#id52">beep(time = 200, freq = 2800)</a></h3>
+<h3><a class="toc-backref" href="#id54">beep(time = 200, freq = 2800)</a></h3>
 <blockquote>
 Plays a tone at freq for time milliseconds through the Sparki. Both are optional (freq defaults to 2800 and time to 200). A list of common frequencies can be found at <a class="reference external" href="http://en.wikipedia.org/wiki/Piano_key_frequencies">http://en.wikipedia.org/wiki/Piano_key_frequencies</a>.</blockquote>
 </div>
 <div class="section" id="lcdclear-update-true">
-<h3><a class="toc-backref" href="#id53">LCDclear(update = True)</a></h3>
+<h3><a class="toc-backref" href="#id55">LCDclear(update = True)</a></h3>
 <blockquote>
 Clears (makes blank) Sparki's LCD. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</blockquote>
 </div>
 <div class="section" id="lcddrawline-x1-y1-x2-y2-update-true">
-<h3><a class="toc-backref" href="#id54">LCDdrawLine(X1, Y1, X2, Y2, update = True)</a></h3>
+<h3><a class="toc-backref" href="#id56">LCDdrawLine(X1, Y1, X2, Y2, update = True)</a></h3>
 <blockquote>
 Draws a line from X1, Y1 to X2, Y2 on the LCD. The X coordinates can be from 0 to 127. The Y coordinates can be from 0 to 63. Note that you must call LCDupdate() to display the line once it's drawn if you set update to False.</blockquote>
 </div>
 <div class="section" id="lcddrawpixel-x-y-update-true">
-<h3><a class="toc-backref" href="#id55">LCDdrawPixel(X,Y, update = True)</a></h3>
+<h3><a class="toc-backref" href="#id57">LCDdrawPixel(X,Y, update = True)</a></h3>
 <blockquote>
 Draws the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.</blockquote>
 </div>
 <div class="section" id="lcddrawstring-x-y-message-update-true">
-<h3><a class="toc-backref" href="#id56">LCDdrawString(X, Y, message, update = True)</a></h3>
+<h3><a class="toc-backref" href="#id58">LCDdrawString(X, Y, message, update = True)</a></h3>
 <blockquote>
 Prints message to the LCD on the back of Sparki at the X, Y coordinate given. X is the pixel to begin the drawing -- can be from 0 to 121. Y is the line to begin the drawing -- can be from 0 to 7. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</blockquote>
 </div>
 <div class="section" id="lcderasepixel-x-y-update-true">
-<h3><a class="toc-backref" href="#id57">LCDerasePixel(X,Y, update = True)</a></h3>
+<h3><a class="toc-backref" href="#id59">LCDerasePixel(X,Y, update = True)</a></h3>
 <blockquote>
 Erases the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.</blockquote>
 </div>
 <div class="section" id="lcdprint-message-update-true">
-<h3><a class="toc-backref" href="#id58">LCDprint(message, update = True)</a></h3>
+<h3><a class="toc-backref" href="#id60">LCDprint(message, update = True)</a></h3>
 <blockquote>
 Prints message to the LCD on the back of Sparki. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</blockquote>
 </div>
 <div class="section" id="lcdprintln-message-update-true">
-<h3><a class="toc-backref" href="#id59">LCDprintLn(message, update = True)</a></h3>
+<h3><a class="toc-backref" href="#id61">LCDprintLn(message, update = True)</a></h3>
 <blockquote>
 Prints message to the LCD on the back of Sparki, and go to the next line. See the section on Common Variables for an explanation of message. Note that you must call LCDupdate() to display the message once it's printed if you set update to False.</blockquote>
 </div>
 <div class="section" id="lcdsetcolor-color">
-<h3><a class="toc-backref" href="#id60">LCDsetColor(color)</a></h3>
+<h3><a class="toc-backref" href="#id62">LCDsetColor(color)</a></h3>
 <blockquote>
 Sets the drawing color of the LCD command. Can be used to erase previously drawn things. color of 0 is black, and that's how it starts. color of 1 is white, and would erase things that are black.</blockquote>
 </div>
 <div class="section" id="lcdreadpixel-x-y">
-<h3><a class="toc-backref" href="#id61">LCDreadPixel(X,Y)</a></h3>
+<h3><a class="toc-backref" href="#id63">LCDreadPixel(X,Y)</a></h3>
 <blockquote>
 Returns True if the color of the pixel at X, Y on the LCD is black; otherwise returns False. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63.</blockquote>
 </div>
 <div class="section" id="lcdupdate">
-<h3><a class="toc-backref" href="#id62">LCDupdate()</a></h3>
+<h3><a class="toc-backref" href="#id64">LCDupdate()</a></h3>
 <blockquote>
 Updates the Sparki's LCD with anything new you've printed to it since the last update.</blockquote>
 </div>
 <div class="section" id="print-message">
-<h3><a class="toc-backref" href="#id63">print(message)</a></h3>
+<h3><a class="toc-backref" href="#id65">print(message)</a></h3>
 <blockquote>
 Prints message to the computer screen. See the section on Common Variables for an explanation of message. print() is built in to Python and has other useful options, but they go beyond what you're likely to encounter routinely. The full documentation is available at python.org at <a class="reference external" href="https://docs.python.org/3/library/functions.html#print">https://docs.python.org/3/library/functions.html#print</a></blockquote>
 </div>
 <div class="section" id="printdebug-message-priority-debug-warn-output-sys-stderr">
-<h3><a class="toc-backref" href="#id64">printDebug(message, priority = DEBUG_WARN, output = sys.stderr)</a></h3>
+<h3><a class="toc-backref" href="#id66">printDebug(message, priority = DEBUG_WARN, output = sys.stderr)</a></h3>
 <blockquote>
 Prints message to output if the current debug level (set by <a class="reference internal" href="#setdebug-level">setDebug(level)</a> and defaulting to DEBUG_WARN) is greater than or equal to priority. output defaults to standard error. Included for convenience of writing your own functions. message must be a string (i.e. message does not accept multiple arguments like speak or print).</blockquote>
 </div>
 <div class="section" id="setrgbled-red-green-blue">
-<h3><a class="toc-backref" href="#id65">setRGBLED(red, green, blue)</a></h3>
+<h3><a class="toc-backref" href="#id67">setRGBLED(red, green, blue)</a></h3>
 <blockquote>
 Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100. For example, [100, 0, 0] would turn the light fully red, [0, 100, 0] would be fully green, and [0, 0, 100] would be fully blue. The values can be mixed to make most colors. Hardware limitations prevent this function from working to its full capability. The LED simply cannot display all values, and in particular cannot display values where red is equal to the other values. If you want to display &quot;white&quot;, Arcbotics recommends values of 60,100,90 -- the library contains suggested values for other colors in the setRGBLED function code.</blockquote>
 </div>
 <div class="section" id="setstatusled-brightness">
-<h3><a class="toc-backref" href="#id66">setStatusLED(brightness)</a></h3>
+<h3><a class="toc-backref" href="#id68">setStatusLED(brightness)</a></h3>
 <blockquote>
 Sets the status LED to brightness, where brightness is a number from 0 to 100.</blockquote>
 </div>
 <div class="section" id="speak-message">
-<h3><a class="toc-backref" href="#id67">speak(message)</a></h3>
+<h3><a class="toc-backref" href="#id69">speak(message)</a></h3>
 <blockquote>
 Speaks the given message. Can be given an argument like print -- e.g. speak(&quot;Hello&quot;, 2, &quot;you&quot;) should work as well as speak(&quot;Hello to you&quot;). <em>Relies on operating system features, not python -- only implemented for Mac and Windows.</em> On Windows, this command may create a window which is open briefly during the actual speech. The speak function is implemented with a hack and may be unreliable.</blockquote>
 </div>
 </div>
 <div class="section" id="sensor-commands">
-<h2><a class="toc-backref" href="#id68">Sensor Commands</a></h2>
+<h2><a class="toc-backref" href="#id70">Sensor Commands</a></h2>
 <div class="section" id="compass">
-<h3><a class="toc-backref" href="#id69">compass()</a></h3>
+<h3><a class="toc-backref" href="#id71">compass()</a></h3>
 <blockquote>
 Returns Sparki's current compass heading.</blockquote>
 </div>
 <div class="section" id="getaccel">
-<h3><a class="toc-backref" href="#id70">getAccel()</a></h3>
+<h3><a class="toc-backref" href="#id72">getAccel()</a></h3>
 <blockquote>
 Returns the current values of Sparki's 3 accelerometers in a list. Accelerometers measure acceleration (primarily due to gravity) and can tell you the orientation of Sparki. The library includes convenience functions getAccelX(), getAccelY(), and getAccelZ() if you only want one sensor value.</blockquote>
 </div>
 <div class="section" id="getbattery">
-<h3><a class="toc-backref" href="#id71">getBattery()</a></h3>
+<h3><a class="toc-backref" href="#id73">getBattery()</a></h3>
 <blockquote>
 Returns the current voltage of Sparki's batteries. ArcBotics reports that the underlying system call is unreliable, and as such any value returned by this function is suspect (a value &lt; 2 should always be disregarded). If it is working, anything below around 4 is low. Should be just below 6 with new batteries.</blockquote>
 </div>
 <div class="section" id="getbright-position">
-<h3><a class="toc-backref" href="#id72">getBright(position)</a></h3>
+<h3><a class="toc-backref" href="#id74">getBright(position)</a></h3>
 <blockquote>
 Returns the brightness value in front of the robot from position. A higher number indicates more light. position is the literal string &quot;left&quot;, &quot;center&quot;, or &quot;right&quot; (or the number 0 for &quot;left&quot;, 1 for &quot;center&quot;, or 2 for &quot;right&quot;). position may be omitted, in which case this returns a list of three values representing the &quot;left&quot;, &quot;center&quot;, and &quot;right&quot; sensors.</blockquote>
 </div>
 <div class="section" id="getline-position">
-<h3><a class="toc-backref" href="#id73">getLine(position)</a></h3>
+<h3><a class="toc-backref" href="#id75">getLine(position)</a></h3>
 <blockquote>
 Returns the value of the line sensor in position. The sensor is actually testing the reflection of an infrared light, and is only accurate with a high amount of contrast (e.g. a black line on a white surface). position may be any number 0 through 4: 0 is the line sensor on the left edge, 1 is the left middle, 2 is the middle, 3 is the right middle, and 4 is the left edge. position may be omitted, in which case getLine() returns a list of five values representing all line sensors.</blockquote>
 </div>
 <div class="section" id="getmag">
-<h3><a class="toc-backref" href="#id74">getMag()</a></h3>
+<h3><a class="toc-backref" href="#id76">getMag()</a></h3>
 <blockquote>
 Returns the current values of Sparki's 3 magnetometers in a list. Magnetometers measure magnetic fields around the robot. The library includes convenience functions getMagX(), getMagY(), and getMagZ() if you only want one sensor value.</blockquote>
 </div>
 <div class="section" id="getobstacle-position">
-<h3><a class="toc-backref" href="#id75">getObstacle(position)</a></h3>
+<h3><a class="toc-backref" href="#id77">getObstacle(position)</a></h3>
 <blockquote>
 Returns a number which is the number of centimeters the Sparki believes the closest object is. position is the literal string &quot;left&quot;, &quot;center&quot;, or &quot;right&quot; (or the number of degrees you want to turn the servo â€“ see the servo command for more information). position may be omitted, in which case getObstacle() returns a list of three values representing the &quot;left&quot;, &quot;center&quot;, and &quot;right&quot; values.</blockquote>
 </div>
 <div class="section" id="ping">
-<h3><a class="toc-backref" href="#id76">ping()</a></h3>
+<h3><a class="toc-backref" href="#id78">ping()</a></h3>
 <blockquote>
 Returns the number of centimeters to the closest object directly in front of Sparki's head. You can turn the head with servo(position) and then get a distance with ping().</blockquote>
 </div>
 <div class="section" id="senses">
-<h3><a class="toc-backref" href="#id77">senses()</a></h3>
+<h3><a class="toc-backref" href="#id79">senses()</a></h3>
 <blockquote>
 Displays a window with (or prints out) data from all of the sensors on Sparki. By default, it updates every two seconds. Program execution is paused while the window is displayed. If tkinter is not available, no window will be displayed, but the status of the sensors will be output in text. (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)</blockquote>
 </div>
 <div class="section" id="servo-position">
-<h3><a class="toc-backref" href="#id78">servo(position)</a></h3>
+<h3><a class="toc-backref" href="#id80">servo(position)</a></h3>
 <blockquote>
 Turns the servo (sparki's head) to position. position is a number between -90 and 90, where -90 is directly to the left, 0 is straight ahead, and 90 is directly to the right.</blockquote>
 </div>
 </div>
 <div class="section" id="ir-commands">
-<h2><a class="toc-backref" href="#id79">IR Commands</a></h2>
+<h2><a class="toc-backref" href="#id81">IR Commands</a></h2>
 <div class="section" id="receiveir">
-<h3><a class="toc-backref" href="#id80">receiveIR()</a></h3>
+<h3><a class="toc-backref" href="#id82">receiveIR()</a></h3>
 <blockquote>
 Returns an int received from the IR sensor on the front of the Sparki. You can then convert this int to a more meaningful piece of information. Returns a -1 if no data is available <em>Not well tested</em></blockquote>
 </div>
 <div class="section" id="sendir-data">
-<h3><a class="toc-backref" href="#id81">sendIR(data)</a></h3>
+<h3><a class="toc-backref" href="#id83">sendIR(data)</a></h3>
 <blockquote>
 Sends the int data via the IR emitter on the front of the Sparki. <em>Not well tested</em></blockquote>
 </div>
 </div>
 <div class="section" id="eeprom-commands">
-<h2><a class="toc-backref" href="#id82">EEPROM Commands</a></h2>
+<h2><a class="toc-backref" href="#id84">EEPROM Commands</a></h2>
 <p>The EEPROM is non-volatile (long-term) storage located on the processor on Sparki (the processor is the chip labeled ATMEGA32U4). The ATMEGA32U4 has 1024 bytes of EEPROM. We use this primarily to store the name of the Sparki (at byte 20), but you can use it to store other stuff. These commands allow you to read and write from the EEPROM.</p>
 <div class="section" id="eepromread-location-amount">
-<h3><a class="toc-backref" href="#id83">EEPROMread(location, amount)</a></h3>
+<h3><a class="toc-backref" href="#id85">EEPROMread(location, amount)</a></h3>
 <blockquote>
 Reads amount bytes of data at location in the EEPROM. location must be greater than or equal to 0 and less than 1024. Note that it is likely that there's nothing interesting at a particular location unless you've put it there.</blockquote>
 </div>
 <div class="section" id="eepromwrite-location-data">
-<h3><a class="toc-backref" href="#id84">EEPROMwrite(location, data)</a></h3>
+<h3><a class="toc-backref" href="#id86">EEPROMwrite(location, data)</a></h3>
 <blockquote>
 Writes data to location in the EEPROM. location must be greater than or equal to 0 and less than 1024. The length of data plus the location must be less than 1024 (since the EEPROM stops at 1024). Be careful with writing data to the EEPROM, as you don't want to overwrite important things. As a general guideline, keep your writing location greater than 100.</blockquote>
 </div>
 <div class="section" id="getname">
-<h3><a class="toc-backref" href="#id85">getName()</a></h3>
+<h3><a class="toc-backref" href="#id87">getName()</a></h3>
 <blockquote>
 Returns the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you'll get a garbage value.</blockquote>
 </div>
 <div class="section" id="setname-name">
-<h3><a class="toc-backref" href="#id86">setName(name)</a></h3>
+<h3><a class="toc-backref" href="#id88">setName(name)</a></h3>
 <blockquote>
 Sets the name of the physical Sparki robot. Note that you must have set the name on each physical robot at least once prior to getting the name, or you'll get a garbage value.</blockquote>
 </div>
 </div>
 </div>
 <div class="section" id="related-commands">
-<h1><a class="toc-backref" href="#id87">Related Commands</a></h1>
+<h1><a class="toc-backref" href="#id89">Related Commands</a></h1>
 <div class="section" id="synchronization-commands">
-<h2><a class="toc-backref" href="#id88">Synchronization Commands</a></h2>
+<h2><a class="toc-backref" href="#id90">Synchronization Commands</a></h2>
 <p>The synchronization commands are provided to allow several computers to do something at the same time. In the case of sparki_learning, they are usually used to allow multiple computers to command their respective robots so that the robots can do things together (at the same time). One computer acts as the server, and all other computers act as the clients. The server is told how much time to wait, and then the server communicates that to any clients that connect to the server. When the time expires, the server and clients all return from the synchronization function.</p>
 <div class="section" id="start-sync-server-time-15-server-port-32216">
-<h3><a class="toc-backref" href="#id89">start_sync_server(time = 15, server_port = 32216)</a></h3>
+<h3><a class="toc-backref" href="#id91">start_sync_server(time = 15, server_port = 32216)</a></h3>
 <blockquote>
 Starts the sync server to execute the commands following after time seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open and listen on a port. server_port defaults to port 32216. server_port must be the same on the client and server.</blockquote>
 </div>
 <div class="section" id="start-sync-client-server-ip-server-port-32216">
-<h3><a class="toc-backref" href="#id90">start_sync_client(server_ip, server_port = 32216)</a></h3>
+<h3><a class="toc-backref" href="#id92">start_sync_client(server_ip, server_port = 32216)</a></h3>
 <blockquote>
 Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.</blockquote>
 </div>
