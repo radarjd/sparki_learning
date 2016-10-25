@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: October 5, 2016
+# Last Modified: October 25, 2016
 # Originally developed on Python 3.4, and recently on 3.5; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -38,7 +38,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.3.3"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.3.3.1"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -180,6 +180,7 @@ SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
                        "DEBUG-EEPROM": ( True, True, True, True, False, False, False ),
                        "DEBUG-LCD": ( False, False, True, False, True, False, False ),
                        "DEBUG-MAG": ( True, False, True, False, False, False, False ),
+                       "DEBUG-PING": ( True, True, True, False, False, False, False ),
                        "0.2 No Mag / No Accel": ( True, True, False, False, False, False, False ),
                        "0.8.3 Mag / Accel On": ( False, False, False, False, False, False, False ),
                        "0.9.6": ( False, False, False, True, False, False, False ),

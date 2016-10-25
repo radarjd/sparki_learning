@@ -979,7 +979,7 @@ void stop() {
 } // end stop()
 
 
-// turnBy(int)
+// turnBy(float)
 // turn the robot by deg degress -- positive will turn right and negative will turn left
 void turnBy(float deg) {
 #ifndef NO_DEBUGS 

@@ -74,7 +74,7 @@ void setDebugLevel(int level);
 void setStatusLED(int brightness);
 void stop();
 
-int debug_level = DEBUG_INFO;
+int debug_level = DEBUG_DEBUG;
 
 /* ########### FUNCTIONS ########### */
 /* ***** SERIAL FUNCTIONS ***** */
@@ -187,7 +187,7 @@ void sendSerial(int* ints, int size) {
 }
 
 void sendSync() {
-//  printDebug("Sending SYNC", DEBUG_DEBUG);
+  printDebug(".", DEBUG_DEBUG, 0);
   serial.print(SYNC);
   serial.flush();
 }
@@ -455,7 +455,7 @@ void loop() {
         // for some reason, this fixes the error
       int left_speed = getSerialInt();
       int right_speed = getSerialInt();
-      int time_length = getSerialFloat();
+      float time_length = getSerialFloat();
 
       printDebug("In switch, left_speed=", DEBUG_DEBUG, 0);
       printDebug(left_speed, DEBUG_DEBUG, 0);

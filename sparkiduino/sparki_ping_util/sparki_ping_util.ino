@@ -12,7 +12,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "DEBUG";    // debugs on; mag off, accel off, EEPROM off; compact 2 off
+const char* SPARKI_MYRO_VERSION = "DEBUG-PING";    // debugs on; mag off, accel off, EEPROM off; compact 2 off
 
 /* ***** MESSAGE TERMINATOR ***** */
 const char TERMINATOR = (char)23;      // this terminates every transmission from python
@@ -30,10 +30,14 @@ const char SYNC = (char)22;            // send this when in the command loop wai
 const char COMMAND_INIT = 'z';          // no arguments; confirms communication between computer and robot
 const char COMMAND_MOTORS = 'A';        // requires 3 arguments: int left_speed (1-100), int right_speed (1-100), & float time
                                         // if time < 0, motors will begin immediately and will not stop; returns nothing
+const char COMMAND_BACKWARD_CM = 'B';   // requires 1 argument: int cm to move backward; returns nothing
+const char COMMAND_FORWARD_CM = 'C';    // requires 1 argument: int cm to move forward; returns nothing
 const char COMMAND_PING = 'D';          // no arguments; returns ping at current servo position
 const char COMMAND_SERVO = 'G';         // requires 1 argument: int servo position; returns nothing
 const char COMMAND_SET_DEBUG_LEVEL = 'H';   // requires 1 argument: int debug level (0-5); returns nothing
 const char COMMAND_STOP = 'K';          // no arguments; returns nothing
+const char COMMAND_TURN_BY = 'L';       // requires 1 argument: float degrees to turn - if degrees is positive, turn clockwise,
+                                        // if degrees is negative, turn counterclockwise; returns nothing
 
 
 /* ***** DEBUG CONSTANTS ***** */
@@ -75,8 +79,9 @@ void motors(int left_speed, int right_speed, float time);
 void setDebugLevel(int level);
 void setStatusLED(int brightness);
 void stop();
+void turnBy(float deg);
 
-int debug_level = DEBUG_DEBUG;
+int debug_level = DEBUG_INFO;
 
 /* ########### FUNCTIONS ########### */
 /* ***** SERIAL FUNCTIONS ***** */
@@ -383,9 +388,30 @@ void setStatusLED(int brightness) {
 } // end setStatusLED(int)
 
 
+// turnBy(float)
+// turn the robot by deg degress -- positive will turn right and negative will turn left
+void turnBy(float deg) {
+  printDebug("In turnBy, deg is ", DEBUG_INFO);
+  printDebug(deg, DEBUG_INFO, 1);
+  const float SECS_PER_DEGREE = .04;  // estimated from observation - may vary based on battery strength and other factors
+  
+  if (deg < 0) {
+    deg = -deg;
+    sparki.moveLeft(deg);
+  } else if (deg > 0) {
+    sparki.moveRight(deg);
+  } else {
+    printDebug("In turnBy, deg is 0", DEBUG_WARN, 1);
+  }
+
+  delay(deg * SECS_PER_DEGREE);
+} // end turnBy(int)
+
+
 // stop()
 // stop the gripper and the movement motor
 void stop() {
+  printDebug("In stop", DEBUG_INFO, 1);
   sparki.gripperStop();
   sparki.moveStop();
 } // end stop()
@@ -402,7 +428,7 @@ void setup() {
 
   sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
 
-  for( int i = 0; i < 10; i++ ) {
+  for( int i = 0; i < 5; i++ ) {
     sparki.print("Ping: ");
     sparki.println(sparki.ping());
     sparki.updateLCD();
@@ -435,6 +461,12 @@ void loop() {
       initSparki();                   // sendSerial is done in the function
       break;
 
+    case COMMAND_BACKWARD_CM:         // float; returns nothing
+      sparki.moveBackward( getSerialFloat() );
+      break;
+    case COMMAND_FORWARD_CM:          // float; returns nothing
+      sparki.moveForward( getSerialFloat() );
+      break;
     case COMMAND_PING:                // no args; returns int
       sendSerial( sparki.ping() );
       break;
@@ -468,6 +500,9 @@ void loop() {
 
     case COMMAND_STOP:                // no args; returns nothing
       stop();
+      break;
+    case COMMAND_TURN_BY:             // float; returns nothing
+      turnBy( getSerialFloat() );
       break;
 
     default:
