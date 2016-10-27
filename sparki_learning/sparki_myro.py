@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: October 25, 2016
+# Last Modified: October 27, 2016
 # Originally developed on Python 3.4, and recently on 3.5; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -38,7 +38,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.3.3.1"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.3.3.3"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -198,15 +198,19 @@ SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
 command_queue = []              # this stores every command sent to Sparki; I don't have a use for it right now...
 
 centimeters_moved = 0           # this stores the sum of centimeters moved forward or backward using the moveForwardcm()
-                                # or moveBackwardcm() functions; forward movement is positive, and backwards movement is negative
-                                # used implicitly by moveTo() and moveBy()
-                                # I don't have a use for this right now either...
+                                # or moveBackwardcm() functions; used implicitly by moveTo() and moveBy(); use directly
+                                # by getCentimetersMover(); this only increases in value
 
 current_lcd_color = LCD_BLACK   # this is the color that an LCDdraw command will draw in -- can be LCD_BLACK or LCD_WHITE
                                 
 degrees_turned = 0              # this stores the sum of degrees turned using the turnBy() function; positive is clockwise
                                 # and negative is counterclockwise
                                 # can be set by setAngle() or retrieved with getAngle()
+
+in_motion = False               # set to True when moving -- note this is a guess set in motors(), stop() & turnBy()
+                                # this library is not multi-thread safe (for many reasons), so this doesn't need to be
+                                # set whenever the robot is actually moving -- only when the user can do something after it
+                                # starts moving
 
 init_time = -1                  # time when the robot was initialized
 
@@ -1281,6 +1285,22 @@ def getUptime():
     else:
         return currentTime() - init_time
 
+    
+def getVersion():
+    """ Gets versions of the Python library and the software running on the Sparki
+    
+        arguments:
+        none
+        
+        returns:
+        tuple - [0] is string version of Python library; [1] is string version of robot software (None if not initialized)
+    """
+    global robot_library_version, SPARKI_MYRO_VERSION
+
+    printDebug("In getVersion", DEBUG_INFO)
+    
+    return ( SPARKI_MYRO_VERSION, robot_library_version )
+
 
 def gripperClose(distance = MAX_GRIPPER_DISTANCE):
     """ Closes the gripper by distance; defaults to MAX_GRIPPER_DISTANCE
@@ -1360,7 +1380,7 @@ def init(com_port, print_versions = True):
         nothing
     """
     global init_time
-    global robot_library_version
+    global robot_library_version, SPARKI_MYRO_VERSION
     global serial_conn
     global serial_port
     global serial_is_connected
@@ -1415,6 +1435,23 @@ def initialize(com_port):
     """ Synonym for init(com_port)
     """
     init(com_port)
+
+
+def isMoving():
+    """ Returns True if the robot is in motion
+        Note that this can be unreliable - there's no way to "ask" the robot if it is moving
+
+        arguments:
+        None
+        
+        returns:
+        boolean - True if robot is in motion; otherwise False
+    """
+    global in_motion
+    
+    printDebug("In isMoving", DEBUG_INFO)
+
+    return in_motion
 
 
 def joystick():
@@ -1715,10 +1752,13 @@ def motors(left_speed, right_speed, time = -1):
         returns:
         nothing
     """    
+    global in_motion
+
     printDebug("In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(time), DEBUG_INFO)
 
     if left_speed == 0 and right_speed == 0:
-        printDebug("In motors, both speeds == 0, doing nothing", DEBUG_WARN)
+        printDebug("In motors, both speeds == 0, stopping (but please use stop())", DEBUG_WARN)
+        stop()
         return
         
     if left_speed < -1.0 or left_speed > 1.0:
@@ -1735,11 +1775,15 @@ def motors(left_speed, right_speed, time = -1):
     right_speed = int( right_speed * 100 )      # sparki expects an int between 1 and 100
     time = float( time )
     args = [ left_speed, right_speed, time ]
-    
-    sendSerial( COMMAND_CODES["MOTORS"], args )
 
-    if time >= 0:
-        wait(time)
+    in_motion = True
+    try:
+        sendSerial( COMMAND_CODES["MOTORS"], args )
+        if time >= 0:
+            wait(time)
+    finally:
+        if time >= 0:
+            in_motion = False
 
 
 def move(translate_speed, rotate_speed):    # NOT WELL TESTED
@@ -1754,6 +1798,7 @@ def move(translate_speed, rotate_speed):    # NOT WELL TESTED
         nothing
     """
     printDebug("In move, translate speed is " + str(translate_speed) + ", rotate speed is " + str(rotate_speed), DEBUG_INFO)
+    printDebug("The move() function is not well tested", DEBUG_WARN)
 
     translate_speed = constrain(translate_speed, -1.0, 1.0)
     rotate_speed = constrain(rotate_speed, -1.0, 1.0)
@@ -1786,6 +1831,7 @@ def moveBackwardcm(centimeters):
         nothing
     """
     global centimeters_moved
+    global in_motion
     
     printDebug("In moveBackwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
 
@@ -1805,6 +1851,7 @@ def moveBackwardcm(centimeters):
 
     sendSerial( COMMAND_CODES["BACKWARD_CM"], args )
     wait( centimeters * SECS_PER_CM )
+    in_motion = False
 
 
 def moveForwardcm(centimeters):
@@ -1817,6 +1864,7 @@ def moveForwardcm(centimeters):
         nothing
     """
     global centimeters_moved
+    global in_motion
 
     printDebug("In moveForwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
 
@@ -1836,6 +1884,7 @@ def moveForwardcm(centimeters):
 
     sendSerial( COMMAND_CODES["FORWARD_CM"], args )
     wait( centimeters * SECS_PER_CM )
+    in_motion = False
 
 
 def moveBy(dX, dY, turnBack = False): 
@@ -2383,9 +2432,12 @@ def stop():
         returns:
         nothing
     """
+    global in_motion
+    
     printDebug("In stop", DEBUG_INFO)
 
     sendSerial( COMMAND_CODES["STOP"] )
+    in_motion = False
 
 
 def timer(duration):
@@ -2428,7 +2480,7 @@ def turnBy(degrees):
         returns:
         nothing
     """
-    global degrees_turned
+    global degrees_turned, in_motion
     
     printDebug("In turnBy, degrees is " + str(degrees), DEBUG_INFO)
 
@@ -2452,6 +2504,7 @@ def turnBy(degrees):
 
     sendSerial( COMMAND_CODES["TURN_BY"], args )
     wait( abs(degrees) * SECS_PER_DEGREE )
+    in_motion = False
 
 
 def turnTo(newHeading):
