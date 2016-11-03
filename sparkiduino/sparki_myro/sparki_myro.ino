@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.2r5";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.2r6";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -270,7 +270,7 @@ char getSerialChar() {
 // we then convert the string to a float and return that
 // there is likely to be some loss of precision
 float getSerialFloat() {
-  int size = 20;
+  int size = 15;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atof( buf );
@@ -281,7 +281,7 @@ float getSerialFloat() {
 // ints are sent to Sparki as char* in order to eliminate conversion issues
 // we then convert the string to an int and return that
 int getSerialInt() {
-  int size = 20;
+  int size = 15;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atoi( buf );
@@ -375,7 +375,7 @@ void sendSerial(int* ints, int size) {
 }
 
 void sendSync() {
-//  printDebug("Sending SYNC", DEBUG_DEBUG);
+//  printDebug(".", DEBUG_DEBUG);
   serial.print(SYNC);
   serial.flush();
 }
@@ -486,7 +486,7 @@ void printDebug(int* ints, int importance, int size, int newLine) {
 // will run until the robot gets a command over the serial port
 void gamepad() { 
 #ifndef NO_DEBUGS
-  printDebug("In gamepad, ready for input", DEBUG_DEBUG, 1);
+  printDebug("In gamepad, ready for input", DEBUG_INFO, 1);
 #endif // NO_DEBUGS
   bool keep_going = true;
   
@@ -637,7 +637,7 @@ void gamepad() {
 // sends an array with the values of the X, Y, and Z accelerometers
 void getAccel() { 
 #ifndef NO_DEBUGS
-  printDebug("In getAccel, values: ", DEBUG_DEBUG, 1);
+  printDebug("In getAccel, values: ", DEBUG_INFO, 1);
 #endif
 
   sparki.readAccelData(); // it's faster to get the values this way than call them individually
@@ -647,8 +647,8 @@ void getAccel() {
     -sparki.zAxisAccel*9.8   };
 
 #ifndef NO_DEBUGS
-  printDebug(values, DEBUG_DEBUG, 3, 0);
-  printDebug(' ', DEBUG_DEBUG, 1);
+  printDebug(values, DEBUG_INFO, 3, 0);
+  printDebug(' ', DEBUG_INFO, 1);
 #endif // NO_DEBUGS
   
   sendSerial( values, 3 );
@@ -665,9 +665,9 @@ void getLight() {
     sparki.lightRight()   };
 
 #ifndef NO_DEBUGS
-  printDebug("In getLight, values are ", DEBUG_DEBUG, 0);
-  printDebug(values, DEBUG_DEBUG, 3, 0);
-  printDebug(' ', DEBUG_DEBUG, 1);
+  printDebug("In getLight, values are ", DEBUG_INFO, 0);
+  printDebug(values, DEBUG_INFO, 3, 0);
+  printDebug(' ', DEBUG_INFO, 1);
 #endif // NO_DEBUGS
   
   sendSerial( values, 3 );
@@ -685,9 +685,9 @@ void getLine() {
     sparki.edgeRight()   };
 
 #ifndef NO_DEBUGS
-  printDebug("In getLine, values are ", DEBUG_DEBUG, 0);
-  printDebug(values, DEBUG_DEBUG, 5, 0);
-  printDebug(' ', DEBUG_DEBUG, 1);
+  printDebug("In getLine, values are ", DEBUG_INFO, 0);
+  printDebug(values, DEBUG_INFO, 5, 0);
+  printDebug(' ', DEBUG_INFO, 1);
 #endif // NO_DEBUGS
   
   sendSerial( values, 5 );
@@ -705,9 +705,9 @@ void getMag() {
     sparki.zAxisMag   };
 
 #ifndef NO_DEBUGS	
-  printDebug("In getMag", DEBUG_DEBUG, 1);
-  printDebug(values, DEBUG_DEBUG, 3, 0);
-  printDebug(' ', DEBUG_DEBUG, 1);
+  printDebug("In getMag", DEBUG_INFO, 1);
+  printDebug(values, DEBUG_INFO, 3, 0);
+  printDebug(' ', DEBUG_INFO, 1);
 #endif // NO_DEBUGS
 
   sendSerial( values, 3 );
@@ -886,8 +886,8 @@ void writeToEEPROM(int start) {
 // time should be in seconds; if time < 0, move immediately and without stopping
 void motors(int left_speed, int right_speed, float time) { 
 #ifndef NO_DEBUGS
-  printDebug("In motors, time is ", DEBUG_DEBUG);
-  printDebug(time, DEBUG_DEBUG, 1); // speeds will be printed when motors(int,int) is called
+  printDebug("In motors, time is ", DEBUG_INFO);
+  printDebug(time, DEBUG_INFO, 1); // speeds will be printed when motors(int,int) is called
 #endif // NO_DEBUGS
 
   if (time < 0) {
@@ -907,10 +907,10 @@ void motors(int left_speed, int right_speed, float time) {
 // if the speed is positive, that indicates forward motion on that wheel
 void motors(int left_speed, int right_speed) { 
 #ifndef NO_DEBUGS
-  printDebug("In motors, moving at left speed ", DEBUG_DEBUG);
-  printDebug(left_speed, DEBUG_DEBUG);
-  printDebug(" and right speed ", DEBUG_DEBUG);
-  printDebug(right_speed, DEBUG_DEBUG, 1);
+  printDebug("In motors, moving at left speed ", DEBUG_INFO);
+  printDebug(left_speed, DEBUG_INFO);
+  printDebug(" and right speed ", DEBUG_INFO);
+  printDebug(right_speed, DEBUG_INFO, 1);
 #endif // NO_DEBUGS
 
   if (left_speed >= 0) {
@@ -983,8 +983,8 @@ void stop() {
 // turn the robot by deg degress -- positive will turn right and negative will turn left
 void turnBy(float deg) {
 #ifndef NO_DEBUGS 
-  printDebug("In turnBy, deg is ", DEBUG_DEBUG);
-  printDebug(deg, DEBUG_DEBUG, 1);
+  printDebug("In turnBy, deg is ", DEBUG_INFO);
+  printDebug(deg, DEBUG_INFO, 1);
 #endif // NO_DEBUGS
   const float SECS_PER_DEGREE = .04;  // estimated from observation - may vary based on battery strength and other factors
   

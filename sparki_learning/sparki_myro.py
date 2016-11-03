@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: October 27, 2016
+# Last Modified: November 3, 2016
 # Originally developed on Python 3.4, and recently on 3.5; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -38,7 +38,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.3.3.3"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.3.4"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -190,7 +190,8 @@ SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
                        "1.0.1": ( False, False, False, True, True, False, False ),   
                        "1.1.0": ( False, False, False, True, True, False, False ),   
                        "1.1.1": ( False, False, False, True, True, False, False ),   
-                       "1.1.2": ( False, False, False, True, True, False, False ) }   
+                       "1.1.2": ( False, False, False, True, True, False, False ),   
+                       "1.1.3": ( False, False, False, True, True, False, False ) }   
 
 ########### END OF CONSTANTS ###########
 
@@ -697,12 +698,43 @@ def askQuestion(message, options, mytitle = "Question"):
     printDebug("In askQuestion", DEBUG_INFO)
 
     try:
-        questionDialog = tk.simpledialog.SimpleDialog(root, title = mytitle, text = message, buttons = options)
-        result = questionDialog.go()
-    except Exception as err:
-        printDebug(str(err), DEBUG_DEBUG)
-##        result = askQuestion_text(message, options, False)
-        raise
+        choice = tk.StringVar()    # tk has its own kind of string
+        choice.set( options[0] ) # default to the top answer
+        question = tk.StringVar()
+        question.set( message )
+        
+        # start a new window
+        questionWindow = tk.Toplevel(root)
+        questionWindow.title(mytitle)
+
+        # create sections to put in the data, and use the pack layout manager
+        questionFrame = tk.Frame(questionWindow)
+        answersFrame = tk.Frame(questionWindow)
+        buttonFrame = tk.Frame(questionWindow)
+
+        questionFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.TOP)
+        answersFrame.pack(expand=tk.TRUE, fill=tk.BOTH)
+        buttonFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.BOTTOM)
+        
+        # put question label in questionFrame
+        questionLabel = tk.Label(questionFrame, textvariable=question)
+        questionLabel.pack()
+
+        # put answers radio buttons in answersFrame
+        for option in options:
+            b = tk.Radiobutton(answersFrame, text=option, variable=choice, value=option)
+            b.pack(anchor=tk.W)
+
+        # put OK button in button frame
+        okButton = tk.Button(buttonFrame, text="OK", command=lambda: questionWindow.destroy())
+        okButton.pack()
+
+        questionWindow.lift()                  # move the window to the top to make it more visible
+        questionWindow.wait_window(questionWindow)     # wait for this window to be destroyed (closed) before moving on
+
+        result = choice.get()
+    except:
+        result = askQuestion_text(message, options, False)
     
     return result
 
