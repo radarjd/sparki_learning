@@ -13,6 +13,7 @@
 from setuptools import setup, find_packages
 setup(
     name = "sparki_learning",
+    version = "1.3.7",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets
