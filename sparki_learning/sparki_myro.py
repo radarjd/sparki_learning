@@ -12,8 +12,8 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: November 3, 2016
-# Originally developed on Python 3.4, and recently on 3.5; should work on any version >3; limited testing has been successful with Python 2.7
+# Last Modified: January 24, 2017
+# Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
 
@@ -38,7 +38,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.3.4"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.3.5"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -675,7 +675,46 @@ def ask(message, mytitle = "Question"):
     printDebug("In ask", DEBUG_INFO)
 
     try:
-        result = tk.simpledialog.askstring(mytitle, message, parent = root)
+        question = tk.StringVar()
+        question.set( message )
+        entryText = tk.StringVar()  # we could use this to type default text
+        
+        # start a new window
+        questionWindow = tk.Toplevel(root)
+        questionWindow.title(mytitle)
+
+        # create sections to put in the data, and use the pack layout manager
+        questionFrame = tk.Frame(questionWindow)
+        entryFrame = tk.Frame(questionWindow)
+        buttonFrame = tk.Frame(questionWindow)
+
+        questionFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.TOP)
+        entryFrame.pack(expand=tk.TRUE, fill=tk.BOTH)
+        buttonFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.BOTTOM)
+        
+        # put question label in questionFrame
+        questionLabel = tk.Label(questionFrame, textvariable=question)
+        questionLabel.pack()
+
+        # in order to accept the return button in textEntry, we have to create a function
+        # to consume the event
+        def doneAction(event):
+            questionWindow.destroy()
+
+        # put entry blank in entryFrame
+        textEntry = tk.Entry(entryFrame, textvariable=entryText)
+        textEntry.bind('<Return>', doneAction) # make it so if the use presses enter, we accept the data
+        textEntry.pack()
+
+        # put OK button in button frame
+        okButton = tk.Button(buttonFrame, text="OK", command=lambda: questionWindow.destroy())
+        okButton.pack()
+
+        questionWindow.lift()                  # move the window to the top to make it more visible
+        textEntry.focus_set()                  # grab the focus
+        questionWindow.wait_window(questionWindow)     # wait for this window to be destroyed (closed) before moving on
+
+        result = entryText.get()
     except Exception as err:
         printDebug(str(err), DEBUG_DEBUG)
         result = input(message)
@@ -1406,6 +1445,7 @@ def init(com_port, print_versions = True):
         
         arguments:
         com_port - a string designating which port Sparki is on (windows looks like "COM??"; mac and linux look like "/dev/????"
+                   if com_port is the string "mac", this will assume the standard mac port ("/dev/tty.ArcBotics-DevB")
         print_versions - boolean whether or not to print connection message
         
         returns:
@@ -1422,6 +1462,9 @@ def init(com_port, print_versions = True):
 
     if serial_is_connected:
         disconnectSerial()
+
+    if com_port == "mac":
+        com_port = "/dev/tty.ArcBotics-DevB"
     
     serial_port = com_port
     
@@ -2303,7 +2346,7 @@ def setDebug(level):
     
 
 def setLEDBack(brightness):
-    """ Sets the RGB LED to the brightness given -- should be a number between 0 and 100, which is a percentage
+    """ Sets the RGB LED to white light at the brightness given -- should be a number between 0 and 100, which is a percentage
 
         arguments:
         brightness - int between 0 and 100 which is a percentage of brightness

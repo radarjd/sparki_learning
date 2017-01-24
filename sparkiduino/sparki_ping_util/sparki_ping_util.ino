@@ -425,6 +425,8 @@ void setup() {
   sparki.updateLCD();
 
   serial.begin(9600);
+  sparki.servo(SERVO_LEFT); // rotate the servo to its 0 degree postion (forward)  
+  sparki.servo(SERVO_RIGHT); // rotate the servo to its 0 degree postion (forward)  
 
   sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
 

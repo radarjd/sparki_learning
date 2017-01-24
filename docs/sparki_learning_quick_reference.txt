@@ -3,7 +3,7 @@ Sparki Learning Command Quick Reference
 ======================================================
 
 ------------------------------------------------------
-for version 1.3.4 of the python library
+for version 1.3.5 of the python library
 ------------------------------------------------------
 
 (this library makes use of Python 3; Python 2.7 should work, but testing is limited)
@@ -76,7 +76,7 @@ humanTime()
 
 init(com_port)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like "COM5" or "COM40". On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device.
+	Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like "COM5" or "COM40". On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device. On a Mac, you can also use the secret port "mac" and the library will fill in the standard Mac port.
 
 
 

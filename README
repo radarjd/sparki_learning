@@ -11,9 +11,10 @@ To make use of this library with your Sparki:
 4. You're done! At least, you're done with the part that concerns your Sparki. The library on its own won't do much unless you've got a way to talk to it.
 
 To talk to the library using Python:
-1. Download a version of Python 3 -- this was originally developed on Python 3.4, and has lately been developed on 3.5, but the author believes any version of Python 3 will work <https://www.python.org/downloads/>. The author has also successfully used Python 2.7, though it is not as thoroughly tested.
-2. Use pypi, easy_install or pip to install the library (e.g. 'pip install sparki-learning'). It should download everything for you automagically. 
-3. Use the sparki_learning library to control your Sparki!
+1. Pair your Sparki with your computer over Bluetooth.
+2. Download a version of Python 3 -- this was originally developed on Python 3.4, has lately been developed on 3.5, and has some testing on 3.6, but the author believes any version of Python 3 will work <https://www.python.org/downloads/>. The author has also successfully used Python 2.7, though it is not as thoroughly tested.
+3. Use pypi, easy_install or pip to install the library (e.g. 'pip install sparki-learning'). It should download everything for you automagically. 
+4. Use the sparki_learning library to control your Sparki!
 
 All of the software in this project is provided under the Apache version 2 license available at <http://www.apache.org/licenses/LICENSE-2.0> and is WITHOUT WARRANTY, including implied warranties. I have also included a couple of sample / test programs for you to look at in python to get a feel for how to use the library. 
 
