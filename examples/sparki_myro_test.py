@@ -78,14 +78,16 @@ turnBy(-30)
 print("turning to 0 degrees (the original orientation of the robot)")
 turnTo(0)
 
-print("Brightening RGB LED")
-for i in range(0,101, 5):
-    wait(.01)
-    setLEDBack(i)
+testLED = input("Should I run the RGB LED test (y to do it)? ")
+if testLED == "y":
+    print("Brightening RGB LED")
+    for i in range(0,101, 5):
+        wait(.01)
+        setLEDBack(i)
 
-print("Dimming RGB LED")
-for i in range(100, -1, -5):
-    wait(.01)
-    setLEDBack(i)
+    print("Dimming RGB LED")
+    for i in range(100, -1, -5):
+        wait(.01)
+        setLEDBack(i)
 
 print("done")

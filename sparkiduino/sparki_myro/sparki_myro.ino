@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - September 13, 2016 */
+   last modified - February 8, 2017 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.2r6";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.3r1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -126,6 +126,8 @@ const char COMMAND_EEPROM_WRITE = 'R';  // writes data to the EEPROM
 #ifndef COMPACT_2
 const char COMMAND_VERSION = 'V';   // no arguments; returns version
 #endif // COMPACT_2
+
+const char COMMAND_NOOP = 'Z';  // no arguments; returns nothing; does nothing; added 1.1.3; can be used to prevent a timeout in communication with the robot
 /* ***** END OF COMMAND CHARACTER CODES ***** */
 
 
@@ -270,7 +272,7 @@ char getSerialChar() {
 // we then convert the string to a float and return that
 // there is likely to be some loss of precision
 float getSerialFloat() {
-  int size = 15;
+  int size = 20;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atof( buf );
@@ -281,7 +283,7 @@ float getSerialFloat() {
 // ints are sent to Sparki as char* in order to eliminate conversion issues
 // we then convert the string to an int and return that
 int getSerialInt() {
-  int size = 15;
+  int size = 20;
   char buf[size];
   int result = getSerialBytes(buf, size);
   return atoi( buf );
@@ -315,6 +317,11 @@ int getSerialBytes(char* buf, int size) {
         buf[count++] = (char)inByte;
       }
     }
+  }
+  
+  // flush extra characters
+  while ((inByte != TERMINATOR) && (serial.available())) {
+      inByte = serial.read();
   }
 
   return count;
@@ -1275,6 +1282,10 @@ void loop() {
       sendSerial( (char*)SPARKI_MYRO_VERSION );
       break;
 #endif // COMPACT_2
+
+    case COMMAND_NOOP:             // no args; returns nothing; does nothing
+      // can be used to prevent a timeout in communication with the robot
+      break;
 
     default:
       sparki.print("Bad input");

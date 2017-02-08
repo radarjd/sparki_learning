@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: January 24, 2017
+# Last Modified: February 8, 2017
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -38,7 +38,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.3.5"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.4.0"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -57,11 +57,12 @@ NO_ACCEL = False            # getAccel(), getAccelX(), getAccelY(), getAccelZ()
 SPARKI_DEBUGS = False       # setSparkiDebug()
 USE_EEPROM = False          # EEPROMread(), EEPROMwrite(), getName(), setName()
 EXT_LCD_1 = False           # EEPROMread(), EEPROMwrite(), LCDdrawLine(), LCDdrawString(), LCDreadPixel()
+NOOP = False                # noop() -- if False, noop is simulated with setStatusLED
 
 
 # ***** MISCELLANEOUS VARIABLES ***** #
 SECS_PER_CM = .42       # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
-SECS_PER_DEGREE = .035  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
+SECS_PER_DEGREE = .033  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
 MAX_TRANSMISSION = 20   # maximum message length is 20 to conserve Sparki's limited RAM
 
 LCD_BLACK = 0           # set in Sparki.h
@@ -70,7 +71,7 @@ LCD_WHITE = 1           # set in Sparki.h
 
 # ***** SERIAL TIMEOUT ***** #
 if platform.system() == "Darwin":    # Macs seem to be extremely likely to timeout -- so this is a lower value
-    CONN_TIMEOUT = 3        # in seconds
+    CONN_TIMEOUT = 2        # in seconds
 else:
     CONN_TIMEOUT = 5        # in seconds
 
@@ -122,7 +123,8 @@ COMMAND_CODES = {
                                                             # if the name was not set previously, can give undefined behavior
                     'SET_NAME':'P',       # set the Sparki's name in the EEPROM - USE_EEPROM must be True
                     'READ_EEPROM':'Q',    # reads data as stored in the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
-                    'WRITE_EEPROM':'R'    # writes data to the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
+                    'WRITE_EEPROM':'R',   # writes data to the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
+                    'NOOP':'Z'            # does nothing and returns nothing - NOOP must be True
                 }
 #***** END OF COMMAND CHARACTER CODES ***** #
 
@@ -157,6 +159,7 @@ MAX_GRIPPER_DISTANCE = 7.0
 
 
 # ***** EEPROM STORAGE ***** #
+EEPROM_BLUETOOTH_ADDRESS = 80
 EEPROM_NAME_MAX_CHARS = 20
 EEPROM_MAX_ADDRESS = 1023
 
@@ -171,7 +174,7 @@ SERVO_RIGHT = 80
 # this dictionary stores the capabilities of various versions of the program running on the Sparki itself
 # this is used in init to update the capabilities of the Sparki -- you could use this so that the library can
 #   work with different versions of the Sparki library
-# The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
+# The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, NOOP
 # If a version number contains a lower case r, everything after the r will be stripped when determining the capabilities
 #   for example, 1.1.2r1 and 1.1.2r5 will have the same capabilities
 SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
@@ -191,7 +194,7 @@ SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
                        "1.1.0": ( False, False, False, True, True, False, False ),   
                        "1.1.1": ( False, False, False, True, True, False, False ),   
                        "1.1.2": ( False, False, False, True, True, False, False ),   
-                       "1.1.3": ( False, False, False, True, True, False, False ) }   
+                       "1.1.3": ( False, False, False, True, True, False, True ) }   
 
 ########### END OF CONSTANTS ###########
 
@@ -260,6 +263,61 @@ def askQuestion_text(message, options, caseSensitive = True):
             result = result.lower()
 
     return result
+
+
+def bluetoothRead():
+    """ Returns the bluetooth address of the robot (if it has been previously stored)
+    
+        arguments:
+        none
+        
+        returns:
+        string - the bluetooth address of the robot, if it has been previously stored; None otherwise
+    """
+    global EEPROM_BLUETOOTH_ADDRESS
+
+    bt = EEPROMread(EEPROM_BLUETOOTH_ADDRESS, 17)
+
+    if bluetoothValidate( bt ):
+        return bt
+    else:
+        return None
+
+
+def bluetoothValidate(address):
+    """ Returns True if the string argument appears to be a Bluetooth address (strictly speaking, a MAC address)
+    
+        arguments:
+        address - string MAC address
+        
+        returns:
+        boolean - True if it appears to be a bluetooth address, otherwise false
+    """
+    import re
+
+    validMAC = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
+
+    if validMAC.match(address):
+        return True
+    else:
+        return False
+
+
+def bluetoothWrite(bt):
+    """ Writes the bluetooth address of the robot and stores it in EEPROM
+    
+        arguments:
+        bt - string bluetooth address of the format 00-00-00-00-00-00 or ff:ff:ff:ff:ff:ff
+        
+        returns:
+        none
+    """
+    global EEPROM_BLUETOOTH_ADDRESS
+    
+    if bluetoothValidate( bt ):
+        EEPROMwrite( EEPROM_BLUETOOTH_ADDRESS, bt )
+    else:
+        raise TypeError(str(bt) + " does not appear to be a valid bluetooth address")
 
 
 def constrain(n, min_n, max_n):
@@ -552,6 +610,7 @@ def sendSerial(command, args = None):
        
         if len(message) > MAX_TRANSMISSION:
             printDebug("Messages must be " + str(MAX_TRANSMISSION) + " characters or fewer", DEBUG_ERROR)
+            stop()    # done for safety -- in case robot is in motion
             raise RuntimeError
         
         printDebug("Sending bytes " + str(message) + " (" + str(value) + ")", DEBUG_DEBUG)
@@ -930,7 +989,7 @@ def EEPROMwrite(location, data):
 
         arguments:
         location - int - must be a valid location (0 through 1023)
-        data - string - data to be written; must be less than EEPROM_NAME_MAX_CHARS
+        data - string - data to be written; must fit in EEPROM (len(data) + location <= 1023
 
         returns:
         nothing
@@ -947,7 +1006,7 @@ def EEPROMwrite(location, data):
     location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
 
     if location + len(data) > EEPROM_MAX_ADDRESS:
-        printDebug("In EEPROMwrite, Too much data to store", DEBUG_CRITICAL)
+        printDebug("In EEPROMwrite, too much data to store", DEBUG_CRITICAL)
         raise IndexError
 
     args = [ location, data ]
@@ -1456,7 +1515,7 @@ def init(com_port, print_versions = True):
     global serial_conn
     global serial_port
     global serial_is_connected
-    global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1
+    global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, NOOP
 
     printDebug("In init, com_port is " + str(com_port), DEBUG_INFO)
 
@@ -1491,8 +1550,8 @@ def init(com_port, print_versions = True):
         # use the version number to try to figure out capabilities
         # if the version has a lower case r, strip off the r and anything to the right of it (that's what .partition() does below)
         try:
-            # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, reserved
-            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, reserved3 = SPARKI_CAPABILITIES[robot_library_version.partition('r')[0]]
+            # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, NOOP
+            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, NOOP = SPARKI_CAPABILITIES[robot_library_version.partition('r')[0]]
             printDebug("Sparki Capabilities:", DEBUG_INFO)
             printDebug("\tNO_ACCEL:\tNO_MAG:\tSPARKI_DEBUGS:\tUSE_EEPROM:\tEXT_LCD_1:", DEBUG_INFO)
             printDebug("\t" + str(NO_ACCEL) + "\t\t" + str(NO_MAG) + "\t" + str(SPARKI_DEBUGS) + "\t\t" + str(USE_EEPROM) + "\t\t" + str(EXT_LCD_1), DEBUG_INFO)
@@ -1722,6 +1781,8 @@ def LCDprint(message, update = True):
     """
     printDebug("In LCDprint, message is " + str(message), DEBUG_INFO)
 
+    message = str(message)
+    
     sendSerial( COMMAND_CODES["LCD_PRINT"], message )
 
     if update:
@@ -1739,6 +1800,8 @@ def LCDprintLn(message, update = True):
         nothing
     """
     printDebug("In LCDprintLn, message is " + str(message), DEBUG_INFO)
+
+    message = str(message)
 
     sendSerial( COMMAND_CODES["LCD_PRINTLN"], message )
 
@@ -2037,6 +2100,27 @@ def moveTo(newX, newY, turnBack = False):
     printDebug("In moveTo, moving to " + str(newX) + ", " + str(newY), DEBUG_INFO)
 
     moveBy(newX - xpos, newY - ypos, turnBack)
+
+
+def noop():
+    """ Sends a command to the Sparki which should do nothing
+
+        Intended as a way to prevent serial timeouts
+
+        arguments:
+        none
+
+        returns:
+        none
+    """
+    printDebug("In noop", DEBUG_INFO)
+
+    if NOOP:
+        sendSerial( COMMAND_CODES["NOOP"] )
+    else:
+        printDebug("no op is not available on sparki; simulating", DEBUG_WARN)
+        setStatusLED("on")
+        setStatusLED("off")
 
 
 def pickAFile():
@@ -2669,13 +2753,45 @@ def wait(wait_time):
         nothing
     """
     printDebug("In wait, wait_time is " + str(wait_time), DEBUG_INFO)
+    maxWait = 600
 
-    if wait_time > 120:
+    if wait_time >= maxWait:
+        printDebug("Wait time is " + str(maxWait) + " seconds or greater -- reducing to " + str(maxWait) + " seconds", DEBUG_ERROR)
+    elif wait_time > 120:
         printDebug("Wait time is greater than 2 minutes", DEBUG_WARN)
     
-    wait_time = constrain(wait_time, 0, 600)    # don't wait longer than ten minutes
+    wait_time = float( constrain(wait_time, 0, maxWait) )    # don't wait longer than ten minutes
     
     time.sleep(wait_time)    # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
+
+
+def waitNoop(wait_time):
+    """ Wait for wait_time seconds while sending noops to sparki; actual time will vary somewhat due to factors outside of program control
+        less accurate for timing than wait, but may maintain a serial connection better
+    
+        arguments:
+        wait_time - float number of seconds to wait
+        
+        returns:
+        nothing
+    """
+    printDebug("In waitNoop, wait_time is " + str(wait_time), DEBUG_INFO)
+    maxWait = 1200
+    sleepTime = 1
+
+    if wait_time >= maxWait:
+        printDebug("Wait time is " + str(maxWait) + " seconds or greater -- reducing to " + str(maxWait) + " seconds", DEBUG_ERROR)
+    
+    wait_time = float( constrain(wait_time, 0, maxWait) )    # don't wait longer than maxWait seconds
+
+    for s in timer(wait_time):
+        noop()
+        time_remaining = wait_time - s
+        
+        if time_remaining <= sleepTime:
+            time.sleep(time_remaining)    # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
+        else:
+            time.sleep(sleepTime)
 
 
 def yesorno(message):
