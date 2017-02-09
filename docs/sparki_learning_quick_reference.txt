@@ -3,7 +3,7 @@ Sparki Learning Command Quick Reference
 ======================================================
 
 ------------------------------------------------------
-for version 1.3.5 of the python library
+for version 1.4.0 of the python library
 ------------------------------------------------------
 
 (this library makes use of Python 3; Python 2.7 should work, but testing is limited)
@@ -78,6 +78,12 @@ init(com_port)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like "COM5" or "COM40". On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device. On a Mac, you can also use the secret port "mac" and the library will fill in the standard Mac port.
 
+	
+	
+noop()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	This does nothing. It happens to be that doing nothing can be helpful on a Mac -- Macs have a tendency to drop the bluetooth connection to the robot very quickly, probably for power saving purposes. This command will send a message to the sparki in an attempt to prevent the connection from being dropped. 
+
 
 
 randint(start, stop)
@@ -104,15 +110,22 @@ setSparkiDebug(level)
 
 
 	
+	
 timer(duration)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Generator which returns (yields) the amount of time which has passed since it was first called. Ends when the time of the original call plus the duration is greater than the current time. In practice, this function is usually used to create a for loop which executes for duration. (e.g. for x in timer(120): [insert code you want to run for 120 seconds])
 
 
+	
 wait(time)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Waits time seconds before moving to the next command.
 
+	
+
+waitNoop(time)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Waits time seconds before moving to the next command, and sends noops to the robot every second in order to prevent a timeout. On a Mac, this may be a better command to use than wait, but it will also be less accurate as to the amount of time waited.
 
 
 
@@ -535,6 +548,18 @@ sendIR(data)
 EEPROM Commands
 -----------------------------------
 The EEPROM is non-volatile (long-term) storage located on the processor on Sparki (the processor is the chip labeled ATMEGA32U4). The ATMEGA32U4 has 1024 bytes of EEPROM. We use this primarily to store the name of the Sparki (at byte 20), but you can use it to store other stuff. These commands allow you to read and write from the EEPROM.
+
+
+
+bluetoothRead()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Returns the bluetooth address of the Sparki *if* it has been previously stored on the robot. The address must be written to byte 80 in the EEPROM using either `EEPROMwrite(location, data)`_ or preferably `bluetoothWrite(address)`_.
+
+
+
+bluetoothWrite(address)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Writes the bluetooth address to the EEPROM. address must be a properly formatted bluetooth address (i.e. it must be six pairs of hexidecimal numbers separated by either - or :). The method of determining your address varies on your operating system. 
 
 
 
