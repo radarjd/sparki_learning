@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: February 8, 2017
+# Last Modified: February 15, 2017
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -28,6 +28,8 @@ import time
 # try to import tkinter -- but make a note if we can't
 try:
     import tkinter as tk        # for the senses, joystick, ask, and askQuestion functions
+    import tkinter.filedialog   # only used in pickAFile()
+    
     root = tk.Tk()              
     root.withdraw()             # hide the main window -- we're not going to use it
     USE_GUI = True
@@ -38,7 +40,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.4.0"     # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.4.1"     # this may differ from the version on Sparki itself and from the library as a whole
 
 
 # ***** MESSAGE TERMINATOR ***** #
@@ -2133,16 +2135,13 @@ def pickAFile():
         string path to the file
     """
     printDebug("In pickAFile", DEBUG_INFO)
-
-    if USE_GUI:
-        try:
-            result = tk.filedialog.askopenfilename()
-        except:
-            result = None
     
-        return result
-    else:
-        return ask("What is the path to the file? ")
+    try:
+        result = tkinter.filedialog.askopenfilename()
+    except:
+        result = ask("What is the path to the file? ")
+
+    return result
 
 
 def ping():
