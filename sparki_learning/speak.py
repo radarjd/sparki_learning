@@ -12,7 +12,8 @@ import os
 import platform
 import sys
 
-def speak( *message ):  # the * syntax allows multiple arguments to be passed, which will be stored in the list message
+
+def speak(*message):  # the * syntax allows multiple arguments to be passed, which will be stored in the list message
     """ Speaks the message over the computer speaker; relies on underlying operating system services
 
         arguments:
@@ -23,21 +24,21 @@ def speak( *message ):  # the * syntax allows multiple arguments to be passed, w
         nothing
     """
     currentOS = platform.system()
-    message = ' '.join([str(arg) for arg in message])   # concatenate all the arguments into one string
-    
+    message = ' '.join([str(arg) for arg in message])  # concatenate all the arguments into one string
+
     if currentOS == "Darwin":
-        speak_mac( message )
+        speak_mac(message)
     elif currentOS == "Windows":
-        speak_windows( message )
+        speak_windows(message)
     elif "CYGWIN" in currentOS:
-        speak_cygwin( message )
+        speak_cygwin(message)
     elif currentOS == "Linux":
-        speak_linux( message )
+        speak_linux(message)
     else:
-        speak_alt( message )
+        speak_alt(message)
 
 
-def speak_alt( message ):
+def speak_alt(message):
     """ Prints the message to standard out
 
         arguments:
@@ -46,10 +47,10 @@ def speak_alt( message ):
         returns:
         nothing
     """
-    print( message )
+    print(message)
 
 
-def speak_cygwin( message ):
+def speak_cygwin(message):
     """ Prints the message to standard out (cygwin does not support speech at this time)
 
         arguments:
@@ -59,10 +60,10 @@ def speak_cygwin( message ):
         nothing
     """
     print("Cygwin does not support speech (use print instead)", file=sys.stderr)
-    speak_alt( message )
+    speak_alt(message)
 
 
-def speak_linux( message ):
+def speak_linux(message):
     """ Prints the message to standard out (linux does not support speech at this time)
 
         arguments:
@@ -72,10 +73,10 @@ def speak_linux( message ):
         nothing
     """
     print("Linux does not support speech (use print instead)", file=sys.stderr)
-    speak_alt( message )
+    speak_alt(message)
 
 
-def speak_mac( message ):
+def speak_mac(message):
     """ Speaks the message over the computer speaker
 
         arguments:
@@ -85,13 +86,13 @@ def speak_mac( message ):
         nothing
     """
     try:
-        os.system("say " + message)     # uses the Mac command line program "say"
+        os.system("say " + message)  # uses the Mac command line program "say"
     except:
         print("There was a problem using the builtin say command", file=sys.stderr)
-        speak_alt( message )
+        speak_alt(message)
 
 
-def speak_windows( message ):
+def speak_windows(message):
     """ Prints the message to standard out (windows does not support speech at this time)
 
         arguments:
@@ -108,7 +109,7 @@ def speak_windows( message ):
     # as answered by Alessandro Mascolo
     try:
         temp_file = "tempspeech.vbs"
-        with open( temp_file, mode='w' ) as f:
+        with open(temp_file, mode='w') as f:
             f.write('Dim speech\n')
             f.write('Set speech=CreateObject("SAPI.spvoice")\n')
             f.write('speech.Speak "' + message + '"\n')
@@ -116,17 +117,17 @@ def speak_windows( message ):
         os.remove(temp_file)
     except:
         print("There was a problem creating the external vbs", file=sys.stderr)
-        speak_alt( message )
+        speak_alt(message)
 
 
 def main():
-    if len(sys.argv) > 1:               # this if statement looks for a command line argument to the program
-        data = ' '.join(sys.argv[1:])   # if there's an argument, treat that thing to be spoken
-    else:                               # otherwise, let the user enter the thing to say
+    if len(sys.argv) > 1:  # this if statement looks for a command line argument to the program
+        data = ' '.join(sys.argv[1:])  # if there's an argument, treat that thing to be spoken
+    else:  # otherwise, let the user enter the thing to say
         data = input("What do you want me to say? ")
 
-    speak( data )
-    
+    speak(data)
+
 
 if __name__ == "__main__":
     main()

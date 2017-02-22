@@ -15,131 +15,127 @@
 # Last Modified: February 15, 2017
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 
-from __future__ import division, print_function    # in case this is run from Python 2.6 or greater, but less than Python 3
+from __future__ import division, \
+    print_function  # in case this is run from Python 2.6 or greater, but less than Python 3
 
 import datetime
 import math
 import os
 import platform
 import sys
-import serial                   # developed with pyserial 2.7, but also tested extensively with 3.1
+import serial  # developed with pyserial 2.7, but also tested extensively with 3.1
 import time
 
 # try to import tkinter -- but make a note if we can't
 try:
-    import tkinter as tk        # for the senses, joystick, ask, and askQuestion functions
-    import tkinter.filedialog   # only used in pickAFile()
-    
-    root = tk.Tk()              
-    root.withdraw()             # hide the main window -- we're not going to use it
+    import tkinter as tk  # for the senses, joystick, ask, and askQuestion functions
+    import tkinter.filedialog  # only used in pickAFile()
+
+    root = tk.Tk()
+    root.withdraw()  # hide the main window -- we're not going to use it
     USE_GUI = True
 except:
-    print("Unable to use tkinter; no GUI available", file = sys.stderr)
+    print("Unable to use tkinter; no GUI available", file=sys.stderr)
     USE_GUI = False
-    
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.4.1"     # this may differ from the version on Sparki itself and from the library as a whole
-
+SPARKI_MYRO_VERSION = "1.4.1.1"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
-TERMINATOR = chr(23)   # this character is at the end of every message to / from Sparki
-
+TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
 
 # ***** SYNC ***** #
-SYNC = chr(22)   # this character is sent by Sparki after every command completes so we know it's ready for the next
-
+SYNC = chr(22)  # this character is sent by Sparki after every command completes so we know it's ready for the next
 
 # ***** COMPILE OPTIONS ***** #
 # some commands may be turned off in the version of sparki myro running on Sparki
 # these will be reset during the initialization process depending on the version (see the SPARKI_CAPABILITIES variable)
-NO_MAG = False              # compass(), getMag(), getMagX(), getMagY(), getMagZ()
-NO_ACCEL = False            # getAccel(), getAccelX(), getAccelY(), getAccelZ()
-SPARKI_DEBUGS = False       # setSparkiDebug()
-USE_EEPROM = False          # EEPROMread(), EEPROMwrite(), getName(), setName()
-EXT_LCD_1 = False           # EEPROMread(), EEPROMwrite(), LCDdrawLine(), LCDdrawString(), LCDreadPixel()
-NOOP = False                # noop() -- if False, noop is simulated with setStatusLED
-
+NO_MAG = False  # compass(), getMag(), getMagX(), getMagY(), getMagZ()
+NO_ACCEL = False  # getAccel(), getAccelX(), getAccelY(), getAccelZ()
+SPARKI_DEBUGS = False  # setSparkiDebug()
+USE_EEPROM = False  # EEPROMread(), EEPROMwrite(), getName(), setName()
+EXT_LCD_1 = False  # EEPROMread(), EEPROMwrite(), LCDdrawLine(), LCDdrawString(), LCDreadPixel()
+NOOP = False  # noop() -- if False, noop is simulated with setStatusLED
 
 # ***** MISCELLANEOUS VARIABLES ***** #
-SECS_PER_CM = .42       # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
+SECS_PER_CM = .42  # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
 SECS_PER_DEGREE = .033  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
-MAX_TRANSMISSION = 20   # maximum message length is 20 to conserve Sparki's limited RAM
+MAX_TRANSMISSION = 20  # maximum message length is 20 to conserve Sparki's limited RAM
 
-LCD_BLACK = 0           # set in Sparki.h
-LCD_WHITE = 1           # set in Sparki.h
-
+LCD_BLACK = 0  # set in Sparki.h
+LCD_WHITE = 1  # set in Sparki.h
 
 # ***** SERIAL TIMEOUT ***** #
-if platform.system() == "Darwin":    # Macs seem to be extremely likely to timeout -- so this is a lower value
-    CONN_TIMEOUT = 2        # in seconds
+if platform.system() == "Darwin":  # Macs seem to be extremely likely to timeout -- so this is a lower value
+    CONN_TIMEOUT = 2  # in seconds
 else:
-    CONN_TIMEOUT = 5        # in seconds
-
+    CONN_TIMEOUT = 5  # in seconds
 
 # ***** COMMAND CHARACTER CODES ***** #
 # Sparki Myro works by sending commands over the serial port (bluetooth) to Sparki from Python
 # This is the list of possible command codes; note that it is possible for some commands to be turned off at Sparki's level (e.g. the Accel, Mag)
 COMMAND_CODES = {
-                    'BEEP':'b',           # requires 2 arguments: int freq and int time; returns nothing
-                    'COMPASS':'c',        # no arguments; returns float heading
-                    'GAMEPAD':'e',        # no arguments; returns nothing
-                    'GET_ACCEL':'f',      # no arguments; returns array of 3 floats with values of x, y, and z
-                    'GET_BATTERY':'j',    # no arguments; returns float of voltage remaining
-                    'GET_LIGHT':'k',      # no arguments; returns array of 3 ints with values of left, center & right light sensor
-                    'GET_LINE':'m',       # no arguments; returns array of 5 ints with values of left edge, left, center, right & right edge line sensor
-                    'GET_MAG':'o',        # no arguments; returns array of 3 floats with values of x, y, and z
-                    'GRIPPER_CLOSE_DIS':'v',  # requires 1 argument: float distance to close the gripper; returns nothing
-                    'GRIPPER_OPEN_DIS':'x',   # requires 1 argument: float distance to open the gripper; returns nothing
-                    'GRIPPER_STOP':'y',   # no arguments; returns nothing
-                    'INIT':'z',           # no arguments; confirms communication between computer and robot
-                    'LCD_CLEAR':'0',      # no arguments; returns nothing
-
-                    ## below LCD commands removed for compacting purposes
-                    ##'LCD_DRAW_CIRCLE':'1',    # requires 4 arguments: int x&y, int radius, and int filled (1 is filled); returns nothing
-                    'LCD_DRAW_LINE':'2',  # requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing; EXT_LCD_1 must be True
-                    'LCD_DRAW_PIXEL':'3', # requires 2 arguments: int x&y; returns nothing
-                    ##'LCD_DRAW_RECT':'4',# requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing 
-                    'LCD_DRAW_STRING':'5',# requires 3 arguments: int x (column), int line_number, and char* string; returns nothing; EXT_LCD_1 must be True
-                    'LCD_PRINT':'6',      # requires 1 argument: char* string; returns nothing
-                    'LCD_PRINTLN':'7',    # requires 1 argument: char* string; returns nothing
-                    'LCD_READ_PIXEL':'8', # requires 2 arguments: int x&y; returns int color of pixel at that point; EXT_LCD_1 must be True
-                    'LCD_SET_COLOR':'T',  # requires 1 argument: int color; returns nothing; EXT_LCD_1 must be True
-                    'LCD_UPDATE':'9',     # no arguments; returns nothing
-                    'MOTORS':'A',         # requires 3 arguments: int left_speed (1-100), int right_speed (1-100), & float time
-                                                            # if time < 0, motors will begin immediately and will not stop; returns nothing
-                    'BACKWARD_CM':'B',    # requires 1 argument: float cm to move backward; returns nothing
-                    'FORWARD_CM':'C',     # requires 1 argument: float cm to move forward; returns nothing
-                    'PING':'D',           # no arguments; returns ping at current servo position
-                    'RECEIVE_IR':'E',     # no arguments; returns an int read from the IR sensor
-                    'SEND_IR':'F',        # requires 1 argument: int to send on the IR sender; returns nothing
-                    'SERVO':'G',          # requires 1 argument: int servo position; returns nothing
-                    'SET_DEBUG_LEVEL':'H',    # requires 1 argument: int debug level (0-5); returns nothing; SPARKI_DEBUGS must be True
-                    'SET_RGB_LED':'I',    # requires 3 arguments: int red, int green, int blue; returns nothing
-                    'SET_STATUS_LED':'J',     # requires 1 argument: int brightness of LED; returns nothing
-                    'STOP':'K',           # no arguments; returns nothing
-                    'TURN_BY':'L',        # requires 1 argument: float degrees to turn - if degrees is positive, turn clockwise,
-                                                            # if degrees is negative, turn counterclockwise; returns nothing
-                    'GET_NAME':'O',       # get the Sparki's name as stored in the EEPROM - USE_EEPROM must be True
-                                                            # if the name was not set previously, can give undefined behavior
-                    'SET_NAME':'P',       # set the Sparki's name in the EEPROM - USE_EEPROM must be True
-                    'READ_EEPROM':'Q',    # reads data as stored in the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
-                    'WRITE_EEPROM':'R',   # writes data to the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
-                    'NOOP':'Z'            # does nothing and returns nothing - NOOP must be True
-                }
-#***** END OF COMMAND CHARACTER CODES ***** #
+    'BEEP': 'b',  # requires 2 arguments: int freq and int time; returns nothing
+    'COMPASS': 'c',  # no arguments; returns float heading
+    'GAMEPAD': 'e',  # no arguments; returns nothing
+    'GET_ACCEL': 'f',  # no arguments; returns array of 3 floats with values of x, y, and z
+    'GET_BATTERY': 'j',  # no arguments; returns float of voltage remaining
+    'GET_LIGHT': 'k',  # no arguments; returns array of 3 ints with values of left, center & right light sensor
+    'GET_LINE': 'm',
+    # no arguments; returns array of 5 ints with values of left edge, left, center, right & right edge line sensor
+    'GET_MAG': 'o',  # no arguments; returns array of 3 floats with values of x, y, and z
+    'GRIPPER_CLOSE_DIS': 'v',  # requires 1 argument: float distance to close the gripper; returns nothing
+    'GRIPPER_OPEN_DIS': 'x',  # requires 1 argument: float distance to open the gripper; returns nothing
+    'GRIPPER_STOP': 'y',  # no arguments; returns nothing
+    'INIT': 'z',  # no arguments; confirms communication between computer and robot
+    'LCD_CLEAR': '0',  # no arguments; returns nothing
+    ## below LCD commands removed for compacting purposes
+    ##'LCD_DRAW_CIRCLE':'1',    # requires 4 arguments: int x&y, int radius, and int filled (1 is filled); returns nothing
+    'LCD_DRAW_LINE': '2',
+    # requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing; EXT_LCD_1 must be True
+    'LCD_DRAW_PIXEL': '3',  # requires 2 arguments: int x&y; returns nothing
+    ##'LCD_DRAW_RECT':'4',# requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing
+    'LCD_DRAW_STRING': '5',
+    # requires 3 arguments: int x (column), int line_number, and char* string; returns nothing; EXT_LCD_1 must be True
+    'LCD_PRINT': '6',  # requires 1 argument: char* string; returns nothing
+    'LCD_PRINTLN': '7',  # requires 1 argument: char* string; returns nothing
+    'LCD_READ_PIXEL': '8',
+    # requires 2 arguments: int x&y; returns int color of pixel at that point; EXT_LCD_1 must be True
+    'LCD_SET_COLOR': 'T',  # requires 1 argument: int color; returns nothing; EXT_LCD_1 must be True
+    'LCD_UPDATE': '9',  # no arguments; returns nothing
+    'MOTORS': 'A',  # requires 3 arguments: int left_speed (1-100), int right_speed (1-100), & float time
+    # if time < 0, motors will begin immediately and will not stop; returns nothing
+    'BACKWARD_CM': 'B',  # requires 1 argument: float cm to move backward; returns nothing
+    'FORWARD_CM': 'C',  # requires 1 argument: float cm to move forward; returns nothing
+    'PING': 'D',  # no arguments; returns ping at current servo position
+    'RECEIVE_IR': 'E',  # no arguments; returns an int read from the IR sensor
+    'SEND_IR': 'F',  # requires 1 argument: int to send on the IR sender; returns nothing
+    'SERVO': 'G',  # requires 1 argument: int servo position; returns nothing
+    'SET_DEBUG_LEVEL': 'H',  # requires 1 argument: int debug level (0-5); returns nothing; SPARKI_DEBUGS must be True
+    'SET_RGB_LED': 'I',  # requires 3 arguments: int red, int green, int blue; returns nothing
+    'SET_STATUS_LED': 'J',  # requires 1 argument: int brightness of LED; returns nothing
+    'STOP': 'K',  # no arguments; returns nothing
+    'TURN_BY': 'L',  # requires 1 argument: float degrees to turn - if degrees is positive, turn clockwise,
+    # if degrees is negative, turn counterclockwise; returns nothing
+    'GET_NAME': 'O',  # get the Sparki's name as stored in the EEPROM - USE_EEPROM must be True
+    # if the name was not set previously, can give undefined behavior
+    'SET_NAME': 'P',  # set the Sparki's name in the EEPROM - USE_EEPROM must be True
+    'READ_EEPROM': 'Q',  # reads data as stored in the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
+    'WRITE_EEPROM': 'R',  # writes data to the EEPROM - USE_EEPROM & EXT_LCD_1 must be True
+    'NOOP': 'Z'  # does nothing and returns nothing - NOOP must be True
+}
+# ***** END OF COMMAND CHARACTER CODES ***** #
 
 
 # ***** DEBUG CONSTANTS ***** #
 # sparki_myro_py_debug (defined below) holds the current debug level
-DEBUG_DEBUG = 5             # reports just about everything
-DEBUG_INFO = 4              # reports entering functions
-DEBUG_WARN = 3              # a generally sane default; reports issues that may be mistakes, but don't interfere with operation
-DEBUG_ERROR = 2             # reports something contrary to the API
-DEBUG_CRITICAL = 1          # reports an error which interferes with proper or consistent operation
-DEBUG_ALWAYS = 0            # should always be reported
-
+DEBUG_DEBUG = 5  # reports just about everything
+DEBUG_INFO = 4  # reports entering functions
+DEBUG_WARN = 3  # a generally sane default; reports issues that may be mistakes, but don't interfere with operation
+DEBUG_ERROR = 2  # reports something contrary to the API
+DEBUG_CRITICAL = 1  # reports an error which interferes with proper or consistent operation
+DEBUG_ALWAYS = 0  # should always be reported
 
 # ***** SENSOR POSITION CONSTANTS ***** #
 # LINE SENSORS #
@@ -149,28 +145,23 @@ LINE_MID = 2
 LINE_MID_LEFT = 1
 LINE_EDGE_LEFT = 0
 
-
 # LIGHT SENSORS #
 LIGHT_SENS_RIGHT = 2
 LIGHT_SENS_MID = 1
 LIGHT_SENS_LEFT = 0
 
-
 # ***** MAX GRIPPER DISTANCE ***** #
 MAX_GRIPPER_DISTANCE = 7.0
-
 
 # ***** EEPROM STORAGE ***** #
 EEPROM_BLUETOOTH_ADDRESS = 80
 EEPROM_NAME_MAX_CHARS = 20
 EEPROM_MAX_ADDRESS = 1023
 
-
 # ***** SERVO POSITIONS ***** #
 SERVO_LEFT = -80
 SERVO_CENTER = 0
 SERVO_RIGHT = 80
-
 
 # ***** TABLE OF CAPABILITIES ***** #
 # this dictionary stores the capabilities of various versions of the program running on the Sparki itself
@@ -179,64 +170,66 @@ SERVO_RIGHT = 80
 # The order of the fields is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, NOOP
 # If a version number contains a lower case r, everything after the r will be stripped when determining the capabilities
 #   for example, 1.1.2r1 and 1.1.2r5 will have the same capabilities
-SPARKI_CAPABILITIES = { "z": ( True, True, False, False, False, False, False ),
-                       "DEBUG": ( True, True, True, False, False, False, False ),
-                       "DEBUG-ACCEL": ( False, True, True, False, False, False, False ),
-                       "DEBUG-EEPROM": ( True, True, True, True, False, False, False ),
-                       "DEBUG-LCD": ( False, False, True, False, True, False, False ),
-                       "DEBUG-MAG": ( True, False, True, False, False, False, False ),
-                       "DEBUG-PING": ( True, True, True, False, False, False, False ),
-                       "0.2 No Mag / No Accel": ( True, True, False, False, False, False, False ),
-                       "0.8.3 Mag / Accel On": ( False, False, False, False, False, False, False ),
-                       "0.9.6": ( False, False, False, True, False, False, False ),
-                       "0.9.7": ( False, False, False, True, False, False, False ),   
-                       "0.9.8": ( False, False, False, True, False, False, False ),   
-                       "1.0.0": ( False, False, False, True, False, False, False ),   
-                       "1.0.1": ( False, False, False, True, True, False, False ),   
-                       "1.1.0": ( False, False, False, True, True, False, False ),   
-                       "1.1.1": ( False, False, False, True, True, False, False ),   
-                       "1.1.2": ( False, False, False, True, True, False, False ),   
-                       "1.1.3": ( False, False, False, True, True, False, True ) }   
+SPARKI_CAPABILITIES = {"z": (True, True, False, False, False, False, False),
+                       "DEBUG": (True, True, True, False, False, False, False),
+                       "DEBUG-ACCEL": (False, True, True, False, False, False, False),
+                       "DEBUG-EEPROM": (True, True, True, True, False, False, False),
+                       "DEBUG-LCD": (False, False, True, False, True, False, False),
+                       "DEBUG-MAG": (True, False, True, False, False, False, False),
+                       "DEBUG-PING": (True, True, True, False, False, False, False),
+                       "0.2 No Mag / No Accel": (True, True, False, False, False, False, False),
+                       "0.8.3 Mag / Accel On": (False, False, False, False, False, False, False),
+                       "0.9.6": (False, False, False, True, False, False, False),
+                       "0.9.7": (False, False, False, True, False, False, False),
+                       "0.9.8": (False, False, False, True, False, False, False),
+                       "1.0.0": (False, False, False, True, False, False, False),
+                       "1.0.1": (False, False, False, True, True, False, False),
+                       "1.1.0": (False, False, False, True, True, False, False),
+                       "1.1.1": (False, False, False, True, True, False, False),
+                       "1.1.2": (False, False, False, True, True, False, False),
+                       "1.1.3": (False, False, False, True, True, False, True)}
 
 ########### END OF CONSTANTS ###########
 
 ########### GLOBAL VARIABLES ###########
-command_queue = []              # this stores every command sent to Sparki; I don't have a use for it right now...
+command_queue = []  # this stores every command sent to Sparki; I don't have a use for it right now...
 
-centimeters_moved = 0           # this stores the sum of centimeters moved forward or backward using the moveForwardcm()
-                                # or moveBackwardcm() functions; used implicitly by moveTo() and moveBy(); use directly
-                                # by getCentimetersMover(); this only increases in value
+centimeters_moved = 0  # this stores the sum of centimeters moved forward or backward using the moveForwardcm()
+# or moveBackwardcm() functions; used implicitly by moveTo() and moveBy(); use directly
+# by getCentimetersMover(); this only increases in value
 
-current_lcd_color = LCD_BLACK   # this is the color that an LCDdraw command will draw in -- can be LCD_BLACK or LCD_WHITE
-                                
-degrees_turned = 0              # this stores the sum of degrees turned using the turnBy() function; positive is clockwise
-                                # and negative is counterclockwise
-                                # can be set by setAngle() or retrieved with getAngle()
+current_lcd_color = LCD_BLACK  # this is the color that an LCDdraw command will draw in -- can be LCD_BLACK or LCD_WHITE
 
-in_motion = False               # set to True when moving -- note this is a guess set in motors(), stop() & turnBy()
-                                # this library is not multi-thread safe (for many reasons), so this doesn't need to be
-                                # set whenever the robot is actually moving -- only when the user can do something after it
-                                # starts moving
+degrees_turned = 0  # this stores the sum of degrees turned using the turnBy() function; positive is clockwise
+# and negative is counterclockwise
+# can be set by setAngle() or retrieved with getAngle()
 
-init_time = -1                  # time when the robot was initialized
+in_motion = False  # set to True when moving -- note this is a guess set in motors(), stop() & turnBy()
+# this library is not multi-thread safe (for many reasons), so this doesn't need to be
+# set whenever the robot is actually moving -- only when the user can do something after it
+# starts moving
 
-robot_library_version = None    # version of the code on the robot
+init_time = -1  # time when the robot was initialized
 
-sparki_myro_py_debug = DEBUG_WARN    # this is the default debug level
-serial_port = None              # save the serial port on which we're connected
-serial_conn = None              # hold the pyserial object
-serial_is_connected = False     # set to true once connection is done
+robot_library_version = None  # version of the code on the robot
 
-xpos = 0                        # for the moveBy(), moveTo(), getPosition() and setPosition() commands (the "grid commands"), these
-ypos = 0                        # variables keep track of the current x,y position of the robot; each integer coordinate is 1cm, and
-                                # the robot starts at 0,0
-                                # note that these _only_ update with the grid commands (e.g. motors(1,1,1) will not change the xpos & ypos)
-                                # making these of limited value
+sparki_myro_py_debug = DEBUG_WARN  # this is the default debug level
+serial_port = None  # save the serial port on which we're connected
+serial_conn = None  # hold the pyserial object
+serial_is_connected = False  # set to true once connection is done
+
+xpos = 0  # for the moveBy(), moveTo(), getPosition() and setPosition() commands (the "grid commands"), these
+ypos = 0  # variables keep track of the current x,y position of the robot; each integer coordinate is 1cm, and
+
+
+# the robot starts at 0,0
+# note that these _only_ update with the grid commands (e.g. motors(1,1,1) will not change the xpos & ypos)
+# making these of limited value
 ########### END OF GLOBAL VARIABLES ###########
 
 ########### INTERNAL FUNCTIONS ###########
 # these functions are intended to be used by the library itself
-def askQuestion_text(message, options, caseSensitive = True):
+def askQuestion_text(message, options, caseSensitive=True):
     """ Gets a string from the user, which must be one of the options -- prints message
 
         arguments:
@@ -247,8 +240,8 @@ def askQuestion_text(message, options, caseSensitive = True):
         returns:
         string response from the user (if caseSentitive is False, this will always be a lower case string)
     """
-    if not caseSensitive:   # if we're not caseSensitive, make the options lower case
-        working_options = [ s.lower() for s in options ]
+    if not caseSensitive:  # if we're not caseSensitive, make the options lower case
+        working_options = [s.lower() for s in options]
     else:
         working_options = options
 
@@ -280,7 +273,7 @@ def bluetoothRead():
 
     bt = EEPROMread(EEPROM_BLUETOOTH_ADDRESS, 17)
 
-    if bluetoothValidate( bt ):
+    if bluetoothValidate(bt):
         return bt
     else:
         return None
@@ -315,9 +308,9 @@ def bluetoothWrite(bt):
         none
     """
     global EEPROM_BLUETOOTH_ADDRESS
-    
-    if bluetoothValidate( bt ):
-        EEPROMwrite( EEPROM_BLUETOOTH_ADDRESS, bt )
+
+    if bluetoothValidate(bt):
+        EEPROMwrite(EEPROM_BLUETOOTH_ADDRESS, bt)
     else:
         raise TypeError(str(bt) + " does not appear to be a valid bluetooth address")
 
@@ -336,7 +329,7 @@ def constrain(n, min_n, max_n):
     if min_n > max_n:
         printDebug("In constrain, min was greater than max (corrected)", DEBUG_ERROR)
         min_n, max_n = max_n, min_n
-    
+
     if n < min_n:
         printDebug("In constrain, n " + str(n) + " was less than min (corrected)", DEBUG_INFO)
         return min_n
@@ -383,8 +376,8 @@ def flrange(start, stop, step):
     """
     if step > 0:
         while start < stop:
-            yield start    # yield is a special keyword which is something like return, but behaves very differently
-                           # more info can be found at https://docs.python.org/3.4/reference/expressions.html#yieldexpr
+            yield start  # yield is a special keyword which is something like return, but behaves very differently
+            # more info can be found at https://docs.python.org/3.4/reference/expressions.html#yieldexpr
             start += step
     elif step < 0:
         while start > stop:
@@ -418,11 +411,11 @@ def getSerialBytes():
     except serial.SerialTimeoutException:
         printDebug("Error communicating with Sparki", DEBUG_CRITICAL)
         raise
-    
+
     printDebug("Getting Bytes... first byte is " + str(inByte), DEBUG_DEBUG)
-    
-    while inByte != TERMINATOR.encode(): # read until we see a TERMINATOR
-        if inByte != SYNC.encode():      # ignore it - we don't care about SYNCs
+
+    while inByte != TERMINATOR.encode():  # read until we see a TERMINATOR
+        if inByte != SYNC.encode():  # ignore it - we don't care about SYNCs
             result = result + inByte
 
         try:
@@ -431,13 +424,13 @@ def getSerialBytes():
             printDebug("Error communicating with Sparki", DEBUG_CRITICAL)
             raise
 
-        if inByte != SYNC.encode():    
+        if inByte != SYNC.encode():
             printDebug("Next byte is " + str(inByte), DEBUG_DEBUG)
-        
-    printDebug("Finished fetching bytes, result is " + str(result), DEBUG_DEBUG)    
+
+    printDebug("Finished fetching bytes, result is " + str(result), DEBUG_DEBUG)
     return result.decode()
-        
-        
+
+
 def getSerialChar():
     """ Returns the next char (str) from the serial port
     
@@ -447,12 +440,12 @@ def getSerialChar():
         returns:
         char (str) - from the serial port
     """
-    result = chr( int( getSerialBytes() ) )
+    result = chr(int(getSerialBytes()))
 
     printDebug("In getSerialChar, returning " + result, DEBUG_DEBUG)
     return result
-    
-    
+
+
 def getSerialFloat():
     """ Returns the next float from the serial port
     
@@ -464,15 +457,15 @@ def getSerialFloat():
     """
     result = getSerialBytes()
 
-    if str(result) == "ovf" or len(result) == 0:    # check for overflow
-        result = -1.0   # -1.0 is not necessarily a great "error response", except that values from the Sparki should be positive
+    if str(result) == "ovf" or len(result) == 0:  # check for overflow
+        result = -1.0  # -1.0 is not necessarily a great "error response", except that values from the Sparki should be positive
     else:
         result = float(result)
 
     printDebug("In getSerialFloat, returning " + str(result), DEBUG_DEBUG)
     return result
 
-    
+
 def getSerialInt():
     """ Returns the next int from the serial port
     
@@ -484,15 +477,15 @@ def getSerialInt():
     """
     result = getSerialBytes()
 
-    if str(result) == "ovf" or len(result) == 0:    # check for overflow
-        result = -1   # -1 is not necessarily a great "error response", except that values from the Sparki should be positive
+    if str(result) == "ovf" or len(result) == 0:  # check for overflow
+        result = -1  # -1 is not necessarily a great "error response", except that values from the Sparki should be positive
     else:
         result = int(result)
 
     printDebug("In getSerialInt, returning " + str(result), DEBUG_DEBUG)
     return result
-        
-        
+
+
 def getSerialString():
     """ Returns the next string from the serial port
     
@@ -502,13 +495,13 @@ def getSerialString():
         returns:
         string - from the serial port
     """
-    result = str( getSerialBytes() )
+    result = str(getSerialBytes())
 
     printDebug("In getSerialString, returning " + result, DEBUG_DEBUG)
     return result
 
-    
-def printDebug(message, priority = DEBUG_WARN, output = sys.stderr):
+
+def printDebug(message, priority=DEBUG_WARN, output=sys.stderr):
     """ Print message if priorty is greater than or equal to the current sparki_myro_py_debug priority 
     
         arguments:
@@ -521,9 +514,9 @@ def printDebug(message, priority = DEBUG_WARN, output = sys.stderr):
     """
     # logging could have been done via the standard library logging module
     global sparki_myro_py_debug
-    
+
     if priority <= sparki_myro_py_debug:
-        print(message, file = output);
+        print(message, file=output)
 
 
 def music_sunrise():
@@ -551,8 +544,8 @@ def printUnableToConnect():
     printDebug("If you see the Sparki logo on the LCD, turn reset Sparki and try to reconnect", DEBUG_ALWAYS)
     printDebug("You can also try to reset your shell", DEBUG_ALWAYS)
 
-    
-def sendSerial(command, args = None):
+
+def sendSerial(command, args=None):
     """ Sends the command with the args over a serial connection
         
         arguments:
@@ -571,15 +564,15 @@ def sendSerial(command, args = None):
         printDebug("Sparki is not connected - use init()", DEBUG_ALWAYS)
         raise RuntimeError
 
-    if command == None:
+    if command is None:
         printDebug("No command given", DEBUG_ALWAYS)
         raise RuntimeError
 
-    command_queue.append( ( command, args ) )  # keep track of every command sent
+    command_queue.append((command, args))  # keep track of every command sent
 
     try:
-        waitForSync()           # be sure Sparki is available before sending
-    except serial.SerialTimeoutException:       # Macs seem to be sensitive to disconnecting, so we try to reconnect if we have a problem
+        waitForSync()  # be sure Sparki is available before sending
+    except serial.SerialTimeoutException:  # Macs seem to be sensitive to disconnecting, so we try to reconnect if we have a problem
         # if there's a failure, try to reconnect unless we're init'ing
         if command != COMMAND_CODES["INIT"]:
             init(serial_port, False)
@@ -593,28 +586,28 @@ def sendSerial(command, args = None):
             printDebug("In sendSerial, serial timeout on init", DEBUG_CRITICAL)
             printUnableToConnect()
             raise
-        
+
     printDebug("In sendSerial, Sending command - " + command, DEBUG_DEBUG)
-         
-    values = [ ]            # this will hold what we're actually sending to Sparki
-   
+
+    values = []  # this will hold what we're actually sending to Sparki
+
     values.append(command)
-    
-    if args != None:
-        if isinstance( args, str ):
+
+    if args is not None:
+        if isinstance(args, str):
             values.append(args)
             printDebug("In sendSerial, values is " + str(values), DEBUG_DEBUG)
         else:
             values = values + args
-    
+
     for value in values:
         message = (str(value) + TERMINATOR).encode()
-       
+
         if len(message) > MAX_TRANSMISSION:
             printDebug("Messages must be " + str(MAX_TRANSMISSION) + " characters or fewer", DEBUG_ERROR)
-            stop()    # done for safety -- in case robot is in motion
+            stop()  # done for safety -- in case robot is in motion
             raise RuntimeError
-        
+
         printDebug("Sending bytes " + str(message) + " (" + str(value) + ")", DEBUG_DEBUG)
 
         try:
@@ -624,39 +617,39 @@ def sendSerial(command, args = None):
             printUnableToConnect()
             raise
 
-    serial_conn.flush()     # ensure the buffer is flushed
+    serial_conn.flush()  # ensure the buffer is flushed
     wait(.01)
 
 
 def senses_text():
     """ Displays the senses in text
     """
-    print("Left edge line sensor is " + str( getLine( LINE_EDGE_LEFT ) ) )
-    print("Left line sensor is " + str( getLine( LINE_MID_LEFT ) ) )
-    print("Center line sensor is " + str( getLine( LINE_MID ) ) )
-    print("Right line sensor is " + str( getLine( LINE_MID_RIGHT ) ) )
-    print("Right edge line sensor is " + str( getLine( LINE_EDGE_RIGHT ) ) )
+    print("Left edge line sensor is " + str(getLine(LINE_EDGE_LEFT)))
+    print("Left line sensor is " + str(getLine(LINE_MID_LEFT)))
+    print("Center line sensor is " + str(getLine(LINE_MID)))
+    print("Right line sensor is " + str(getLine(LINE_MID_RIGHT)))
+    print("Right edge line sensor is " + str(getLine(LINE_EDGE_RIGHT)))
 
-    print("Left light sensor is " + str( getLight( LIGHT_SENS_LEFT ) ) )
-    print("Center light sensor is " + str( getLight( LIGHT_SENS_MID ) ) )
-    print("Right light sensor is " + str( getLight( LIGHT_SENS_RIGHT ) ) )
+    print("Left light sensor is " + str(getLight(LIGHT_SENS_LEFT)))
+    print("Center light sensor is " + str(getLight(LIGHT_SENS_MID)))
+    print("Right light sensor is " + str(getLight(LIGHT_SENS_RIGHT)))
 
     if not NO_MAG:
-        print("X mag sensor is " + str( getMagX() ) )
-        print("Y mag sensor is " + str( getMagY() ) )
-        print("Z mag sensor is " + str( getMagZ() ) )
-        print("compass heading is " + str( compass() ) )
+        print("X mag sensor is " + str(getMagX()))
+        print("Y mag sensor is " + str(getMagY()))
+        print("Z mag sensor is " + str(getMagZ()))
+        print("compass heading is " + str(compass()))
 
     if not NO_ACCEL:
-        print("X accel sensor is " + str( getAccelX() ) )
-        print("Y accel sensor is " + str( getAccelY() ) )
-        print("Z accel sensor is " + str( getAccelZ() ) )
+        print("X accel sensor is " + str(getAccelX()))
+        print("Y accel sensor is " + str(getAccelY()))
+        print("Z accel sensor is " + str(getAccelZ()))
 
-    print("Ping is " + str( ping() ) + " cm")
+    print("Ping is " + str(ping()) + " cm")
 
-    print("Battery power is " + str( getBattery() ) )
+    print("Battery power is " + str(getBattery()))
     print("#########################################")
-    
+
 
 def waitForSync():
     """ Waits for the SYNC character from Sparki
@@ -674,23 +667,25 @@ def waitForSync():
         printDebug("Sparki is not connected - use init()", DEBUG_CRITICAL)
         raise RuntimeError
 
-    serial_conn.flushInput()    # get rid of any waiting bytes
+    serial_conn.flushInput()  # get rid of any waiting bytes
 
     start_time = currentTime()
 
     inByte = -1
 
-    if platform.system() == "Darwin":    # Macs seem to be extremely likely to timeout -- this is attempting to deal with that quickly
-        retries = 1                 # the number of times to retry connecting in the case of a timeout
-        loop_wait = 0               # pause this long each time through the loop
+    if platform.system() == "Darwin":  # Macs seem to be extremely likely to timeout -- this is attempting to deal with that quickly
+        retries = 1  # the number of times to retry connecting in the case of a timeout
+        loop_wait = 0  # pause this long each time through the loop
     else:
-        retries = 5                 # the number of times to retry connecting in the case of a timeout
-        loop_wait = .1              # pause this long each time through the loop
+        retries = 5  # the number of times to retry connecting in the case of a timeout
+        loop_wait = .1  # pause this long each time through the loop
 
     while inByte != SYNC.encode():  # loop, doing nothing substantive, while we wait for SYNC
         if currentTime() > start_time + (CONN_TIMEOUT * retries):
-            if platform.system() == "Darwin":    # Macs seem to be extremely likely to timeout -- so we report at a different debug level
-                printDebug("In waitForSync, unable to sync with Sparki (if you're on a Mac, this may not be a big deal)", DEBUG_INFO)
+            if platform.system() == "Darwin":  # Macs seem to be extremely likely to timeout -- so we report at a different debug level
+                printDebug(
+                    "In waitForSync, unable to sync with Sparki (if you're on a Mac, this may not be a big deal)",
+                    DEBUG_INFO)
             else:
                 printDebug("In waitForSync, unable to sync with Sparki", DEBUG_ERROR)
             raise serial.SerialTimeoutException
@@ -717,12 +712,14 @@ def wrapAngle(angle):
         return angle % 360
     else:
         return angle % -360
+
+
 ########### END OF INTERNAL FUNCTIONS ###########
 
 
 ###################### SPARKI MYRO FUNCTIONS ######################
 # These functions are intended to be called by users of this library        
-def ask(message, mytitle = "Question"):
+def ask(message, mytitle="Question"):
     """ Gets input from the user -- prints message
 
         arguments:
@@ -737,9 +734,9 @@ def ask(message, mytitle = "Question"):
 
     try:
         question = tk.StringVar()
-        question.set( message )
+        question.set(message)
         entryText = tk.StringVar()  # we could use this to type default text
-        
+
         # start a new window
         questionWindow = tk.Toplevel(root)
         questionWindow.title(mytitle)
@@ -752,7 +749,7 @@ def ask(message, mytitle = "Question"):
         questionFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.TOP)
         entryFrame.pack(expand=tk.TRUE, fill=tk.BOTH)
         buttonFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.BOTTOM)
-        
+
         # put question label in questionFrame
         questionLabel = tk.Label(questionFrame, textvariable=question)
         questionLabel.pack()
@@ -764,26 +761,26 @@ def ask(message, mytitle = "Question"):
 
         # put entry blank in entryFrame
         textEntry = tk.Entry(entryFrame, textvariable=entryText)
-        textEntry.bind('<Return>', doneAction) # make it so if the use presses enter, we accept the data
+        textEntry.bind('<Return>', doneAction)  # make it so if the use presses enter, we accept the data
         textEntry.pack()
 
         # put OK button in button frame
         okButton = tk.Button(buttonFrame, text="OK", command=lambda: questionWindow.destroy())
         okButton.pack()
 
-        questionWindow.lift()                  # move the window to the top to make it more visible
-        textEntry.focus_set()                  # grab the focus
-        questionWindow.wait_window(questionWindow)     # wait for this window to be destroyed (closed) before moving on
+        questionWindow.lift()  # move the window to the top to make it more visible
+        textEntry.focus_set()  # grab the focus
+        questionWindow.wait_window(questionWindow)  # wait for this window to be destroyed (closed) before moving on
 
         result = entryText.get()
     except Exception as err:
         printDebug(str(err), DEBUG_DEBUG)
         result = input(message)
-    
+
     return result
 
 
-def askQuestion(message, options, mytitle = "Question"):
+def askQuestion(message, options, mytitle="Question"):
     """ Gets input from the user -- prints message and displays buttons with options
 
         arguments:
@@ -798,11 +795,11 @@ def askQuestion(message, options, mytitle = "Question"):
     printDebug("In askQuestion", DEBUG_INFO)
 
     try:
-        choice = tk.StringVar()    # tk has its own kind of string
-        choice.set( options[0] ) # default to the top answer
+        choice = tk.StringVar()  # tk has its own kind of string
+        choice.set(options[0])  # default to the top answer
         question = tk.StringVar()
-        question.set( message )
-        
+        question.set(message)
+
         # start a new window
         questionWindow = tk.Toplevel(root)
         questionWindow.title(mytitle)
@@ -815,7 +812,7 @@ def askQuestion(message, options, mytitle = "Question"):
         questionFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.TOP)
         answersFrame.pack(expand=tk.TRUE, fill=tk.BOTH)
         buttonFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.BOTTOM)
-        
+
         # put question label in questionFrame
         questionLabel = tk.Label(questionFrame, textvariable=question)
         questionLabel.pack()
@@ -829,17 +826,17 @@ def askQuestion(message, options, mytitle = "Question"):
         okButton = tk.Button(buttonFrame, text="OK", command=lambda: questionWindow.destroy())
         okButton.pack()
 
-        questionWindow.lift()                  # move the window to the top to make it more visible
-        questionWindow.wait_window(questionWindow)     # wait for this window to be destroyed (closed) before moving on
+        questionWindow.lift()  # move the window to the top to make it more visible
+        questionWindow.wait_window(questionWindow)  # wait for this window to be destroyed (closed) before moving on
 
         result = choice.get()
     except:
         result = askQuestion_text(message, options, False)
-    
+
     return result
 
 
-def backward(speed, time = -1):
+def backward(speed, time=-1):
     """ Moves backward at speed for time; time is optional
     
         arguments:
@@ -850,7 +847,7 @@ def backward(speed, time = -1):
         nothing
     """
     printDebug("In backward, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
-    
+
     # adjust speed to Sparki's requirements
     if speed < 0:
         printDebug("In backward, speed < 0, calling forward", DEBUG_WARN)
@@ -863,11 +860,10 @@ def backward(speed, time = -1):
         printDebug("In forward, speed > 1.0, reducing to 1", DEBUG_ERROR)
         speed = 1
 
-    motors( -speed, -speed, time )
+    motors(-speed, -speed, time)
 
 
-
-def beep(time = 200, freq = 2800):
+def beep(time=200, freq=2800):
     """ Plays a tone on the Sparki buzzer at freq for time; both are optional
     
         arguments:
@@ -878,16 +874,16 @@ def beep(time = 200, freq = 2800):
         nothing
     """
     printDebug("In beep, freq is " + str(freq) + " and time is " + str(time), DEBUG_INFO)
-    
-    freq = int(freq)    # ensure we have the right type of data
+
+    freq = int(freq)  # ensure we have the right type of data
     time = int(time)
 
     freq = constrain(freq, 0, 40000)
     time = constrain(time, 0, 10000)
-    
-    args = [ freq, time ]
-    
-    sendSerial( COMMAND_CODES["BEEP"], args )
+
+    args = [freq, time]
+
+    sendSerial(COMMAND_CODES["BEEP"], args)
     wait(time / 1000)
 
 
@@ -900,18 +896,18 @@ def compass():
         returns:
         float - heading
     """
-    
+
     if NO_MAG:
         printDebug("Magnometers not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
-    
+
     printDebug("In compass", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["COMPASS"] )
+    sendSerial(COMMAND_CODES["COMPASS"])
     result = getSerialFloat()
     return result
 
-    
+
 def currentTime():
     """ Gets the current time in seconds from the epoch (i.e. time.time())
     
@@ -921,11 +917,11 @@ def currentTime():
         returns:
         float - time in seconds since January 1, 1970
     """
-    
+
     return time.time()
 
-    
-def drawFunction(function, xvals, scale = 1):
+
+def drawFunction(function, xvals, scale=1):
     """ Draws the function specified on the coordinate plane using moveTo()
 
         The arguments are the function which calculates y as a value of x, a list of x values to calculate from,
@@ -943,11 +939,11 @@ def drawFunction(function, xvals, scale = 1):
         nothing
     """
     printDebug("In drawFunction, xvals are " + str(xvals) + ", and scale is " + str(scale), DEBUG_INFO)
-    
-    for x in xvals:
-        moveTo( x * scale, function(x) * scale )
 
-    
+    for x in xvals:
+        moveTo(x * scale, function(x) * scale)
+
+
 def EEPROMread(location, amount):
     """ Reads amount of data from location in the EEPROM on Sparki
 
@@ -965,10 +961,14 @@ def EEPROMread(location, amount):
     printDebug("In EEPROMread, location is " + str(location) + " and amount is " + str(amount), DEBUG_INFO)
 
     if location > EEPROM_MAX_ADDRESS:
-        printDebug("In EEPROMread, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
+        printDebug(
+            "In EEPROMread, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
+            DEBUG_WARN)
 
     if amount > EEPROM_MAX_ADDRESS:
-        printDebug("In EEPROMread, amount greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
+        printDebug(
+            "In EEPROMread, amount greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
+            DEBUG_WARN)
 
     location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
     amount = int(constrain(amount, 0, EEPROM_MAX_ADDRESS))
@@ -980,12 +980,12 @@ def EEPROMread(location, amount):
         printDebug("In EEPROMread, amount greater than EEPROM space", DEBUG_CRITICAL)
         raise IndexError
 
-    args = [ location, amount ]
-    sendSerial( COMMAND_CODES["READ_EEPROM"], args )
+    args = [location, amount]
+    sendSerial(COMMAND_CODES["READ_EEPROM"], args)
 
     return getSerialBytes()
 
-    
+
 def EEPROMwrite(location, data):
     """ Writes data to location in the EEPROM on Sparki
 
@@ -1003,7 +1003,9 @@ def EEPROMwrite(location, data):
     printDebug("In EEPROMwrite, location is " + str(location) + " and data is " + str(data), DEBUG_INFO)
 
     if location > EEPROM_MAX_ADDRESS:
-        printDebug("In EEPROMwrite, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...", DEBUG_WARN)
+        printDebug(
+            "In EEPROMwrite, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
+            DEBUG_WARN)
 
     location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
 
@@ -1011,11 +1013,11 @@ def EEPROMwrite(location, data):
         printDebug("In EEPROMwrite, too much data to store", DEBUG_CRITICAL)
         raise IndexError
 
-    args = [ location, data ]
-    sendSerial( COMMAND_CODES["WRITE_EEPROM"], args )
+    args = [location, data]
+    sendSerial(COMMAND_CODES["WRITE_EEPROM"], args)
 
 
-def forward(speed, time = -1):
+def forward(speed, time=-1):
     """ Moves forward at speed for time; time is optional
     
         arguments:
@@ -1026,7 +1028,7 @@ def forward(speed, time = -1):
         nothing
     """
     printDebug("In forward, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
-    
+
     # adjust speed to Sparki's requirements
     if speed < 0:
         printDebug("In forward, speed < 0, calling backward", DEBUG_WARN)
@@ -1038,8 +1040,8 @@ def forward(speed, time = -1):
     elif speed > 1.0:
         printDebug("In forward, speed > 1.0, reducing to 1", DEBUG_ERROR)
         speed = 1
-        
-    motors( speed, speed, time )
+
+    motors(speed, speed, time)
 
 
 def gamepad():
@@ -1053,8 +1055,8 @@ def gamepad():
         nothing
     """
     printDebug("Beginning gamepad control", DEBUG_INFO)
-    
-    sendSerial( COMMAND_CODES["GAMEPAD"] )
+
+    sendSerial(COMMAND_CODES["GAMEPAD"])
     print("Sparki will not respond to other commands until remote control ends")
     print("Press - or + on the remote to stop using the gamepad")
     # we could put a waitForSync() here, but it would likely time out
@@ -1074,12 +1076,12 @@ def getAccel():
         raise NotImplementedError
 
     printDebug("In getAccel", DEBUG_INFO)
-        
-    sendSerial( COMMAND_CODES["GET_ACCEL"] )
-    result = ( getSerialFloat(), getSerialFloat(), getSerialFloat() )
+
+    sendSerial(COMMAND_CODES["GET_ACCEL"])
+    result = (getSerialFloat(), getSerialFloat(), getSerialFloat())
     return result
-    
-    
+
+
 def getAccelX():
     """ Returns the values of the X accelerometer
     
@@ -1092,7 +1094,7 @@ def getAccelX():
 
     return getAccel()[0]
 
-    
+
 def getAccelY():
     """ Returns the values of the Y accelerometer
     
@@ -1104,8 +1106,8 @@ def getAccelY():
     """
 
     return getAccel()[1]
-    
-    
+
+
 def getAccelZ():
     """ Returns the values of the Z accelerometer
     
@@ -1130,7 +1132,7 @@ def getAngle():
         float - number of degrees that the robot has turned
     """
     global degrees_turned
-    
+
     printDebug("In getAngle", DEBUG_INFO)
 
     return degrees_turned
@@ -1146,15 +1148,15 @@ def getBattery():
         float - voltage level
     """
     # the underlying sparki library causes this function not to be accurate, or to be inconsistent at the very least
-    
+
     printDebug("In getBattery", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["GET_BATTERY"] )
+    sendSerial(COMMAND_CODES["GET_BATTERY"])
     result = getSerialFloat()
     return result
 
 
-def getBright(position = LIGHT_SENS_RIGHT + 3):
+def getBright(position=LIGHT_SENS_RIGHT + 3):
     """ Returns the value of the light sensor at position; position != LINE_EDGE_LEFT, LIGHT_SENS_MID or LIGHT_SENS_RIGHT returns all 3
         
         arguments:
@@ -1164,8 +1166,8 @@ def getBright(position = LIGHT_SENS_RIGHT + 3):
         int - value of sensor at position OR
         tuple of ints - values of left, middle, and right sensors (in that order)
     """
-    
-    return getLight(position)           # for library compatibility, this is just a synonym of getLight()
+
+    return getLight(position)  # for library compatibility, this is just a synonym of getLight()
 
 
 def getCentimetersMoved():
@@ -1181,7 +1183,7 @@ def getCentimetersMoved():
     global centimeters_moved
 
     printDebug("In getCentimetersMoved", DEBUG_INFO)
-    
+
     return centimeters_moved
 
 
@@ -1197,18 +1199,18 @@ def getCommandQueue():
     global command_queue
 
     printDebug("In getCommandQueue", DEBUG_INFO)
-    
+
     return tuple(command_queue)
 
 
 def getDistance():
     """ Synonym for ping() -- use ping()
     """
-    
-    return ping()           # for library compatibility, this is just a synonym of ping()
+
+    return ping()  # for library compatibility, this is just a synonym of ping()
 
 
-def getLight(position = LIGHT_SENS_RIGHT + 3):
+def getLight(position=LIGHT_SENS_RIGHT + 3):
     """ Returns the value of the light sensor at position; position != LIGHT_SENS_LEFT, LIGHT_SENS_MID or LIGHT_SENS_RIGHT returns all 3
         
         arguments:
@@ -1219,25 +1221,24 @@ def getLight(position = LIGHT_SENS_RIGHT + 3):
         tuple of ints - values of left, middle, and right sensors (in that order)
     """
     printDebug("In getLight, position is " + str(position), DEBUG_INFO)
-    
+
     if position == "left":
         position = LIGHT_SENS_LEFT
     elif position == "center" or position == "middle":
         position = LIGHT_SENS_MID
     elif position == "right":
         position = LIGHT_SENS_RIGHT
-    
-    sendSerial( COMMAND_CODES["GET_LIGHT"] )
-    lights = ( getSerialInt(), getSerialInt(), getSerialInt() )
-    
+
+    sendSerial(COMMAND_CODES["GET_LIGHT"])
+    lights = (getSerialInt(), getSerialInt(), getSerialInt())
+
     if position == LIGHT_SENS_LEFT or position == LIGHT_SENS_MID or position == LIGHT_SENS_RIGHT:
         return lights[position]
     else:
         return lights
 
 
-        
-def getLine(position = LINE_EDGE_RIGHT + 5):
+def getLine(position=LINE_EDGE_RIGHT + 5):
     """ Returns the value of the line sensor at position; position != LINE_EDGE_LEFT, LINE_MID_LEFT, LINE_MID, LINE_MID_RIGHT or LINE_EDGE_RIGHT returns all 5
         
         arguments:
@@ -1248,17 +1249,17 @@ def getLine(position = LINE_EDGE_RIGHT + 5):
         tuple of ints - values of edge left, left, middle, right, and edge right sensors (in that order)
     """
     printDebug("In getLine, position is " + str(position), DEBUG_INFO)
-    
+
     if position == "left":
         position = LINE_MID_LEFT
     elif position == "center" or position == "middle":
         position = LINE_MID
     elif position == "right":
         position = LINE_MID_RIGHT
-        
-    sendSerial( COMMAND_CODES["GET_LINE"] )
-    lines = ( getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt() )
-    
+
+    sendSerial(COMMAND_CODES["GET_LINE"])
+    lines = (getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt())
+
     if position == LINE_EDGE_LEFT or position == LINE_MID_LEFT or position == LINE_MID or position == LINE_MID_RIGHT or position == LINE_EDGE_RIGHT:
         return lines[position]
     else:
@@ -1279,12 +1280,12 @@ def getMag():
         raise NotImplementedError
 
     printDebug("In getMag", DEBUG_INFO)
-        
-    sendSerial( COMMAND_CODES["GET_MAG"] )
-    result = ( getSerialFloat(), getSerialFloat(), getSerialFloat() )
+
+    sendSerial(COMMAND_CODES["GET_MAG"])
+    result = (getSerialFloat(), getSerialFloat(), getSerialFloat())
     return result
-    
-    
+
+
 def getMagX():
     """ Returns the values of the X magnetometer
     
@@ -1298,7 +1299,6 @@ def getMagX():
     return getMag()[0]
 
 
-    
 def getMagY():
     """ Returns the values of the Y magnetometer
     
@@ -1311,8 +1311,7 @@ def getMagY():
 
     return getMag()[1]
 
-    
-    
+
 def getMagZ():
     """ Returns the values of the Z magnetometer
     
@@ -1325,7 +1324,7 @@ def getMagZ():
 
     return getMag()[2]
 
-    
+
 def getName():
     """ Gets the name of this robot as set in the EEPROM
 
@@ -1341,11 +1340,11 @@ def getName():
 
     printDebug("In getName", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["GET_NAME"] )
+    sendSerial(COMMAND_CODES["GET_NAME"])
     return getSerialString()
 
 
-def getObstacle(position = "all"):
+def getObstacle(position="all"):
     """ Gets the obstacle sensor (the ultrasonic sensor or 'ping') at position
 
         arguments:
@@ -1361,7 +1360,7 @@ def getObstacle(position = "all"):
         a value of -1 in the return indicates that nothing was found
     """
     printDebug("In getObstacle, position is " + str(position), DEBUG_INFO)
-    
+
     if position == "left":
         position = SERVO_LEFT
     elif position == "center" or position == "middle":
@@ -1369,12 +1368,12 @@ def getObstacle(position = "all"):
     elif position == "right":
         position = SERVO_RIGHT
     elif position == "all":
-        result = ( getObstacle( SERVO_LEFT ), getObstacle( SERVO_CENTER ), getObstacle( SERVO_RIGHT ) ) # recursion
+        result = (getObstacle(SERVO_LEFT), getObstacle(SERVO_CENTER), getObstacle(SERVO_RIGHT))  # recursion
         return result
 
-    position = int( constrain( position, SERVO_LEFT, SERVO_RIGHT ) )
-    
-    servo( position )
+    position = int(constrain(position, SERVO_LEFT, SERVO_RIGHT))
+
+    servo(position)
     result = ping()
 
     return result
@@ -1395,10 +1394,10 @@ def getPosition():
     global xpos, ypos
 
     printDebug("In getPosition", DEBUG_INFO)
-    
+
     return (xpos, ypos)
 
-    
+
 def getUptime():
     """ Gets the amount of time since the robot was initialized - returns a -1 if the robot has not been initialized
     
@@ -1411,13 +1410,13 @@ def getUptime():
     global init_time
 
     printDebug("In getUptime", DEBUG_INFO)
-    
+
     if init_time < 0:
         return -1
     else:
         return currentTime() - init_time
 
-    
+
 def getVersion():
     """ Gets versions of the Python library and the software running on the Sparki
     
@@ -1430,11 +1429,11 @@ def getVersion():
     global robot_library_version, SPARKI_MYRO_VERSION
 
     printDebug("In getVersion", DEBUG_INFO)
-    
-    return ( SPARKI_MYRO_VERSION, robot_library_version )
+
+    return (SPARKI_MYRO_VERSION, robot_library_version)
 
 
-def gripperClose(distance = MAX_GRIPPER_DISTANCE):
+def gripperClose(distance=MAX_GRIPPER_DISTANCE):
     """ Closes the gripper by distance; defaults to MAX_GRIPPER_DISTANCE
 
         arguments:
@@ -1444,16 +1443,16 @@ def gripperClose(distance = MAX_GRIPPER_DISTANCE):
         nothing
     """
     printDebug("In gripperClose, distance is " + str(distance), DEBUG_INFO)
-    
+
     distance = constrain(distance, 0, MAX_GRIPPER_DISTANCE)
     distance = float(distance)
-    args = [ distance ]
+    args = [distance]
 
-    sendSerial( COMMAND_CODES["GRIPPER_CLOSE_DIS"], args)
-    wait( distance )
+    sendSerial(COMMAND_CODES["GRIPPER_CLOSE_DIS"], args)
+    wait(distance)
 
 
-def gripperOpen(distance = MAX_GRIPPER_DISTANCE):
+def gripperOpen(distance=MAX_GRIPPER_DISTANCE):
     """ Opens the gripper by distance; defaults to MAX_GRIPPER_DISTANCE
 
         arguments:
@@ -1465,10 +1464,10 @@ def gripperOpen(distance = MAX_GRIPPER_DISTANCE):
     printDebug("In gripperOpen, distance is " + str(distance), DEBUG_INFO)
     distance = constrain(distance, 0, MAX_GRIPPER_DISTANCE)
     distance = float(distance)
-    args = [ distance ]
+    args = [distance]
 
-    sendSerial( COMMAND_CODES["GRIPPER_OPEN_DIS"], args)
-    wait( distance )
+    sendSerial(COMMAND_CODES["GRIPPER_OPEN_DIS"], args)
+    wait(distance)
 
 
 def gripperStop():
@@ -1482,9 +1481,9 @@ def gripperStop():
     """
     printDebug("In gripperStop", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["GRIPPER_STOP"] )
+    sendSerial(COMMAND_CODES["GRIPPER_STOP"])
 
-    
+
 def humanTime():
     """ Return a human readable current time (i.e. time.ctime())
         Output looks like 'Fri Apr 5 19:50:05 2016'
@@ -1496,11 +1495,11 @@ def humanTime():
         string - time of call
     """
     printDebug("In humanTime", DEBUG_INFO)
-    
+
     return time.ctime()
 
 
-def init(com_port, print_versions = True):
+def init(com_port, print_versions=True):
     """ Connects to the Sparki robot on com_port; if it is already connected, this will disconnect and reconnect on the given port
         Note that Sparki MUST already be paired with the computer over Bluetooth
         
@@ -1526,25 +1525,25 @@ def init(com_port, print_versions = True):
 
     if com_port == "mac":
         com_port = "/dev/tty.ArcBotics-DevB"
-    
+
     serial_port = com_port
-    
+
     try:
-        serial_conn = serial.Serial(port = serial_port, baudrate = 9600, timeout = CONN_TIMEOUT)
+        serial_conn = serial.Serial(port=serial_port, baudrate=9600, timeout=CONN_TIMEOUT)
     except serial.SerialException:
         printUnableToConnect()
         raise
-        
-    serial_is_connected = True      # have to do this prior to sendSerial, or sendSerial will never try to send
-    
-    sendSerial( COMMAND_CODES["INIT"] )
 
-    robot_library_version = getSerialString()   # Sparki sends us its library version in response
-    
+    serial_is_connected = True  # have to do this prior to sendSerial, or sendSerial will never try to send
+
+    sendSerial(COMMAND_CODES["INIT"])
+
+    robot_library_version = getSerialString()  # Sparki sends us its library version in response
+
     if robot_library_version:
         init_time = currentTime()
 
-        if print_versions: # done this way to avoid reprinting it for Mac connection issues
+        if print_versions:  # done this way to avoid reprinting it for Mac connection issues
             printDebug("Sparki connection successful", DEBUG_ALWAYS)
             printDebug("  Python library version is " + SPARKI_MYRO_VERSION, DEBUG_ALWAYS)
             printDebug("  Robot library version is " + robot_library_version, DEBUG_ALWAYS)
@@ -1553,12 +1552,16 @@ def init(com_port, print_versions = True):
         # if the version has a lower case r, strip off the r and anything to the right of it (that's what .partition() does below)
         try:
             # the order is NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved, NOOP
-            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, NOOP = SPARKI_CAPABILITIES[robot_library_version.partition('r')[0]]
+            NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, reserved2, NOOP = SPARKI_CAPABILITIES[
+                robot_library_version.partition('r')[0]]
             printDebug("Sparki Capabilities:", DEBUG_INFO)
             printDebug("\tNO_ACCEL:\tNO_MAG:\tSPARKI_DEBUGS:\tUSE_EEPROM:\tEXT_LCD_1:", DEBUG_INFO)
-            printDebug("\t" + str(NO_ACCEL) + "\t\t" + str(NO_MAG) + "\t" + str(SPARKI_DEBUGS) + "\t\t" + str(USE_EEPROM) + "\t\t" + str(EXT_LCD_1), DEBUG_INFO)
+            printDebug("\t" + str(NO_ACCEL) + "\t\t" + str(NO_MAG) + "\t" + str(SPARKI_DEBUGS) + "\t\t" + str(
+                USE_EEPROM) + "\t\t" + str(EXT_LCD_1), DEBUG_INFO)
         except KeyError:
-            printDebug("Unknown library version, using defaults -- you might need an upgrade of the Sparki Learning Python library", DEBUG_ALWAYS)
+            printDebug(
+                "Unknown library version, using defaults -- you might need an upgrade of the Sparki Learning Python library",
+                DEBUG_ALWAYS)
             printDebug("(to upgrade the library type: pip sparki-learning --upgrade)", DEBUG_ALWAYS)
             printDebug("Sparki Capabilities will be limited", DEBUG_ALWAYS)
     else:
@@ -1584,7 +1587,7 @@ def isMoving():
         boolean - True if robot is in motion; otherwise False
     """
     global in_motion
-    
+
     printDebug("In isMoving", DEBUG_INFO)
 
     return in_motion
@@ -1620,7 +1623,7 @@ def joystick():
 
         # 2nd row
         tk.Button(control, text="turn left", command=lambda: turnLeft(1)).grid(row=1, column=0)
-        tk.Button(control, text="stop", command=stop).grid(row=1, column=1)    # no argument needed for stop
+        tk.Button(control, text="stop", command=stop).grid(row=1, column=1)  # no argument needed for stop
         tk.Button(control, text="turn right", command=lambda: turnRight(1)).grid(row=1, column=2)
 
         # 3rd row
@@ -1642,13 +1645,13 @@ def joystick():
         for i in range(5):
             control.rowconfigure(i, weight=1)
 
-        control.lift()                  # move the window to the top to make it more visible
-        control.wait_window(control)    # wait for this window to be destroyed (closed) before moving on
+        control.lift()  # move the window to the top to make it more visible
+        control.wait_window(control)  # wait for this window to be destroyed (closed) before moving on
     else:
         printDebug("No GUI for joystick control", DEBUG_CRITICAL)
-    
 
-def LCDclear(update = True):
+
+def LCDclear(update=True):
     """ Clears the LCD on Sparki
 
         arguments:
@@ -1659,13 +1662,13 @@ def LCDclear(update = True):
     """
     printDebug("In LCDclear", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["LCD_CLEAR"] )
+    sendSerial(COMMAND_CODES["LCD_CLEAR"])
 
     if update:
         LCDupdate()
-        
 
-def LCDdrawPixel(x, y, update = True):
+
+def LCDdrawPixel(x, y, update=True):
     """ Draws a pixel on the LCD
 
         arguments:
@@ -1679,18 +1682,18 @@ def LCDdrawPixel(x, y, update = True):
     # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
     printDebug("In LCDdrawPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 127))    # the LCD is 128 x 64
+    x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
     y = int(constrain(y, 0, 63))
 
-    args = [ x, y ]
+    args = [x, y]
 
-    sendSerial( COMMAND_CODES["LCD_DRAW_PIXEL"], args )
+    sendSerial(COMMAND_CODES["LCD_DRAW_PIXEL"], args)
 
     if update:
         LCDupdate()
-        
 
-def LCDdrawLine(x1, y1, x2, y2, update = True):
+
+def LCDdrawLine(x1, y1, x2, y2, update=True):
     """ Draws a line on the LCD
 
         arguments:
@@ -1704,22 +1707,23 @@ def LCDdrawLine(x1, y1, x2, y2, update = True):
         nothing
     """
     # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
-    printDebug("In LCDdrawLine, x1 is " + str(x1) + ", y1 is " + str(y1) + "x2 is " + str(x2) + ", y2 is " + str(y2), DEBUG_INFO)
+    printDebug("In LCDdrawLine, x1 is " + str(x1) + ", y1 is " + str(y1) + "x2 is " + str(x2) + ", y2 is " + str(y2),
+               DEBUG_INFO)
 
-    x1 = int(constrain(x1, 0, 127))    # the LCD is 128 x 64
+    x1 = int(constrain(x1, 0, 127))  # the LCD is 128 x 64
     y1 = int(constrain(y1, 0, 63))
     x2 = int(constrain(x2, 0, 127))
     y2 = int(constrain(y2, 0, 63))
 
-    args = [ x1, y1, x2, y2 ]
+    args = [x1, y1, x2, y2]
 
-    sendSerial( COMMAND_CODES["LCD_DRAW_LINE"], args )
+    sendSerial(COMMAND_CODES["LCD_DRAW_LINE"], args)
 
     if update:
         LCDupdate()
 
 
-def LCDdrawString(x, y, message, update = True):
+def LCDdrawString(x, y, message, update=True):
     """ Prints message on the LCD on Sparki at the given x,y coordinate
 
         arguments:
@@ -1737,18 +1741,18 @@ def LCDdrawString(x, y, message, update = True):
 
     printDebug("In LCDdrawString, x is " + str(x) + ", y is " + str(y) + ", message is " + str(message), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 121))   # 128 (0 to 127) pixels on the LCD, and a character is 6 pixels wide
-    y = int(constrain(y, 0, 7))     # 8 (0 to 7) lines on the LCD
+    x = int(constrain(x, 0, 121))  # 128 (0 to 127) pixels on the LCD, and a character is 6 pixels wide
+    y = int(constrain(y, 0, 7))  # 8 (0 to 7) lines on the LCD
 
-    args = [ x, y, message ]
+    args = [x, y, message]
 
-    sendSerial( COMMAND_CODES["LCD_DRAW_STRING"], args )
+    sendSerial(COMMAND_CODES["LCD_DRAW_STRING"], args)
 
     if update:
         LCDupdate()
-        
 
-def LCDerasePixel(x, y, update = True):
+
+def LCDerasePixel(x, y, update=True):
     """ Erases (makes blank) a pixel on the LCD
 
         arguments:
@@ -1766,12 +1770,12 @@ def LCDerasePixel(x, y, update = True):
 
     printDebug("In LCDerasePixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
-    LCDsetColor( LCD_WHITE )
-    LCDdrawPixel( x, y, update )
-    LCDsetColor( LCD_BLACK )
+    LCDsetColor(LCD_WHITE)
+    LCDdrawPixel(x, y, update)
+    LCDsetColor(LCD_BLACK)
 
 
-def LCDprint(message, update = True):
+def LCDprint(message, update=True):
     """ Prints message on the LCD on Sparki without going to the next line
 
         arguments:
@@ -1784,14 +1788,14 @@ def LCDprint(message, update = True):
     printDebug("In LCDprint, message is " + str(message), DEBUG_INFO)
 
     message = str(message)
-    
-    sendSerial( COMMAND_CODES["LCD_PRINT"], message )
+
+    sendSerial(COMMAND_CODES["LCD_PRINT"], message)
 
     if update:
         LCDupdate()
 
 
-def LCDprintLn(message, update = True):
+def LCDprintLn(message, update=True):
     """ Prints message on the LCD on Sparki and goes to the next line
 
         arguments:
@@ -1805,7 +1809,7 @@ def LCDprintLn(message, update = True):
 
     message = str(message)
 
-    sendSerial( COMMAND_CODES["LCD_PRINTLN"], message )
+    sendSerial(COMMAND_CODES["LCD_PRINTLN"], message)
 
     if update:
         LCDupdate()
@@ -1827,21 +1831,21 @@ def LCDreadPixel(x, y):
 
     printDebug("In LCDredPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 127))    # the LCD is 128 x 64
+    x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
     y = int(constrain(y, 0, 63))
 
-    args = [ x, y ]
+    args = [x, y]
 
-    sendSerial( COMMAND_CODES["LCD_READ_PIXEL"], args )
+    sendSerial(COMMAND_CODES["LCD_READ_PIXEL"], args)
     result = getSerialInt()
 
     if result == 1:
         return True
     else:
         return False
-        
 
-def LCDsetColor(color = LCD_BLACK):
+
+def LCDsetColor(color=LCD_BLACK):
     """ Sets the color that LCDdraw commands will draw with; LCD_BLACK will be normal drawing, LCD_WHITE will erase
 
         arguments:
@@ -1860,9 +1864,9 @@ def LCDsetColor(color = LCD_BLACK):
 
     printDebug("In LCDsetColor, color is " + str(color), DEBUG_INFO)
 
-    args = [ color ]
+    args = [color]
 
-    sendSerial( COMMAND_CODES["LCD_SET_COLOR"], args )
+    sendSerial(COMMAND_CODES["LCD_SET_COLOR"], args)
 
     current_lcd_color = color
 
@@ -1878,10 +1882,10 @@ def LCDupdate():
     """
     printDebug("In LCDupdate", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["LCD_UPDATE"] )
-    
-    
-def motors(left_speed, right_speed, time = -1):
+    sendSerial(COMMAND_CODES["LCD_UPDATE"])
+
+
+def motors(left_speed, right_speed, time=-1):
     """ Moves wheels at left_speed and right_speed for time; time is optional
     
         arguments:
@@ -1891,34 +1895,36 @@ def motors(left_speed, right_speed, time = -1):
         
         returns:
         nothing
-    """    
+    """
     global in_motion
 
-    printDebug("In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(time), DEBUG_INFO)
+    printDebug(
+        "In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(
+            time), DEBUG_INFO)
 
     if left_speed == 0 and right_speed == 0:
         printDebug("In motors, both speeds == 0, stopping (but please use stop())", DEBUG_WARN)
         stop()
         return
-        
+
     if left_speed < -1.0 or left_speed > 1.0:
         printDebug("In motors, left_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
-        
+
     if right_speed < -1.0 or right_speed > 1.0:
         printDebug("In motors, right_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
-    
+
     # adjust speeds to Sparki's requirements
-    left_speed = constrain( left_speed, -1.0, 1.0 )
-    right_speed = constrain( right_speed, -1.0, 1.0 )
-        
-    left_speed = int( left_speed * 100 )      # sparki expects an int between 1 and 100
-    right_speed = int( right_speed * 100 )      # sparki expects an int between 1 and 100
-    time = float( time )
-    args = [ left_speed, right_speed, time ]
+    left_speed = constrain(left_speed, -1.0, 1.0)
+    right_speed = constrain(right_speed, -1.0, 1.0)
+
+    left_speed = int(left_speed * 100)  # sparki expects an int between 1 and 100
+    right_speed = int(right_speed * 100)  # sparki expects an int between 1 and 100
+    time = float(time)
+    args = [left_speed, right_speed, time]
 
     in_motion = True
     try:
-        sendSerial( COMMAND_CODES["MOTORS"], args )
+        sendSerial(COMMAND_CODES["MOTORS"], args)
         if time >= 0:
             wait(time)
     finally:
@@ -1926,7 +1932,7 @@ def motors(left_speed, right_speed, time = -1):
             in_motion = False
 
 
-def move(translate_speed, rotate_speed):    # NOT WELL TESTED
+def move(translate_speed, rotate_speed):  # NOT WELL TESTED
     """ Combines moving forward / backward while rotating -- use another command if possible
 
         arguments:
@@ -1937,7 +1943,8 @@ def move(translate_speed, rotate_speed):    # NOT WELL TESTED
         returns:
         nothing
     """
-    printDebug("In move, translate speed is " + str(translate_speed) + ", rotate speed is " + str(rotate_speed), DEBUG_INFO)
+    printDebug("In move, translate speed is " + str(translate_speed) + ", rotate speed is " + str(rotate_speed),
+               DEBUG_INFO)
     printDebug("The move() function is not well tested", DEBUG_WARN)
 
     translate_speed = constrain(translate_speed, -1.0, 1.0)
@@ -1945,20 +1952,20 @@ def move(translate_speed, rotate_speed):    # NOT WELL TESTED
 
     if translate_speed > 0:
         if rotate_speed > 0:
-            motors( (translate_speed + rotate_speed) / 2, translate_speed + rotate_speed )
+            motors((translate_speed + rotate_speed) / 2, translate_speed + rotate_speed)
         elif rotate_speed < 0:
-            motors( translate_speed + rotate_speed, (translate_speed + rotate_speed) / 2 )
-        else: # rotate_speed == 0
-            forward( translate_speed )
+            motors(translate_speed + rotate_speed, (translate_speed + rotate_speed) / 2)
+        else:  # rotate_speed == 0
+            forward(translate_speed)
     elif translate_speed < 0:
         if rotate_speed > 0:
-            motors( (translate_speed - rotate_speed) / 2, translate_speed - rotate_speed )
+            motors((translate_speed - rotate_speed) / 2, translate_speed - rotate_speed)
         elif rotate_speed < 0:
-            motors( translate_speed - rotate_speed, (translate_speed - rotate_speed) / 2 )
-        else: # rotate_speed == 0, so use forward() (which will actually go backward)
-            forward( translate_speed )
-    else: # translate_speed == 0, so turnLeft
-        turnLeft( rotate_speed )
+            motors(translate_speed - rotate_speed, (translate_speed - rotate_speed) / 2)
+        else:  # rotate_speed == 0, so use forward() (which will actually go backward)
+            forward(translate_speed)
+    else:  # translate_speed == 0, so turnLeft
+        turnLeft(rotate_speed)
 
 
 def moveBackwardcm(centimeters):
@@ -1972,10 +1979,10 @@ def moveBackwardcm(centimeters):
     """
     global centimeters_moved
     global in_motion
-    
+
     printDebug("In moveBackwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
 
-    centimeters = float( centimeters )
+    centimeters = float(centimeters)
 
     if centimeters == 0:
         printDebug("In moveBackwardcm, centimeters is 0... doing nothing", DEBUG_WARN)
@@ -1986,11 +1993,11 @@ def moveBackwardcm(centimeters):
         return
 
     centimeters_moved += centimeters
-    
-    args = [ centimeters ]
 
-    sendSerial( COMMAND_CODES["BACKWARD_CM"], args )
-    wait( centimeters * SECS_PER_CM )
+    args = [centimeters]
+
+    sendSerial(COMMAND_CODES["BACKWARD_CM"], args)
+    wait(centimeters * SECS_PER_CM)
     in_motion = False
 
 
@@ -2008,7 +2015,7 @@ def moveForwardcm(centimeters):
 
     printDebug("In moveForwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
 
-    centimeters = float( centimeters )
+    centimeters = float(centimeters)
 
     if centimeters == 0:
         printDebug("In moveForwardcm, centimeters is 0... doing nothing", DEBUG_WARN)
@@ -2019,15 +2026,15 @@ def moveForwardcm(centimeters):
         return
 
     centimeters_moved += centimeters
-    
-    args = [ centimeters ]
 
-    sendSerial( COMMAND_CODES["FORWARD_CM"], args )
-    wait( centimeters * SECS_PER_CM )
+    args = [centimeters]
+
+    sendSerial(COMMAND_CODES["FORWARD_CM"], args)
+    wait(centimeters * SECS_PER_CM)
     in_motion = False
 
 
-def moveBy(dX, dY, turnBack = False): 
+def moveBy(dX, dY, turnBack=False):
     """ Moves to the relative x,y coordinate specified (i.e. treats the current position as 0,0 and does a moveTo, but
         maintains the x,y coordinates correctly; for example, if the robot is currently at 3,4, and you give it moveBy(1,2)
         it will move to 4,5)
@@ -2050,7 +2057,7 @@ def moveBy(dX, dY, turnBack = False):
     """
     global xpos, ypos
 
-    printDebug("In moveBy, moving to relative position " + str(dX) + ", " + str(dY), DEBUG_INFO)    
+    printDebug("In moveBy, moving to relative position " + str(dX) + ", " + str(dY), DEBUG_INFO)
 
     if (dX == 0) and (dY == 0):
         printDebug("In moveBy, already at location " + str(dX) + ", " + str(dY), DEBUG_WARN)
@@ -2061,7 +2068,7 @@ def moveBy(dX, dY, turnBack = False):
 
     # our angle is set relative to the Y axis
     # determine the angle to the new position (law of cosines, dY / hypotenuse)
-    angle = math.degrees( math.acos( dY / hypotenuse ) )    # acos gives the value in radians
+    angle = math.degrees(math.acos(dY / hypotenuse))  # acos gives the value in radians
 
     if dX < 0:
         angle = -angle
@@ -2071,14 +2078,14 @@ def moveBy(dX, dY, turnBack = False):
     turnTo(angle)
     moveForwardcm(hypotenuse)
 
-    xpos, ypos = xpos + dX, ypos + dY    # set the new position
+    xpos, ypos = xpos + dX, ypos + dY  # set the new position
 
     if turnBack:
         # return to the original heading
         turnTo(oldHeading)
 
 
-def moveTo(newX, newY, turnBack = False): 
+def moveTo(newX, newY, turnBack=False):
     """ Moves to the x,y coordinate specified 
         
         When turned on, the robot begins at 0,0, and by definition is facing the positive coordinates of the Y axis
@@ -2118,7 +2125,7 @@ def noop():
     printDebug("In noop", DEBUG_INFO)
 
     if NOOP:
-        sendSerial( COMMAND_CODES["NOOP"] )
+        sendSerial(COMMAND_CODES["NOOP"])
     else:
         printDebug("no op is not available on sparki; simulating", DEBUG_WARN)
         setStatusLED("on")
@@ -2135,7 +2142,7 @@ def pickAFile():
         string path to the file
     """
     printDebug("In pickAFile", DEBUG_INFO)
-    
+
     try:
         result = tkinter.filedialog.askopenfilename()
     except:
@@ -2155,7 +2162,7 @@ def ping():
     """
     printDebug("In ping", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["PING"] )
+    sendSerial(COMMAND_CODES["PING"])
     result = getSerialInt()
     return result
 
@@ -2171,7 +2178,7 @@ def receiveIR():
     """
     printDebug("In receiveIR", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["RECEIVE_IR"] )
+    sendSerial(COMMAND_CODES["RECEIVE_IR"])
     result = getSerialInt()
     return result
 
@@ -2185,11 +2192,11 @@ def resetPosition():
         
         returns:
         nothing
-    """    
+    """
     printDebug("In resetPosition", DEBUG_INFO)
 
     setAngle(0)
-    setPosition(0,0)
+    setPosition(0, 0)
 
 
 def rotate(speed):
@@ -2210,11 +2217,11 @@ def sendIR(sendMe):
     """
     printDebug("In sendIR, sendMe is " + str(sendMe), DEBUG_INFO)
     sendMe = int(sendMe)
-    args = [ sendMe ]
+    args = [sendMe]
 
-    sendSerial( COMMAND_CODES["SEND_IR"], args)
+    sendSerial(COMMAND_CODES["SEND_IR"], args)
 
-    
+
 def senses():
     """ Displays readings from Sparki's sensors (lines, light, ping, mag, accel, compass, battery)
 
@@ -2241,7 +2248,7 @@ def senses():
         master = tk.Toplevel()
         master.title("Sparki Senses")
 
-        updatePause = 2000            # time in milliseconds to update the window
+        updatePause = 2000  # time in milliseconds to update the window
 
         # we'll use the grid layout manager
         # top row
@@ -2281,7 +2288,7 @@ def senses():
             tk.Label(master, text="Y").grid(row=4, column=3)
             tk.Label(master, text="Z").grid(row=4, column=4)
             tk.Label(master, text="compass").grid(row=4, column=5)
-            
+
         # 6th row
         if not NO_MAG:
             tk.Label(master, text="mag").grid(row=5, column=0)
@@ -2328,50 +2335,52 @@ def senses():
         def sensesUpdate():
             senUpLines = getLine()
             printDebug("In sensesUpdate, senUpLines = " + str(senUpLines), DEBUG_DEBUG)
-            
-            senLinLeftEdge.set( senUpLines[0] )
-            senLinLeft.set( senUpLines[1] )
-            senLinCenter.set( senUpLines[2] )
-            senLinRight.set( senUpLines[3] )
-            senLinRightEdge.set( senUpLines[4] )
+
+            senLinLeftEdge.set(senUpLines[0])
+            senLinLeft.set(senUpLines[1])
+            senLinCenter.set(senUpLines[2])
+            senLinRight.set(senUpLines[3])
+            senLinRightEdge.set(senUpLines[4])
 
             senUpLights = getLight()
             printDebug("In sensesUpdate, senUpLights = " + str(senUpLights), DEBUG_DEBUG)
 
-            senLightLeft.set( senUpLights[0] )
-            senLightCenter.set( senUpLights[1] )
-            senLightRight.set( senUpLights[2] )
+            senLightLeft.set(senUpLights[0])
+            senLightCenter.set(senUpLights[1])
+            senLightRight.set(senUpLights[2])
 
             if not NO_MAG:
                 senUpMag = getMag()
                 printDebug("In sensesUpdate, senUpMag = " + str(senUpMag), DEBUG_DEBUG)
 
-                senMagX.set( senUpMag[0] )
-                senMagY.set( senUpMag[1] )
-                senMagZ.set( senUpMag[2] )
-                senCompass.set( compass() )
+                senMagX.set(senUpMag[0])
+                senMagY.set(senUpMag[1])
+                senMagZ.set(senUpMag[2])
+                senCompass.set(compass())
 
             if not NO_ACCEL:
                 senUpAccel = getAccel()
                 printDebug("In sensesUpdate, senUpAccel = " + str(senUpAccel), DEBUG_DEBUG)
 
-                senAccelX.set( senUpAccel[0] )
-                senAccelY.set( senUpAccel[1] )
-                senAccelZ.set( senUpAccel[2] )
+                senAccelX.set(senUpAccel[0])
+                senAccelY.set(senUpAccel[1])
+                senAccelZ.set(senUpAccel[2])
 
-            senPing.set( ping() )
-            senBattery.set( getBattery() )
-            master.after( updatePause, sensesUpdate )   # update the window every updatePause milliseconds
+            senPing.set(ping())
+            senBattery.set(getBattery())
+            master.after(updatePause, sensesUpdate)  # update the window every updatePause milliseconds
 
         sensesUpdate()
-        master.after( updatePause, sensesUpdate )   # schedule the update of the window
-        master.lift()               # lift this window to the front to make it more visible
+        master.after(updatePause, sensesUpdate)  # schedule the update of the window
+        master.lift()  # lift this window to the front to make it more visible
         master.wait_window(master)  # wait until this window is destroyed to continue executing
         # end USE_GUI
     else:
         senses_text()
+
+
 ## end senses() ##
-        
+
 
 def servo(position):
     """ Turns the servo 'head' to the position (in degrees) specified
@@ -2384,14 +2393,14 @@ def servo(position):
     """
     printDebug("In servo, position is " + str(position), DEBUG_INFO)
 
-    position = int( constrain( position, SERVO_LEFT, SERVO_RIGHT ) )
-    args = [ position ]
+    position = int(constrain(position, SERVO_LEFT, SERVO_RIGHT))
+    args = [position]
 
-    sendSerial( COMMAND_CODES["SERVO"], args )
+    sendSerial(COMMAND_CODES["SERVO"], args)
     wait(.5)
 
 
-def setAngle(newAngle = 0):
+def setAngle(newAngle=0):
     """ Sets the number of degrees that the robot has turned (used by the grid commands moveBy() & moveTo())
 
         If you want the robot to be "reset" to "facing the positive coordinates of the Y axis", call setAngle()
@@ -2403,11 +2412,11 @@ def setAngle(newAngle = 0):
         nothing
     """
     global degrees_turned
-    
+
     printDebug("In setAngle, newAngle is " + str(newAngle), DEBUG_INFO)
-        
-    newAngle = float( wrapAngle( newAngle ) )  # ensure we're getting a float between -360 and 360
-    
+
+    newAngle = float(wrapAngle(newAngle))  # ensure we're getting a float between -360 and 360
+
     degrees_turned = newAngle
 
 
@@ -2421,12 +2430,12 @@ def setDebug(level):
         none
     """
     global sparki_myro_py_debug
-    
+
     printDebug("Changing debug level from " + str(sparki_myro_py_debug) + " to " + str(level), DEBUG_INFO)
-    level = int( constrain( level, DEBUG_ALWAYS, DEBUG_DEBUG ) )
-    
+    level = int(constrain(level, DEBUG_ALWAYS, DEBUG_DEBUG))
+
     sparki_myro_py_debug = level
-    
+
 
 def setLEDBack(brightness):
     """ Sets the RGB LED to white light at the brightness given -- should be a number between 0 and 100, which is a percentage
@@ -2441,7 +2450,7 @@ def setLEDBack(brightness):
     # a single resistor works on all lights, and they cannot be turned on to the same brightness; Arcbotics recommends
     # that to turn on the LED to white color, that we use 60, 100, 90 for the values
 
-    setRGBLED( (brightness / 100) * 60, brightness, (brightness / 100) * 90 )
+    setRGBLED((brightness / 100) * 60, brightness, (brightness / 100) * 90)
 
 
 def setLEDFront(brightness):
@@ -2454,9 +2463,9 @@ def setLEDFront(brightness):
         nothing
     """
 
-    setStatusLED( brightness )
+    setStatusLED(brightness)
 
-    
+
 def setName(newName):
     """ Sets the name of this robot as set in the EEPROM
 
@@ -2473,11 +2482,12 @@ def setName(newName):
     printDebug("In setName, newName is " + str(newName), DEBUG_INFO)
 
     if len(newName) > EEPROM_NAME_MAX_CHARS - 1:
-        printDebug("In setName(), the name " + str(newName) + " is too long. It must be fewer than " + str(EEPROM_NAME_MAX_CHARS - 1) + " letters and numbers. Truncating...", DEBUG_WARN)
+        printDebug("In setName(), the name " + str(newName) + " is too long. It must be fewer than " + str(
+            EEPROM_NAME_MAX_CHARS - 1) + " letters and numbers. Truncating...", DEBUG_WARN)
         newName = newName[:EEPROM_NAME_MAX_CHARS - 1]
 
-    args = [ newName ]
-    sendSerial( COMMAND_CODES["SET_NAME"], args )
+    args = [newName]
+    sendSerial(COMMAND_CODES["SET_NAME"], args)
 
 
 def setPosition(newX, newY):
@@ -2494,10 +2504,10 @@ def setPosition(newX, newY):
         returns:
         none
     """
-    global xpos, ypos   # also can be set in moveBy()
+    global xpos, ypos  # also can be set in moveBy()
 
     printDebug("In setPosition, new position will be " + str(newX) + ", " + str(newY), DEBUG_INFO)
-    
+
     xpos = float(newX)
     ypos = float(newY)
 
@@ -2528,14 +2538,16 @@ def setRGBLED(red, green, blue):
     printDebug("In setRGBLED, red is " + str(red) + ", green is " + str(green) + ", blue is " + str(blue), DEBUG_INFO)
 
     if red == green and red == blue and red != 0:
-        printDebug("In setRGBLED, red, green and blue are the same - hardware limitations will cause this to be fully red", DEBUG_WARN)
-    
+        printDebug(
+            "In setRGBLED, red, green and blue are the same - hardware limitations will cause this to be fully red",
+            DEBUG_WARN)
+
     red = int(constrain(red, 0, 100))
     green = int(constrain(green, 0, 100))
     blue = int(constrain(blue, 0, 100))
-    args = [ red, green, blue ]
+    args = [red, green, blue]
 
-    sendSerial( COMMAND_CODES["SET_RGB_LED"], args )
+    sendSerial(COMMAND_CODES["SET_RGB_LED"], args)
 
 
 def setSparkiDebug(level):
@@ -2549,11 +2561,11 @@ def setSparkiDebug(level):
     """
     if SPARKI_DEBUGS:
         printDebug("Changing Sparki debug level to " + str(level), DEBUG_INFO)
-        level = int( constrain( level, DEBUG_ALWAYS, DEBUG_DEBUG ) )
+        level = int(constrain(level, DEBUG_ALWAYS, DEBUG_DEBUG))
 
-        args = [ level ]
-    
-        sendSerial( COMMAND_CODES["SET_DEBUG_LEVEL"], args )
+        args = [level]
+
+        sendSerial(COMMAND_CODES["SET_DEBUG_LEVEL"], args)
     else:
         printDebug("Setting sparki debug level is not available", DEBUG_ERROR)
 
@@ -2575,10 +2587,10 @@ def setStatusLED(brightness):
     elif brightness == "off":
         brightness = 0
 
-    brightness = int( constrain( brightness, 0, 100 ) )
-    args = [ brightness ]
+    brightness = int(constrain(brightness, 0, 100))
+    args = [brightness]
 
-    sendSerial( COMMAND_CODES["SET_STATUS_LED"], args )
+    sendSerial(COMMAND_CODES["SET_STATUS_LED"], args)
 
 
 def stop():
@@ -2591,10 +2603,10 @@ def stop():
         nothing
     """
     global in_motion
-    
+
     printDebug("In stop", DEBUG_INFO)
 
-    sendSerial( COMMAND_CODES["STOP"] )
+    sendSerial(COMMAND_CODES["STOP"])
     in_motion = False
 
 
@@ -2613,7 +2625,7 @@ def timer(duration):
 
     if duration > 0:
         start_time = currentTime()
-        
+
         while currentTime() < start_time + duration:
             yield currentTime() - start_time
     else:
@@ -2639,12 +2651,12 @@ def turnBy(degrees):
         nothing
     """
     global degrees_turned, in_motion
-    
+
     printDebug("In turnBy, degrees is " + str(degrees), DEBUG_INFO)
 
-    degrees = wrapAngle( degrees )
+    degrees = wrapAngle(degrees)
 
-    if abs(degrees) >= 360:     # >= in case there's a rounding error
+    if abs(degrees) >= 360:  # >= in case there's a rounding error
         degrees = 0
 
     if degrees == 0:
@@ -2654,14 +2666,14 @@ def turnBy(degrees):
     degrees_turned += degrees
 
     # keep degrees_turned greater than -360 and less than 360
-    degrees_turned = wrapAngle( degrees_turned )
-    
-    printDebug("In turnBy, degrees_turned is now " + str(degrees_turned), DEBUG_DEBUG)
-    
-    args = [ degrees ]
+    degrees_turned = wrapAngle(degrees_turned)
 
-    sendSerial( COMMAND_CODES["TURN_BY"], args )
-    wait( abs(degrees) * SECS_PER_DEGREE )
+    printDebug("In turnBy, degrees_turned is now " + str(degrees_turned), DEBUG_DEBUG)
+
+    args = [degrees]
+
+    sendSerial(COMMAND_CODES["TURN_BY"], args)
+    wait(abs(degrees) * SECS_PER_DEGREE)
     in_motion = False
 
 
@@ -2680,15 +2692,15 @@ def turnTo(newHeading):
     printDebug("In turnTo, newHeading is " + str(newHeading), DEBUG_INFO)
 
     # ensure newHeading is less than 360 and greater than or equal to 0
-    newHeading = wrapAngle( newHeading )
-    
+    newHeading = wrapAngle(newHeading)
+
     currentHeading = getAngle()
 
-    printDebug("In turnTo turning from " + str(currentHeading) + " to " + str(newHeading), DEBUG_DEBUG)       
+    printDebug("In turnTo turning from " + str(currentHeading) + " to " + str(newHeading), DEBUG_DEBUG)
     turnBy(newHeading - currentHeading)
 
 
-def turnLeft(speed, time = -1):
+def turnLeft(speed, time=-1):
     """ Turns left (counter clockwise) at speed for time; time is optional
     
         arguments:
@@ -2699,7 +2711,7 @@ def turnLeft(speed, time = -1):
         nothing
     """
     printDebug("In turnLeft, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
-    
+
     # adjust speed to Sparki's requirements
     if speed < 0:
         printDebug("In turnLeft, speed < 0, calling turnRight", DEBUG_WARN)
@@ -2711,11 +2723,11 @@ def turnLeft(speed, time = -1):
     elif speed > 1.0:
         printDebug("In turnLeft, speed > 1.0, reducing to 1", DEBUG_ERROR)
         speed = 1
-        
-    motors( -speed, speed, time )
+
+    motors(-speed, speed, time)
 
 
-def turnRight(speed, time = -1):
+def turnRight(speed, time=-1):
     """ Turns right (clockwise) at speed for time; time is optional
     
         arguments:
@@ -2726,7 +2738,7 @@ def turnRight(speed, time = -1):
         nothing
     """
     printDebug("In turnRight, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
-    
+
     # adjust speed to Sparki's requirements
     if speed < 0:
         printDebug("In turnRight, speed < 0, calling turnLeft", DEBUG_WARN)
@@ -2738,8 +2750,8 @@ def turnRight(speed, time = -1):
     elif speed > 1.0:
         printDebug("In turnRight, speed > 1.0, reducing to 1", DEBUG_ERROR)
         speed = 1
-        
-    motors( speed, -speed, time )
+
+    motors(speed, -speed, time)
 
 
 def wait(wait_time):
@@ -2755,13 +2767,14 @@ def wait(wait_time):
     maxWait = 600
 
     if wait_time >= maxWait:
-        printDebug("Wait time is " + str(maxWait) + " seconds or greater -- reducing to " + str(maxWait) + " seconds", DEBUG_ERROR)
+        printDebug("Wait time is " + str(maxWait) + " seconds or greater -- reducing to " + str(maxWait) + " seconds",
+                   DEBUG_ERROR)
     elif wait_time > 120:
         printDebug("Wait time is greater than 2 minutes", DEBUG_WARN)
-    
-    wait_time = float( constrain(wait_time, 0, maxWait) )    # don't wait longer than ten minutes
-    
-    time.sleep(wait_time)    # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
+
+    wait_time = float(constrain(wait_time, 0, maxWait))  # don't wait longer than ten minutes
+
+    time.sleep(wait_time)  # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
 
 
 def waitNoop(wait_time):
@@ -2779,16 +2792,18 @@ def waitNoop(wait_time):
     sleepTime = 1
 
     if wait_time >= maxWait:
-        printDebug("Wait time is " + str(maxWait) + " seconds or greater -- reducing to " + str(maxWait) + " seconds", DEBUG_ERROR)
-    
-    wait_time = float( constrain(wait_time, 0, maxWait) )    # don't wait longer than maxWait seconds
+        printDebug("Wait time is " + str(maxWait) + " seconds or greater -- reducing to " + str(maxWait) + " seconds",
+                   DEBUG_ERROR)
+
+    wait_time = float(constrain(wait_time, 0, maxWait))  # don't wait longer than maxWait seconds
 
     for s in timer(wait_time):
         noop()
         time_remaining = wait_time - s
-        
+
         if time_remaining <= sleepTime:
-            time.sleep(time_remaining)    # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
+            time.sleep(
+                time_remaining)  # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
         else:
             time.sleep(sleepTime)
 
@@ -2808,52 +2823,64 @@ def yesorno(message):
         try:
             result = askQuestion(message, ["yes", "no"], "Yes or No?")
         except:
-            result = askQuestion_text(message, ["yes", "no", "y", "n" ], False)
-    
+            result = askQuestion_text(message, ["yes", "no", "y", "n"], False)
+
         return result
     else:
-        return askQuestion_text(message, ["yes", "no", "y", "n" ], False)
+        return askQuestion_text(message, ["yes", "no", "y", "n"], False)
+
+
 ###################### END OF SPARKI MYRO FUNCTIONS ######################
 
-    
+
 ### functions which cannot be or are not implemented ###
-def arcBy(args = None):
+def arcBy(args=None):
     printDebug("arcBy not implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
 
-def arcTo(args = None):
+
+def arcTo(args=None):
     printDebug("arcTo not implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
 
-def getIR(args = None):
+
+def getIR(args=None):
     printDebug("getIR cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
+
 
 def getMicrophone():
     printDebug("getMicrophone cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
-    
+
+
 def getStall():
     printDebug("getStall cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
 
-def takePicture(args = None):
+
+def takePicture(args=None):
     printDebug("takePicture cannot be implemented on Sparki (because there's no camera)", DEBUG_CRITICAL)
     raise NotImplementedError
-    
+
+
 ## speak is implemented in sparki_leaning.speak
 
-def show(args = None):
+def show(args=None):
     printDebug("show cannot be implemented on Sparki", DEBUG_CRITICAL)
     raise NotImplementedError
-### end junk functions ###    
+
+
+### end junk functions ###
 
 
 def main():
     print("sparki_learning version " + SPARKI_MYRO_VERSION)
-    print("This is intended to be used as a library -- your code should call this program by importing the library, e.g.")
+    print(
+        "This is intended to be used as a library -- your code should call this program by importing the library, e.g.")
     print("from sparki_learning import *")
     print("Exiting...")
+
 
 if __name__ == "__main__":
     main()
