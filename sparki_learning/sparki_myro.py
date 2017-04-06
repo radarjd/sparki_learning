@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: February 15, 2017
+# Last Modified: April 6, 2017
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, \
@@ -40,7 +40,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.4.1.1"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.4.2.3"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -2608,6 +2608,32 @@ def stop():
 
     sendSerial(COMMAND_CODES["STOP"])
     in_motion = False
+
+
+def syncWait(server_ip=None, server_port=32216):
+    """ Wait for a time specified by a sync server over a network
+
+        This function attempts to synchronize multiple computers controlling Sparkis using the sparki_learning.sync_lib library
+        One computer is designated by the programmers as the server. It can, but does not have to, control a sparki itself.
+        The others are designated by the programmers as clients. On the server, you specify an amount of time from now (e.g. 30 seconds)
+        for all clients (and the server) to wait. Each of the clients connects to the server to find out the amount of time to wait.
+        Once the countdown is complete, all the computers stop waiting and execute the rest of the program.
+    
+        arguments:
+        server_ip - string IPv4 address for the program running the server
+                    if none is given to the function, will ask for input
+        server_port - int port to which to connect
+                      if none is given to the function, defaults to 32216
+        
+        returns:
+        nothing
+    """
+    printDebug("In waitForSync, server_ip is " + str(server_ip) + "; server_port is " + str(server_port), DEBUG_INFO)
+
+    from sparki_learning.sync_lib import get_client_start
+    wait_time = get_client_start(server_ip, server_port)
+
+    waitNoop(wait_time)
 
 
 def timer(duration):

@@ -40,7 +40,6 @@ def _sync_client(server_ip, server_port):
     # The server then sends the time to start the event and both server and client close the socket
     # If the start_time sent by the server is less than 0, this function returns START_NOW
     # Else this function returns the number of seconds between right now and the time that the event is to occur
-
     # receive server's time, return offset, receive start time
     port = int(server_port)
 
@@ -115,6 +114,28 @@ def _sync_server(start_time=START_NOW, port=PORT):
         print(str(client_addr) + " closed")
 
 
+def get_client_start(server_ip=None, server_port=PORT):
+    """ Returns the time the client should start -- specifically:
+        1) connects to a server
+        2) gets the amount of time before which the operation should begin
+
+        arguments:
+        server_ip - string IPv4 address for the program running the server
+                    if none is given to the function, will ask for input
+        server_port - int port to which to connect
+                      if none is given to the function, defaults to 32216
+
+        returns:
+        float - amount of time until the synchronization time
+    """ 
+    if server_ip is None:
+        server_ip = input("What is the server's IP? ")
+
+    wait_time = _sync_client(server_ip, server_port)
+
+    return wait_time
+
+
 def start_sync_client(server_ip=None, server_port=PORT):
     """ Waits for a time specified by a server to return -- specifically:
         1) connects to a server
@@ -130,10 +151,7 @@ def start_sync_client(server_ip=None, server_port=PORT):
         returns:
         nothing
     """
-    if server_ip is None:
-        server_ip = input("What is the server's IP? ")
-
-    wait_time = _sync_client(server_ip, server_port)
+    wait_time = get_client_start(server_ip, server_port)
 
     if wait_time > 0:
         print("waiting " + str(wait_time) + " seconds")
@@ -158,8 +176,8 @@ def start_sync_server(wait_time=15, port=PORT):
     """
     max_wait_time = 24 * 60 * 60  # 60 seconds * 60 minutes * 24 hours = number of seconds in a day
 
-    if wait_time > max_wait_time:  # can't wait more than 24 hours
-        raise RuntimeError("wait time given was more than 24 hours")
+    if wait_time > max_wait_time:  # can't wait more than max_wait_time
+        raise RuntimeError("wait time given was more than " + str(max_wait_time) + " seconds")
 
     start_time = time()
     print("start time is " + str(start_time) + "; wait time is " + str(wait_time) + " seconds")

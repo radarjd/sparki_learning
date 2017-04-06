@@ -362,7 +362,7 @@ ul.auto-toc {
 <body>
 <div class="document" id="sparki-learning-command-quick-reference">
 <h1 class="title">Sparki Learning Command Quick Reference</h1>
-<h2 class="subtitle" id="for-version-1-4-0-of-the-python-library">for version 1.4.0 of the python library</h2>
+<h2 class="subtitle" id="for-version-1-4-2-of-the-python-library">for version 1.4.2 of the python library</h2>
 
 <p>(this library makes use of Python 3; Python 2.7 should work, but testing is limited)</p>
 <div class="contents topic" id="contents">
@@ -481,8 +481,10 @@ ul.auto-toc {
 </li>
 <li><a class="reference internal" href="#related-commands" id="id95">Related Commands</a><ul>
 <li><a class="reference internal" href="#synchronization-commands" id="id96">Synchronization Commands</a><ul>
-<li><a class="reference internal" href="#start-sync-server-time-15-server-port-32216" id="id97">start_sync_server(time = 15, server_port = 32216)</a></li>
-<li><a class="reference internal" href="#start-sync-client-server-ip-server-port-32216" id="id98">start_sync_client(server_ip, server_port = 32216)</a></li>
+<li><a class="reference internal" href="#get-client-start-server-ip-server-port-32216" id="id97">get_client_start(server_ip, server_port = 32216)</a></li>
+<li><a class="reference internal" href="#start-sync-server-time-15-server-port-32216" id="id98">start_sync_server(time = 15, server_port = 32216)</a></li>
+<li><a class="reference internal" href="#start-sync-client-server-ip-server-port-32216" id="id99">start_sync_client(server_ip, server_port = 32216)</a></li>
+<li><a class="reference internal" href="#syncwait-server-ip-server-port-32216" id="id100">syncWait(server_ip, server_port = 32216)</a></li>
 </ul>
 </li>
 </ul>
@@ -947,15 +949,25 @@ Sets the name of the physical Sparki robot. Note that you must have set the name
 <div class="section" id="synchronization-commands">
 <h2><a class="toc-backref" href="#id96">Synchronization Commands</a></h2>
 <p>The synchronization commands are provided to allow several computers to do something at the same time. In the case of sparki_learning, they are usually used to allow multiple computers to command their respective robots so that the robots can do things together (at the same time). One computer acts as the server, and all other computers act as the clients. The server is told how much time to wait, and then the server communicates that to any clients that connect to the server. When the time expires, the server and clients all return from the synchronization function.</p>
+<div class="section" id="get-client-start-server-ip-server-port-32216">
+<h3><a class="toc-backref" href="#id97">get_client_start(server_ip, server_port = 32216)</a></h3>
+<blockquote>
+Connects to a sync server returns the amount of time before the synchronization event should happen. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.</blockquote>
+</div>
 <div class="section" id="start-sync-server-time-15-server-port-32216">
-<h3><a class="toc-backref" href="#id97">start_sync_server(time = 15, server_port = 32216)</a></h3>
+<h3><a class="toc-backref" href="#id98">start_sync_server(time = 15, server_port = 32216)</a></h3>
 <blockquote>
 Starts the sync server to execute the commands following after time seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open and listen on a port. server_port defaults to port 32216. server_port must be the same on the client and server.</blockquote>
 </div>
 <div class="section" id="start-sync-client-server-ip-server-port-32216">
-<h3><a class="toc-backref" href="#id98">start_sync_client(server_ip, server_port = 32216)</a></h3>
+<h3><a class="toc-backref" href="#id99">start_sync_client(server_ip, server_port = 32216)</a></h3>
 <blockquote>
 Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.</blockquote>
+</div>
+<div class="section" id="syncwait-server-ip-server-port-32216">
+<h3><a class="toc-backref" href="#id100">syncWait(server_ip, server_port = 32216)</a></h3>
+<blockquote>
+Wait for a time specified by a sync server over a network. Uses the <a class="reference internal" href="#get-client-start-server-ip-server-port-32216">get_client_start(server_ip, server_port = 32216)</a> function above.</blockquote>
 </div>
 </div>
 </div>

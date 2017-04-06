@@ -3,7 +3,7 @@ Sparki Learning Command Quick Reference
 ======================================================
 
 ------------------------------------------------------
-for version 1.4.0 of the python library
+for version 1.4.2 of the python library
 ------------------------------------------------------
 
 (this library makes use of Python 3; Python 2.7 should work, but testing is limited)
@@ -596,6 +596,12 @@ The synchronization commands are provided to allow several computers to do somet
 
 
 
+get_client_start(server_ip, server_port = 32216)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Connects to a sync server returns the amount of time before the synchronization event should happen. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.
+
+
+
 start_sync_server(time = 15, server_port = 32216)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Starts the sync server to execute the commands following after time seconds. Opens a network socket on the computer, so you may be asked if you want Python to be allowed to open and listen on a port. server_port defaults to port 32216. server_port must be the same on the client and server.
@@ -606,3 +612,8 @@ start_sync_client(server_ip, server_port = 32216)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Connects to a sync server and executes the commands following after the period of time specified by the server. server_ip should be the server's ip address (which is printed to the server's screen when the server calls start_sync_server()). server_port defaults to 32216 (the same as the server). server_port must be the same on the client and server.
 
+
+
+syncWait(server_ip, server_port = 32216)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Wait for a time specified by a sync server over a network. Uses the `get_client_start(server_ip, server_port = 32216)`_ function above. 

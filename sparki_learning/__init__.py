@@ -19,7 +19,7 @@
 """
 
 from sparki_learning.sparki_myro import *
-from sparki_learning.sync_lib import start_sync_server, start_sync_client
+from sparki_learning.sync_lib import get_client_start, start_sync_server, start_sync_client
 from sparki_learning.speak import speak
 
 import sparki_learning.sparki_myro
