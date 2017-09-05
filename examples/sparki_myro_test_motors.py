@@ -8,12 +8,14 @@ from sparki_learning import *
 print("initializing -- may get an error below due to library version")
 com_port = None     # replace with your COM port or /dev/
 
-setDebug(DEBUG_INFO)
+setDebug(logging.INFO)
 
 while com_port == None:
     com_port = input("What is your com port or /dev/? ")
 
 init(com_port)
+
+print("Your python library version is {} and your sparki library version is {}".format(getVersion[0],getVersion[1]))
 
 setSparkiDebug(DEBUG_DEBUG)
 

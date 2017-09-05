@@ -3,7 +3,12 @@ from __future__ import print_function
 
 from sparki_learning import *
 
-init("COM4")
+com_port = None     # replace with your COM port or /dev/
+
+setDebug(logging.INFO)
+
+while not com_port:
+    com_port = input("What is your com port or /dev/? ")
 
 ##print("Using turnLeft")
 ##turnLeft(.5, 3)

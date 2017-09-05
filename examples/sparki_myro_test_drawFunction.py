@@ -5,8 +5,12 @@ from sparki_learning import *
 
 import math
 
-init("COM4")        # change for your COM port (or /dev/)
-#setDebug(DEBUG_INFO)
+com_port = None     # replace with your COM port or /dev/
+
+setDebug(logging.INFO)
+
+while not com_port:
+    com_port = input("What is your com port or /dev/? ")
 
 print("Drawing y = x ** 2")
 

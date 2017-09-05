@@ -12,13 +12,14 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: April 6, 2017
+# Last Modified: September 6, 2017
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 
 from __future__ import division, \
     print_function  # in case this is run from Python 2.6 or greater, but less than Python 3
 
 import datetime
+import logging
 import math
 import os
 import platform
@@ -40,7 +41,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.4.2.3"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.5.0.2"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -129,7 +130,7 @@ COMMAND_CODES = {
 
 
 # ***** DEBUG CONSTANTS ***** #
-# sparki_myro_py_debug (defined below) holds the current debug level
+# these are the debug levels used on the sparki itself in case the SPARKI_DEBUGS capability is set to True
 DEBUG_DEBUG = 5  # reports just about everything
 DEBUG_INFO = 4  # reports entering functions
 DEBUG_WARN = 3  # a generally sane default; reports issues that may be mistakes, but don't interfere with operation
@@ -213,7 +214,10 @@ init_time = -1  # time when the robot was initialized
 
 robot_library_version = None  # version of the code on the robot
 
-sparki_myro_py_debug = DEBUG_WARN  # this is the default debug level
+logging.basicConfig(level=logging.DEBUG)  # we want to catch all DEBUG messages
+sparki_logger = logging.getLogger("sparki_learning")
+sparki_logger.setLevel(logging.WARN)
+
 serial_port = None  # save the serial port on which we're connected
 serial_conn = None  # hold the pyserial object
 serial_is_connected = False  # set to true once connection is done
@@ -501,29 +505,38 @@ def getSerialString():
     return result
 
 
-def printDebug(message, priority=DEBUG_WARN, output=sys.stderr):
-    """ Print message if priorty is greater than or equal to the current sparki_myro_py_debug priority 
-    
-        arguments:
-        message - the string message to be printed
-        priority - the integer priority of the message; defaults to DEBUG_WARN
-        output - the file to which the message should be printed, defaults to stderr
-
-        returns:
-        nothing
-    """
-    # logging could have been done via the standard library logging module
-    global sparki_myro_py_debug
-
-    if priority <= sparki_myro_py_debug:
-        print(message, file=output)
-
-
 def music_sunrise():
     # plays "Sunrise" from Also sprach Zarathustra by Strauss (aka the 2001 theme)
     beep(1000, 523)
     beep(1000, 784)
     beep(1000, 1047)
+
+
+def printDebug(message, priority=logging.WARN):
+    """ Logs message given the priority specified 
+    
+        arguments:
+        message - the string message to be logged
+        priority - the integer priority of the message; uses the priority levels in the logging module
+
+        returns:
+        nothing
+    """
+    # this function (and hence the library) originally did not use the logging module from the standard library
+    global sparki_logger
+
+    # for compatibility, we will recognize the "old" priority levels, but new code should be written to conform to the
+    # priority levels in the logging module
+    if priority == DEBUG_DEBUG or priority == logging.DEBUG:
+        sparki_logger.debug(message)
+    elif priority == DEBUG_INFO or priority == logging.INFO:
+        sparki_logger.info(message)
+    elif priority == DEBUG_WARN or priority == logging.WARN:
+        sparki_logger.warn(message)
+    elif priority == DEBUG_ERROR or priority == logging.ERROR:
+        sparki_logger.error(message)
+    else:
+        sparki_logger.critical(message)
 
 
 def printUnableToConnect():
@@ -535,14 +548,14 @@ def printUnableToConnect():
         returns:
         nothing
     """
-    printDebug("Unable to connect with Sparki", DEBUG_ALWAYS)
-    printDebug("Ensure that:", DEBUG_ALWAYS)
-    printDebug("    1) Sparki is turned on", DEBUG_ALWAYS)
-    printDebug("    2) Sparki's Bluetooth module is inserted", DEBUG_ALWAYS)
-    printDebug("    3) Your computer's Bluetooth has been paired with Sparki", DEBUG_ALWAYS)
-    printDebug("    4) Sparki's batteries have some power left", DEBUG_ALWAYS)
-    printDebug("If you see the Sparki logo on the LCD, turn reset Sparki and try to reconnect", DEBUG_ALWAYS)
-    printDebug("You can also try to reset your shell", DEBUG_ALWAYS)
+    print("Unable to connect with Sparki")
+    print("Ensure that:")
+    print("    1) Sparki is turned on")
+    print("    2) Sparki's Bluetooth module is inserted")
+    print("    3) Your computer's Bluetooth has been paired with Sparki")
+    print("    4) Sparki's batteries have some power left")
+    print("If you see the Sparki logo on the LCD, press reset on the Sparki and try to reconnect")
+    print("You can also try to reset your shell")
 
 
 def sendSerial(command, args=None):
@@ -2424,17 +2437,16 @@ def setDebug(level):
     """ Sets the debug (in Python) to level
 
         arguments:
-        level - int between 0 and 5; greater numbers produce more output
+        level - int constant from the logging module (e.g. logging.DEBUG, logging.INFO, logging.WARN, logging.ERROR, logging.CRITICAL)
 
         returns:
         none
     """
-    global sparki_myro_py_debug
+    global sparki_logger
 
-    printDebug("Changing debug level from " + str(sparki_myro_py_debug) + " to " + str(level), DEBUG_INFO)
-    level = int(constrain(level, DEBUG_ALWAYS, DEBUG_DEBUG))
+    printDebug("In setDebug, new logging level is " + str(level), logging.INFO)
 
-    sparki_myro_py_debug = level
+    sparki_logger.setLevel(level)
 
 
 def setLEDBack(brightness):
