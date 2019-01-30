@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - February 8, 2017 */
+   last modified - January 30, 2019 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.3r1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.4r1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -69,7 +69,8 @@ const char COMMAND_GAMEPAD = 'e';       // no arguments; returns nothing
 const char COMMAND_GET_ACCEL = 'f';     // no arguments; returns array of 3 floats with values of x, y, and z
 #endif // NO_ACCEL
 
-const char COMMAND_GET_BATTERY = 'j';   // no arguments; returns float of voltage remaining; per arcbotics, the systemVoltage() function should not be relied upon
+// GET_BATTERY removed because results were unreliable
+//const char COMMAND_GET_BATTERY = 'j';   // no arguments; returns float of voltage remaining; per arcbotics, the systemVoltage() function should not be relied upon
 const char COMMAND_GET_LIGHT = 'k';     // no arguments; returns array of 3 ints with values of left, center & right light sensor                                    
 const char COMMAND_GET_LINE = 'm';      // no arguments; returns array of 5 ints with values of left edge, left, center, right & right edge line sensor
 
@@ -88,7 +89,8 @@ const char COMMAND_LCD_DRAW_CIRCLE = '1';   // requires 4 arguments: int x&y, in
 const char COMMAND_LCD_DRAW_RECT = '4'; // requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing 
 #endif // COMPACT_2
 
-const char COMMAND_LCD_DRAW_LINE = '2'; // requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
+// LCD_DRAW_LINE removed due to errors in the underlying library -- reimplemented in python
+//const char COMMAND_LCD_DRAW_LINE = '2'; // requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing
 const char COMMAND_LCD_DRAW_PIXEL = '3';    // requires 2 arguments: int x&y; returns nothing
 const char COMMAND_LCD_DRAW_STRING = '5';   // requires 3 arguments: int x (column), int line_number, and char* string; returns nothing
 const char COMMAND_LCD_PRINT = '6';     // requires 1 argument: char* string; returns nothing
@@ -1093,11 +1095,13 @@ void loop() {
       break;
 #endif // NO_ACCEL
 
-    case COMMAND_GET_BATTERY:         // no args; returns float
+/*  removed because it does not produce a reliable result   
+	case COMMAND_GET_BATTERY:         // no args; returns float
       // per arcbotics, the systemVoltage() function should not be relied upon
       sendSerial( sparki.systemVoltage() );
       break;
-    case COMMAND_GET_LIGHT:           // no args; returns array of 3 ints
+ */
+	case COMMAND_GET_LIGHT:           // no args; returns array of 3 ints
       getLight();                     // sendSerial is done in the function
       break;
     case COMMAND_GET_LINE:            // no args; returns array of 5 ints
@@ -1155,7 +1159,8 @@ void loop() {
       sparki.drawPixel( x, y );
       break;
       }
-    case COMMAND_LCD_DRAW_LINE:       // int, int, int, int; returns nothing
+/*  LCD_DRAW_LINE removed due to errors in the underlying command  
+	case COMMAND_LCD_DRAW_LINE:       // int, int, int, int; returns nothing
       {
       int x1 = getSerialInt();
       int y1 = getSerialInt();
@@ -1164,7 +1169,8 @@ void loop() {
       sparki.drawLine( x1, y1, x2, y2 );
       break;
       }
-    case COMMAND_LCD_DRAW_STRING:     // int, int, char*; returns nothing
+ */    
+	case COMMAND_LCD_DRAW_STRING:     // int, int, char*; returns nothing
       {
       int x = getSerialInt();
       int y = getSerialInt();

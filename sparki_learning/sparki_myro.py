@@ -82,7 +82,7 @@ COMMAND_CODES = {
     'COMPASS': 'c',  # no arguments; returns float heading
     'GAMEPAD': 'e',  # no arguments; returns nothing
     'GET_ACCEL': 'f',  # no arguments; returns array of 3 floats with values of x, y, and z
-    'GET_BATTERY': 'j',  # no arguments; returns float of voltage remaining
+    #'GET_BATTERY': 'j',  # no arguments; returns float of voltage remaining
     'GET_LIGHT': 'k',  # no arguments; returns array of 3 ints with values of left, center & right light sensor
     'GET_LINE': 'm',
     # no arguments; returns array of 5 ints with values of left edge, left, center, right & right edge line sensor
@@ -189,7 +189,8 @@ SPARKI_CAPABILITIES = {"z": (True, True, False, False, False, False, False),
                        "1.1.0": (False, False, False, True, True, False, False),
                        "1.1.1": (False, False, False, True, True, False, False),
                        "1.1.2": (False, False, False, True, True, False, False),
-                       "1.1.3": (False, False, False, True, True, False, True)}
+                       "1.1.3": (False, False, False, True, True, False, True),
+                       "1.1.4": (False, False, False, True, True, False, True)}
 
 ########### END OF CONSTANTS ###########
 
@@ -1186,21 +1187,20 @@ def getAngle():
 
 
 def getBattery():
-    """ Returns the voltage left in the batteries on the Sparki (not very accurate)
+    """ DEPRICATED due to inaccuracy of library
+        Returns the voltage left in the batteries on the Sparki (not very accurate)
     
         arguments:
         none
         
         returns:
-        float - voltage level
+        -1
     """
     # the underlying sparki library causes this function not to be accurate, or to be inconsistent at the very least
 
-    printDebug("In getBattery", DEBUG_INFO)
+    printDebug("In getBattery - function is DEPRICATED and will always return -1", DEBUG_WARN)
 
-    sendSerial(COMMAND_CODES["GET_BATTERY"])
-    result = getSerialFloat()
-    return result
+    return -1
 
 
 def getBright(position=LIGHT_SENS_RIGHT + 3):
