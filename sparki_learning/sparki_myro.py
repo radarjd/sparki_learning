@@ -12,8 +12,9 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: September 6, 2017
+# Last Modified: January 30, 2019
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
+# working with Python 3.7
 
 from __future__ import division, \
     print_function  # in case this is run from Python 2.6 or greater, but less than Python 3
@@ -41,7 +42,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.5.0.2"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.5.0.3"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -93,7 +94,7 @@ COMMAND_CODES = {
     'LCD_CLEAR': '0',  # no arguments; returns nothing
     ## below LCD commands removed for compacting purposes
     ##'LCD_DRAW_CIRCLE':'1',    # requires 4 arguments: int x&y, int radius, and int filled (1 is filled); returns nothing
-    'LCD_DRAW_LINE': '2',
+    ##'LCD_DRAW_LINE': '2',
     # requires 4 arguments ints x&y for start point and x1&y1 for end points; returns nothing; EXT_LCD_1 must be True
     'LCD_DRAW_PIXEL': '3',  # requires 2 arguments: int x&y; returns nothing
     ##'LCD_DRAW_RECT':'4',# requires 5 arguments: int x&y for start point, ints width & height, and int filled (1 is filled); returns nothing
@@ -262,6 +263,38 @@ def askQuestion_text(message, options, caseSensitive=True):
             result = result.lower()
 
     return result
+
+
+def bresenham(x0, y0, x1, y1):
+    # implementation from https://github.com/encukou/bresenham/blob/master/bresenham.py; MIT License
+    """Yield integer coordinates on the line from (x0, y0) to (x1, y1).
+    Input coordinates should be integers.
+    The result will contain both the start and the end point.
+    """
+    dx = x1 - x0
+    dy = y1 - y0
+
+    xsign = 1 if dx > 0 else -1
+    ysign = 1 if dy > 0 else -1
+
+    dx = abs(dx)
+    dy = abs(dy)
+
+    if dx > dy:
+        xx, xy, yx, yy = xsign, 0, 0, ysign
+    else:
+        dx, dy = dy, dx
+        xx, xy, yx, yy = 0, ysign, xsign, 0
+
+    D = 2*dy - dx
+    y = 0
+
+    for x in range(dx + 1):
+        yield x0 + x*xx + y*yx, y0 + x*xy + y*yy
+        if D >= 0:
+            y += 1
+            D -= 2*dx
+        D += 2*dy
 
 
 def bluetoothRead():
@@ -554,7 +587,8 @@ def printUnableToConnect():
     print("    2) Sparki's Bluetooth module is inserted")
     print("    3) Your computer's Bluetooth has been paired with Sparki")
     print("    4) Sparki's batteries have some power left")
-    print("If you see the Sparki logo on the LCD, press reset on the Sparki and try to reconnect")
+    print("If you see the Sparki logo on the LCD, press reset on the Sparki and try to reconnect -- you may have to do this many times.")
+    print("Windows 10 seems to experience intermittent losses of connection to your com port -- simply re-run your program.")
     print("You can also try to reset your shell")
 
 
@@ -1538,6 +1572,8 @@ def init(com_port, print_versions=True):
 
     if com_port == "mac":
         com_port = "/dev/tty.ArcBotics-DevB"
+    elif com_port == "hc06":
+        com_port = "/dev/tty.HC-06-DevB"
 
     serial_port = com_port
 
@@ -1719,8 +1755,8 @@ def LCDdrawLine(x1, y1, x2, y2, update=True):
         returns:
         nothing
     """
-    # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
-    printDebug("In LCDdrawLine, x1 is " + str(x1) + ", y1 is " + str(y1) + "x2 is " + str(x2) + ", y2 is " + str(y2),
+    # this has been reimplemented due to bugs in the underlying Sparki library
+    printDebug("In LCDdrawLine, x1 is " + str(x1) + ", y1 is " + str(y1) + ", x2 is " + str(x2) + ", y2 is " + str(y2),
                DEBUG_INFO)
 
     x1 = int(constrain(x1, 0, 127))  # the LCD is 128 x 64
@@ -1728,9 +1764,8 @@ def LCDdrawLine(x1, y1, x2, y2, update=True):
     x2 = int(constrain(x2, 0, 127))
     y2 = int(constrain(y2, 0, 63))
 
-    args = [x1, y1, x2, y2]
-
-    sendSerial(COMMAND_CODES["LCD_DRAW_LINE"], args)
+    for x,y in bresenham(x1, y1, x2, y2):
+        LCDdrawPixel(x,y,False)    
 
     if update:
         LCDupdate()
@@ -2009,6 +2044,7 @@ def moveBackwardcm(centimeters):
 
     args = [centimeters]
 
+    in_motion = True
     sendSerial(COMMAND_CODES["BACKWARD_CM"], args)
     wait(centimeters * SECS_PER_CM)
     in_motion = False
@@ -2042,6 +2078,7 @@ def moveForwardcm(centimeters):
 
     args = [centimeters]
 
+    in_motion = True
     sendSerial(COMMAND_CODES["FORWARD_CM"], args)
     wait(centimeters * SECS_PER_CM)
     in_motion = False
@@ -2710,6 +2747,7 @@ def turnBy(degrees):
 
     args = [degrees]
 
+    in_motion = True
     sendSerial(COMMAND_CODES["TURN_BY"], args)
     wait(abs(degrees) * SECS_PER_DEGREE)
     in_motion = False
