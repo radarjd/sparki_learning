@@ -2,7 +2,7 @@
 from __future__ import print_function
 from sparki_learning import *
 
-com_port = "COM4"     # replace with your COM port or /dev/
+com_port = ""     # replace with your COM port or /dev/
 
 #setDebug(DEBUG_INFO)
 

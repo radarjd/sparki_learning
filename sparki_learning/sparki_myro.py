@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: January 30, 2019
+# Last Modified: February 1, 2019
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 # working with Python 3.7
 
@@ -42,7 +42,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.5.0.3"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.5.1.0"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -569,8 +569,10 @@ def printDebug(message, priority=logging.WARN):
         sparki_logger.warn(message)
     elif priority == DEBUG_ERROR or priority == logging.ERROR:
         sparki_logger.error(message)
-    else:
+    elif priority == DEBUG_CRITICAL or priority == logging.CRITICAL:
         sparki_logger.critical(message)
+    else:
+        print("[{}] --- {}".format(time.ctime(), message), file=sys.stderr)
 
 
 def printUnableToConnect():
@@ -582,15 +584,15 @@ def printUnableToConnect():
         returns:
         nothing
     """
-    print("Unable to connect with Sparki")
-    print("Ensure that:")
-    print("    1) Sparki is turned on")
-    print("    2) Sparki's Bluetooth module is inserted")
-    print("    3) Your computer's Bluetooth has been paired with Sparki")
-    print("    4) Sparki's batteries have some power left")
-    print("If you see the Sparki logo on the LCD, press reset on the Sparki and try to reconnect -- you may have to do this many times.")
-    print("Windows 10 seems to experience intermittent losses of connection to your com port -- simply re-run your program.")
-    print("You can also try to reset your shell")
+    print("Unable to connect with Sparki", file=sys.stderr)
+    print("Ensure that:", file=sys.stderr)
+    print("    1) Sparki is turned on", file=sys.stderr)
+    print("    2) Sparki's Bluetooth module is inserted", file=sys.stderr)
+    print("    3) Your computer's Bluetooth has been paired with Sparki", file=sys.stderr)
+    print("    4) Sparki's batteries have some power left", file=sys.stderr)
+    print("If you see the Sparki logo on the LCD, press reset on the Sparki and try to reconnect -- you may have to do this many times.", file=sys.stderr)
+    print("Windows 10 and MacOS will shut down the Bluetooth to save power (I think). Sometimes immediately rerunning the program will fix it.", file=sys.stderr)
+    print("You can also try to reset your shell", file=sys.stderr)
 
 
 def sendSerial(command, args=None):
@@ -694,8 +696,6 @@ def senses_text():
         print("Z accel sensor is " + str(getAccelZ()))
 
     print("Ping is " + str(ping()) + " cm")
-
-    print("Battery power is " + str(getBattery()))
     print("#########################################")
 
 
@@ -732,7 +732,7 @@ def waitForSync():
         if currentTime() > start_time + (CONN_TIMEOUT * retries):
             if platform.system() == "Darwin":  # Macs seem to be extremely likely to timeout -- so we report at a different debug level
                 printDebug(
-                    "In waitForSync, unable to sync with Sparki (if you're on a Mac, this may not be a big deal)",
+                    "In waitForSync, unable to sync with Sparki (this may not be due to power saving settings)",
                     DEBUG_INFO)
             else:
                 printDebug("In waitForSync, unable to sync with Sparki", DEBUG_ERROR)
@@ -1694,6 +1694,7 @@ def joystick():
         for i in range(5):
             control.rowconfigure(i, weight=1)
 
+        print("Sparki will not respond to other commands until the joystick window is closed")
         control.lift()  # move the window to the top to make it more visible
         control.wait_window(control)  # wait for this window to be destroyed (closed) before moving on
     else:
@@ -2292,7 +2293,7 @@ def senses():
     #    mag   |     N/A     |        |          |         |
     #   accel  |     N/A     |        |          |         |     N/A
     #          |             |        |          |         |
-    #   ping   |             |        |          | battery |
+    #   ping   |             |        |          |         |
     if USE_GUI:
         # start a new window
         master = tk.Toplevel()
@@ -2367,9 +2368,6 @@ def senses():
         tk.Label(master, text="ping").grid(row=8, column=0)
         senPing = tk.StringVar()
         tk.Label(master, textvariable=senPing).grid(row=8, column=1)
-        tk.Label(master, text="battery").grid(row=8, column=4)
-        senBattery = tk.StringVar()
-        tk.Label(master, textvariable=senBattery).grid(row=8, column=5)
 
         # weights for resizing
         for i in range(6):
@@ -2417,10 +2415,10 @@ def senses():
                 senAccelZ.set(senUpAccel[2])
 
             senPing.set(ping())
-            senBattery.set(getBattery())
             master.after(updatePause, sensesUpdate)  # update the window every updatePause milliseconds
 
         sensesUpdate()
+        print("Sparki will not respond to other commands until the senses window is closed")
         master.after(updatePause, sensesUpdate)  # schedule the update of the window
         master.lift()  # lift this window to the front to make it more visible
         master.wait_window(master)  # wait until this window is destroyed to continue executing
