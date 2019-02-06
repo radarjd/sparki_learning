@@ -1,9 +1,9 @@
-======================================================
+﻿======================================================
 Sparki Learning Command Quick Reference
 ======================================================
 
 ------------------------------------------------------
-for version 1.4.2 of the python library
+for version 1.5.1 of the python library
 ------------------------------------------------------
 
 (this library makes use of Python 3; Python 2.7 should work, but testing is limited)
@@ -385,6 +385,12 @@ LCDdrawLine(X1, Y1, X2, Y2, update = True)
 LCDdrawPixel(X,Y, update = True)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Draws the pixel at X, Y on the LCD. The X coordinate can be from 0 to 127. The Y coordinate can be from 0 to 63. Note that you must call LCDupdate() to display the dot once it's drawn if you set update to False.
+
+
+
+LCDdrawRect(X1, Y1, X2, Y2, update = True)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Draws a rectangle having opposite corners at X1, Y1 and X2, Y2 on the LCD. The X coordinates can be from 0 to 127. The Y coordinates can be from 0 to 63. Note that you must call LCDupdate() to display the line once it's drawn if you set update to False.
 
 
 

@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: February 1, 2019
+# Last Modified: February 6, 2019
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 # working with Python 3.7
 
@@ -42,7 +42,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.5.1.0"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.5.1.2"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -61,8 +61,8 @@ EXT_LCD_1 = False  # EEPROMread(), EEPROMwrite(), LCDdrawLine(), LCDdrawString()
 NOOP = False  # noop() -- if False, noop is simulated with setStatusLED
 
 # ***** MISCELLANEOUS VARIABLES ***** #
-SECS_PER_CM = .42  # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
-SECS_PER_DEGREE = .033  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
+SECS_PER_CM = .4  # number of seconds it takes sparki to move 1 cm; estimated from observation - may vary depending on batteries and robot
+SECS_PER_DEGREE = .03  # number of seconds it takes sparki to rotate 1 degree; estimated from observation - may vary depending on batteries and robot
 MAX_TRANSMISSION = 20  # maximum message length is 20 to conserve Sparki's limited RAM
 
 LCD_BLACK = 0  # set in Sparki.h
@@ -369,10 +369,10 @@ def constrain(n, min_n, max_n):
         min_n, max_n = max_n, min_n
 
     if n < min_n:
-        printDebug("In constrain, n " + str(n) + " was less than min (corrected)", DEBUG_INFO)
+        printDebug("In constrain, n ({}) was less than min ({}) (n set to min)".format(n, min_n), DEBUG_WARN)
         return min_n
     elif n > max_n:
-        printDebug("In constrain, n " + str(n) + " was greater than max (corrected)", DEBUG_INFO)
+        printDebug("In constrain, n ({}) was greater than max ({}) (n set to max)".format(n,max_n), DEBUG_WARN)
         return max_n
     else:
         return n
@@ -1772,6 +1772,42 @@ def LCDdrawLine(x1, y1, x2, y2, update=True):
         LCDupdate()
 
 
+def LCDdrawRect(x1, y1, x2, y2, update=True):
+    """ Draws a rectangle on the LCD with opposite corners at x1,y1 and x2,y2
+
+        arguments:
+        x1 - int x coordinate for the upper left corner, must be <= 127
+        y1 - int y coordinate for the upper left corner, must be <= 63
+        x2 - int x coordinate for the lower right corner, must be <= 127
+        y2 - int y coordinate for the lower right corner, must be <= 63
+        update - True (default) if you want Sparki to update the display
+
+        returns:
+        nothing
+    """
+    # this has been reimplemented due to bugs in the underlying Sparki library
+    printDebug("In LCDdrawRect, x1 is " + str(x1) + ", y1 is " + str(y1) + ", x2 is " + str(x2) + ", y2 is " + str(y2),
+               DEBUG_INFO)
+
+    x1 = int(constrain(x1, 0, 127))  # the LCD is 128 x 64
+    y1 = int(constrain(y1, 0, 63))
+    x2 = int(constrain(x2, 0, 127))
+    y2 = int(constrain(y2, 0, 63))
+
+    if x1 == x2:
+        printDebug("In LCDdrawRect, x1 == x2 ({})".format(x1), DEBUG_WARN)
+    if y1 == y2:
+        printDebug("In LCDdrawRect, y1 == y2 ({})".format(y1), DEBUG_WARN)
+
+    LCDdrawLine(x1,y1,x1,y2,False)    
+    LCDdrawLine(x1,y1,x2,y1,False)    
+    LCDdrawLine(x2,y2,x1,y2,False)    
+    LCDdrawLine(x2,y2,x2,y1,False)    
+
+    if update:
+        LCDupdate()
+
+
 def LCDdrawString(x, y, message, update=True):
     """ Prints message on the LCD on Sparki at the given x,y coordinate
 
@@ -2197,7 +2233,7 @@ def pickAFile():
     try:
         result = tkinter.filedialog.askopenfilename()
     except:
-        result = ask("What is the path to the file? ")
+        result = input("What is the path to the file? ")
 
     return result
 
@@ -2445,7 +2481,7 @@ def servo(position):
     args = [position]
 
     sendSerial(COMMAND_CODES["SERVO"], args)
-    wait(.5)
+    wait(.2)
 
 
 def setAngle(newAngle=0):
