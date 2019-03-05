@@ -42,7 +42,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.5.1.3"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.5.1.4"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -219,10 +219,14 @@ robot_library_version = None  # version of the code on the robot
 logging.basicConfig(level=logging.DEBUG)  # we want to catch all DEBUG messages
 sparki_logger = logging.getLogger("sparki_learning")
 sparki_logger.setLevel(logging.WARN)
+sparki_std_handler = logging.StreamHandler(sys.stderr)
+sparki_std_handler.setLevel(logging.WARN)
+sparki_logger.addHandler(sparki_std_handler)
 
 serial_port = None  # save the serial port on which we're connected
 serial_conn = None  # hold the pyserial object
 serial_is_connected = False  # set to true once connection is done
+robot_name = None # cache the robot's name
 
 xpos = 0  # for the moveBy(), moveTo(), getPosition() and setPosition() commands (the "grid commands"), these
 ypos = 0  # variables keep track of the current x,y position of the robot; each integer coordinate is 1cm, and
@@ -724,7 +728,7 @@ def waitForSync():
         loop_wait = 0  # pause this long each time through the loop
     else:
         retries = 5  # the number of times to retry connecting in the case of a timeout
-        loop_wait = .1  # pause this long each time through the loop
+        loop_wait = .01  # pause this long each time through the loop
 
     while inByte != SYNC.encode():  # loop, doing nothing substantive, while we wait for SYNC
         if currentTime() > start_time + (CONN_TIMEOUT * retries):
@@ -1379,14 +1383,20 @@ def getName():
         returns:
         string - name of robot
     """
+    global robot_name
+    
     if not USE_EEPROM:
         printDebug("getName not be implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
     printDebug("In getName", DEBUG_INFO)
-
-    sendSerial(COMMAND_CODES["GET_NAME"])
-    return getSerialString()
+    
+    if robot_name:
+        return robot_name
+    else:
+        sendSerial(COMMAND_CODES["GET_NAME"])
+        robot_name = getSerialString()
+        return robot_name
 
 
 def getObstacle(position="all"):
@@ -1551,6 +1561,7 @@ def init(com_port, print_versions=True):
         arguments:
         com_port - a string designating which port Sparki is on (windows looks like "COM??"; mac and linux look like "/dev/????"
                    if com_port is the string "mac", this will assume the standard mac port ("/dev/tty.ArcBotics-DevB")
+                   if com_port is the string "hc06", this will assume the standard HC-06 port ("tty.HC-06-DevB")
         print_versions - boolean whether or not to print connection message
         
         returns:
@@ -1561,6 +1572,7 @@ def init(com_port, print_versions=True):
     global serial_conn
     global serial_port
     global serial_is_connected
+    global robot_name
     global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, NOOP
 
     printDebug("In init, com_port is " + str(com_port), DEBUG_INFO)
@@ -1573,6 +1585,7 @@ def init(com_port, print_versions=True):
     elif com_port == "hc06":
         com_port = "/dev/tty.HC-06-DevB"
 
+    robot_name = None
     serial_port = com_port
 
     try:
@@ -1611,6 +1624,10 @@ def init(com_port, print_versions=True):
                 DEBUG_ALWAYS)
             printDebug("(to upgrade the library type: pip sparki-learning --upgrade)", DEBUG_ALWAYS)
             printDebug("Sparki Capabilities will be limited", DEBUG_ALWAYS)
+        
+        if USE_EEPROM and print_versions:
+            robot_name = getName()
+            printDebug(robot_name + " is ready", DEBUG_ALWAYS)
     else:
         printDebug("Sparki communication failed", DEBUG_ALWAYS)
         serial_is_connected = False
@@ -2519,11 +2536,12 @@ def setDebug(level):
         returns:
         none
     """
-    global sparki_logger
+    global sparki_logger, sparki_std_handler
 
     printDebug("In setDebug, new logging level is " + str(level), logging.INFO)
 
     sparki_logger.setLevel(level)
+    sparki_std_handler.setLevel(level)
 
 
 def setLEDBack(brightness):
@@ -2564,6 +2582,8 @@ def setName(newName):
         returns:
         string - name of robot
     """
+    global robot_name
+    
     if not USE_EEPROM:
         printDebug("setName not be implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
@@ -2577,6 +2597,8 @@ def setName(newName):
 
     args = [newName]
     sendSerial(COMMAND_CODES["SET_NAME"], args)
+    
+    robot_name = newName
 
 
 def setPosition(newX, newY):

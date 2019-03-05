@@ -1,4 +1,4 @@
-del \Q dist\*
+del /Q dist\*
 python setup.py sdist bdist_wheel
 python -m twine upload dist/*
 
