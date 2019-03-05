@@ -6,3 +6,6 @@ dist/
 sparki_learning.egg-info/
 build/
 .unison/
+docs/index.html
+docs/index.zip
+docs/update_reference_html-thonny.bat
