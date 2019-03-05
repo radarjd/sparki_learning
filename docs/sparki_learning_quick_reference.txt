@@ -2,9 +2,7 @@
 Sparki Learning Command Quick Reference
 ======================================================
 
-------------------------------------------------------
 for version 1.5.1 of the python library
-------------------------------------------------------
 
 (this library makes use of Python 3; Python 2.7 should work, but testing is limited)
 
@@ -474,7 +472,7 @@ Sensor Commands
 
 compass()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns Sparki's current compass heading.
+	Returns Sparki's current compass heading. *Inaccurate*
 
 
 
@@ -486,7 +484,7 @@ getAccel()
 
 getBattery()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns the current voltage of Sparki's batteries. ArcBotics reports that the underlying system call is unreliable, and as such any value returned by this function is suspect (a value < 2 should always be disregarded). If it is working, anything below around 4 is low. Should be just below 6 with new batteries.
+	**depricated due to inaccuracies in 1.5.1 -- always returns -1**. Returns the current voltage of Sparki's batteries. ArcBotics reports that the underlying system call is unreliable, and as such any value returned by this function is suspect (a value < 2 should always be disregarded). If it is working, anything below around 4 is low. Should be just below 6 with new batteries.
 
 
 
