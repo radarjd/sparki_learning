@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: February 6, 2019
+# Last Modified: March 5, 2019
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 # working with Python 3.7
 
@@ -42,7 +42,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.5.1.2"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.5.1.3"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -226,8 +226,6 @@ serial_is_connected = False  # set to true once connection is done
 
 xpos = 0  # for the moveBy(), moveTo(), getPosition() and setPosition() commands (the "grid commands"), these
 ypos = 0  # variables keep track of the current x,y position of the robot; each integer coordinate is 1cm, and
-
-
 # the robot starts at 0,0
 # note that these _only_ update with the grid commands (e.g. motors(1,1,1) will not change the xpos & ypos)
 # making these of limited value
@@ -611,12 +609,12 @@ def sendSerial(command, args=None):
     global serial_port
 
     if not serial_is_connected:
-        printDebug("Sparki is not connected - use init()", DEBUG_ALWAYS)
-        raise RuntimeError
+        printDebug("In sendSerial, Sparki is not connected - use init()", DEBUG_ALWAYS)
+        raise RuntimeError("Attempt to send message to Sparki without initialization")
 
     if command is None:
-        printDebug("No command given", DEBUG_ALWAYS)
-        raise RuntimeError
+        printDebug("In sendSerial, no command given", DEBUG_ALWAYS)
+        raise RuntimeError("Attempt to send message to Sparki without command")
 
     command_queue.append((command, args))  # keep track of every command sent
 
@@ -654,9 +652,9 @@ def sendSerial(command, args=None):
         message = (str(value) + TERMINATOR).encode()
 
         if len(message) > MAX_TRANSMISSION:
-            printDebug("Messages must be " + str(MAX_TRANSMISSION) + " characters or fewer", DEBUG_ERROR)
+            printDebug("In sendSerial, messages must be " + str(MAX_TRANSMISSION) + " characters or fewer", DEBUG_ERROR)
             stop()  # done for safety -- in case robot is in motion
-            raise RuntimeError
+            raise RuntimeError("Messages sent to Sparki must be {} or fewer characters".format(str(MAX_TRANSMISSION)))
 
         printDebug("Sending bytes " + str(message) + " (" + str(value) + ")", DEBUG_DEBUG)
 
@@ -713,7 +711,7 @@ def waitForSync():
 
     if not serial_is_connected:
         printDebug("Sparki is not connected - use init()", DEBUG_CRITICAL)
-        raise RuntimeError
+        raise RuntimeError("Attempt to listen for message from Sparki without initialization")
 
     serial_conn.flushInput()  # get rid of any waiting bytes
 
@@ -736,7 +734,7 @@ def waitForSync():
                     DEBUG_INFO)
             else:
                 printDebug("In waitForSync, unable to sync with Sparki", DEBUG_ERROR)
-            raise serial.SerialTimeoutException
+            raise serial.SerialTimeoutException("Unable to sync with Sparki -- may be temporary error due to power saving")
 
         try:
             inByte = serial_conn.read()
@@ -1718,13 +1716,16 @@ def LCDclear(update=True):
         LCDupdate()
 
 
-def LCDdrawPixel(x, y, update=True):
-    """ Draws a pixel on the LCD
+def LCDdrawPixel(x, y, update=True, outofbounds = False):
+    """ Draws a pixel on the LCD (which is 128x64; 0,0 is upper left; 127,63 is lower right)
 
         arguments:
-        x - int x coordinate for the pixel, must be <= 127
-        y - int y coordinate for the pixel, must be <= 63
+        x - int x coordinate for the pixel, must be >= 0 and <= 127
+        y - int y coordinate for the pixel, must be >=0 and <= 63
         update - True (default) if you want Sparki to update the display
+        outofbounds - False (default) if you want to constrain x,y to the dimensions of
+                      the LCD; if True, the function will silently ignore pixels out
+                      of bounds (i.e. x < 0 or x > 127; y < 0 or y > 63)
 
         returns:
         nothing
@@ -1732,8 +1733,12 @@ def LCDdrawPixel(x, y, update=True):
     # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
     printDebug("In LCDdrawPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
-    y = int(constrain(y, 0, 63))
+    if outofbounds:
+        if x < 0 or x > 127 or y < 0 or y > 63:
+            return
+    else:
+        x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
+        y = int(constrain(y, 0, 63))
 
     args = [x, y]
 
@@ -1747,10 +1752,10 @@ def LCDdrawLine(x1, y1, x2, y2, update=True):
     """ Draws a line on the LCD
 
         arguments:
-        x1 - int first x coordinate for the pixel, must be <= 127
-        y1 - int first y coordinate for the pixel, must be <= 63
-        x2 - int second x coordinate for the pixel, must be <= 127
-        y2 - int second y coordinate for the pixel, must be <= 63
+        x1 - int first x coordinate for the line, must be <= 127
+        y1 - int first y coordinate for the line, must be <= 63
+        x2 - int second x coordinate for the line, must be <= 127
+        y2 - int second y coordinate for the line, must be <= 63
         update - True (default) if you want Sparki to update the display
 
         returns:
@@ -2262,6 +2267,7 @@ def receiveIR():
         
         returns:
         int - reading (-1 indicates no data is available)
+        note that the TERMINATOR and SYNC characters would never be received if sent
     """
     printDebug("In receiveIR", DEBUG_INFO)
 
