@@ -22,6 +22,6 @@ The implementation of the Bresenham line algorithm was adapted from https://gith
 
 Both libraries were written with the intention of being helpful to students and educators, and are fairly well commented. I have tested them some, but they may not work on all platforms for all people. There may be bugs. There may be problems that cause the destruction of your Sparki (though I don't think there are). You assume all risk in your use of this software.
 
-Finally, I have included an increasingly long "Quick Reference" sheet that documents the libraries. It's also available online at <https://pythonhosted.org/sparki-learning/>
+Finally, I have included an increasingly long "Quick Reference" sheet that documents the libraries. It's also available online at <https://sparki-learning.readthedocs.io/en/latest/>
 
 Sparki is an excellent little robot, and I hope this proves useful to you in exploring the world. Good luck!
