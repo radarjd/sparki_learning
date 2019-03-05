@@ -12,9 +12,16 @@
 # working with Python 3.7
 
 from setuptools import setup, find_packages
+
+# read the contents of your README file
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name = "sparki_learning",
-    version = "1.5.1.1",
+    version = "1.5.1.2",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets
@@ -30,6 +37,8 @@ setup(
     author = "Jeremy Eglen",
     author_email = "jeglen@butler.edu",
     description = "library to implement the Myro API with the Sparki robot",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     license = "Apache License Version 2.0",
     keywords = "sparki learning myro robot",
     url = "https://github.com/radarjd/sparki_learning",   # project home page
