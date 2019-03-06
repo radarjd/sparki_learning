@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - January 30, 2019 */
+   last modified - March 6, 2019 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.4r1";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.4r2";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -995,11 +995,10 @@ void turnBy(float deg) {
   printDebug("In turnBy, deg is ", DEBUG_INFO);
   printDebug(deg, DEBUG_INFO, 1);
 #endif // NO_DEBUGS
-  const float SECS_PER_DEGREE = .04;  // estimated from observation - may vary based on battery strength and other factors
+//  const float SECS_PER_DEGREE = .04;  // estimated from observation - may vary based on battery strength and other factors
   
   if (deg < 0) {
-    deg = -deg;
-    sparki.moveLeft(deg);
+    sparki.moveLeft(-deg);
   } else if (deg > 0) {
     sparki.moveRight(deg);
   } else {
@@ -1008,7 +1007,7 @@ void turnBy(float deg) {
 #endif // NO_DEBUGS
   }
 
-  delay(deg * SECS_PER_DEGREE);
+//  delay(deg * SECS_PER_DEGREE); // delay happens in moveLeft / moveRight
 } // end turnBy(int)
 
 
