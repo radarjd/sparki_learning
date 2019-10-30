@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - March 6, 2019 */
+   last modified - October 30, 2019 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.4r2";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.4r3";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -1017,7 +1017,6 @@ void setup() {
   sparki.clearLCD();
   sparki.print("Version ");
   sparki.println((char*)SPARKI_MYRO_VERSION);
-//  sparki.println("Prepare for motion");
   sparki.updateLCD();
 
   sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
@@ -1048,7 +1047,7 @@ void loop() {
 #endif // STATUS_ACK
 
   if (serial.available()) {
-    char inByte = getSerialChar();
+    static char inByte = getSerialChar();
 
 #ifdef STATUS_ACK
     setStatusLED(100);                  // turn on the LED while we're processing a command
@@ -1211,8 +1210,17 @@ void loop() {
       sparki.moveForward( getSerialFloat() );
       break;
     case COMMAND_PING:                // no args; returns int
-      sendSerial( sparki.ping() );
+      {
+      int distance = sparki.ping();
+
+#ifndef NO_DEBUGS
+      printDebug("In loop, ping distance is ", DEBUG_DEBUG);
+      printDebug(distance, DEBUG_DEBUG, 1);
+#endif
+      
+      sendSerial( distance );
       break;
+      }
     case COMMAND_RECEIVE_IR:          // no args; returns int
       sendSerial( sparki.readIR() );
       break;
