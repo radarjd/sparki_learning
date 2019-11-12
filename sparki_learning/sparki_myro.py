@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: March 5, 2019
+# Last Modified: November 12, 2019
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 # working with Python 3.7
 
@@ -28,6 +28,8 @@ import sys
 import serial  # developed with pyserial 2.7, but also tested extensively with 3.1
 import time
 
+from sparki_learning.util import *
+
 # try to import tkinter -- but make a note if we can't
 try:
     import tkinter as tk  # for the senses, joystick, ask, and askQuestion functions
@@ -42,7 +44,7 @@ except:
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.5.1.4"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.5.2.0"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -268,38 +270,6 @@ def askQuestion_text(message, options, caseSensitive=True):
     return result
 
 
-def bresenham(x0, y0, x1, y1):
-    # implementation from https://github.com/encukou/bresenham/blob/master/bresenham.py; MIT License
-    """Yield integer coordinates on the line from (x0, y0) to (x1, y1).
-    Input coordinates should be integers.
-    The result will contain both the start and the end point.
-    """
-    dx = x1 - x0
-    dy = y1 - y0
-
-    xsign = 1 if dx > 0 else -1
-    ysign = 1 if dy > 0 else -1
-
-    dx = abs(dx)
-    dy = abs(dy)
-
-    if dx > dy:
-        xx, xy, yx, yy = xsign, 0, 0, ysign
-    else:
-        dx, dy = dy, dx
-        xx, xy, yx, yy = 0, ysign, xsign, 0
-
-    D = 2*dy - dx
-    y = 0
-
-    for x in range(dx + 1):
-        yield x0 + x*xx + y*yx, y0 + x*xy + y*yy
-        if D >= 0:
-            y += 1
-            D -= 2*dx
-        D += 2*dy
-
-
 def bluetoothRead():
     """ Returns the bluetooth address of the robot (if it has been previously stored)
     
@@ -319,25 +289,6 @@ def bluetoothRead():
         return None
 
 
-def bluetoothValidate(address):
-    """ Returns True if the string argument appears to be a Bluetooth address (strictly speaking, a MAC address)
-    
-        arguments:
-        address - string MAC address
-        
-        returns:
-        boolean - True if it appears to be a bluetooth address, otherwise false
-    """
-    import re
-
-    validMAC = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
-
-    if validMAC.match(address):
-        return True
-    else:
-        return False
-
-
 def bluetoothWrite(bt):
     """ Writes the bluetooth address of the robot and stores it in EEPROM
     
@@ -353,31 +304,6 @@ def bluetoothWrite(bt):
         EEPROMwrite(EEPROM_BLUETOOTH_ADDRESS, bt)
     else:
         raise TypeError(str(bt) + " does not appear to be a valid bluetooth address")
-
-
-def constrain(n, min_n, max_n):
-    """ Ensures n is between min_n and max_n
-    
-        arguments:
-        n - the number
-        min_n - the minimum it could be
-        max_n - the maximum it could be
-        
-        returns:
-        n, unless it's less than min_n, then min_n; or it's more than max_n, then max_n
-    """
-    if min_n > max_n:
-        printDebug("In constrain, min was greater than max (corrected)", DEBUG_ERROR)
-        min_n, max_n = max_n, min_n
-
-    if n < min_n:
-        printDebug("In constrain, n ({}) was less than min ({}) (n set to min)".format(n, min_n), DEBUG_WARN)
-        return min_n
-    elif n > max_n:
-        printDebug("In constrain, n ({}) was greater than max ({}) (n set to max)".format(n,max_n), DEBUG_WARN)
-        return max_n
-    else:
-        return n
 
 
 def disconnectSerial():
@@ -400,32 +326,6 @@ def disconnectSerial():
         serial_conn = None
         serial_port = None
         init_time = -1
-
-
-def flrange(start, stop, step):
-    """ Generator like range() (or xrange() prior to python 3) which allows float steps
-    
-        arguments:
-        start - the starting number for the range
-        stop - the number which the range cannot go over; the last value generated will be stop - step
-        step - the stepping value for the range; if step is negative, the values yielded will count down from
-               start to stop, so start must be > than stop
-        
-        yield:
-        float - the next value in the range
-    """
-    if step > 0:
-        while start < stop:
-            yield start  # yield is a special keyword which is something like return, but behaves very differently
-            # more info can be found at https://docs.python.org/3.4/reference/expressions.html#yieldexpr
-            start += step
-    elif step < 0:
-        while start > stop:
-            yield start
-            start += step
-    else:
-        printDebug("In flrange, invalid value for step", DEBUG_ERROR)
-        raise StopIteration
 
 
 def getSerialBytes():
@@ -749,21 +649,6 @@ def waitForSync():
         wait(loop_wait)
 
 
-def wrapAngle(angle):
-    """ Ensures angle is between -360 and 360
-    
-        arguments:
-        angle - float angle that you want to be between -360 and 360
-        
-        returns:
-        float - angle between -360 and 360
-    """
-    if angle >= 0:
-        return angle % 360
-    else:
-        return angle % -360
-
-
 ########### END OF INTERNAL FUNCTIONS ###########
 
 
@@ -956,19 +841,6 @@ def compass():
     sendSerial(COMMAND_CODES["COMPASS"])
     result = getSerialFloat()
     return result
-
-
-def currentTime():
-    """ Gets the current time in seconds from the epoch (i.e. time.time())
-    
-        arguments:
-        none
-        
-        returns:
-        float - time in seconds since January 1, 1970
-    """
-
-    return time.time()
 
 
 def drawFunction(function, xvals, scale=1):
@@ -1537,21 +1409,6 @@ def gripperStop():
     printDebug("In gripperStop", DEBUG_INFO)
 
     sendSerial(COMMAND_CODES["GRIPPER_STOP"])
-
-
-def humanTime():
-    """ Return a human readable current time (i.e. time.ctime())
-        Output looks like 'Fri Apr 5 19:50:05 2016'
-    
-        arguments:
-        none
-        
-        returns:
-        string - time of call
-    """
-    printDebug("In humanTime", DEBUG_INFO)
-
-    return time.ctime()
 
 
 def init(com_port, print_versions=True):
@@ -2745,29 +2602,6 @@ def syncWait(server_ip=None, server_port=32216):
     wait_time = get_client_start(server_ip, server_port)
 
     waitNoop(wait_time)
-
-
-def timer(duration):
-    """ Generator which yields the time since the instantiation, and ends after start_time + duration (seconds)
-
-        This is provided for compatibility with the myro library
-    
-        arguments:
-        duration - the float number of seconds until the generator should end
-        
-        yield:
-        float - number of seconds since the first call
-    """
-    printDebug("In timer, duration is " + str(duration), DEBUG_INFO)
-
-    if duration > 0:
-        start_time = currentTime()
-
-        while currentTime() < start_time + duration:
-            yield currentTime() - start_time
-    else:
-        printDebug("In timer, invalid value for duration", DEBUG_ERROR)
-        raise StopIteration
 
 
 def translate(speed):
