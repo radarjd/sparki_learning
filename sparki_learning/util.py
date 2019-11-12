@@ -170,7 +170,7 @@ def printDebug(message, level=2, stream=sys.stderr):
     global GLOBAL_DEBUG
     
     if level <= GLOBAL_DEBUG:
-        print("[{}]/{} --- {}".format(time.ctime(), level, message), stream)
+        print("[{}]/{} --- {}".format(time.ctime(), level, message), file=stream)
 
 
 def setGlobalDebug(new_level):
