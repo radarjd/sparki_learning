@@ -2,7 +2,7 @@
 Sparki Learning Command Quick Reference
 ======================================================
 
-for version 1.5.1 of the python library
+for version 1.5.2 of the python library
 
 (this library makes use of Python 3; Python 2.7 should work, but testing is limited)
 
@@ -26,19 +26,19 @@ General Commands
 
 constrain(n, min_n, max_n)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns a value that is greater than or equal to min_n and less than or equal to max_n (i.e. it does bounds checking). This function is used when you have a value (n) that you want to be sure is no less than min_n and no more than max_n. If n is between min_n and max_n, it returns n. If n is less than min_n, it returns min_n. If n is greater than max_n, it returns max_n. Used heavily within the library -- you may or may not find it useful.
+	Returns a value that is greater than or equal to min_n and less than or equal to max_n (i.e. it does bounds checking). This function is used when you have a value (n) that you want to be sure is no less than min_n and no more than max_n. If n is between min_n and max_n, it returns n. If n is less than min_n, it returns min_n. If n is greater than max_n, it returns max_n. Used heavily within the library -- you may or may not find it useful. (Moved to sparki_learning.util)
 
 	
 
 currentTime()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns the number of seconds which have occurred since midnight on January 1, 1970. Other functions exist to format this into a more manageable number (like humanTime() below), but this can be used (among other uses) to determine how long a part of a program has taken. For example, to time how long a portion of code takes to execute (in clock time), before the function you could write startingTime = currentTime() and then after the function you could find out the running time with runTime = currentTime() - startingTime
+	Returns the number of seconds which have occurred since midnight on January 1, 1970. Other functions exist to format this into a more manageable number (like humanTime() below), but this can be used (among other uses) to determine how long a part of a program has taken. For example, to time how long a portion of code takes to execute (in clock time), before the function you could write startingTime = currentTime() and then after the function you could find out the running time with runTime = currentTime() - startingTime. (Moved to sparki_learning.util)
 
 
 
 flrange(start, stop, step)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2 (see range_ below). None of the arguments have default values. start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments.
+	Returns an iterator, very similar to range() in Python 3 or xrange() in Python 2 (see range_ below). None of the arguments have default values. start should be the first value of x you want to calculate, stop should be the last - step value you want to calculate, and step should be the step. If step is negative, this will count down from start to stop (so stop must be less than start). The start, stop, and step values are very similar to the arguments to the range command, but range() allows only integer arguments. (Moved to sparki_learning.util)
 
 
 	
@@ -68,7 +68,7 @@ getVersion()
 
 humanTime()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Returns the time in a human readable format like "Fri Apr 5 19:50:05 2016"
+	Returns the time in a human readable format like "Fri Apr 5 19:50:05 2016". (Moved to sparki_learning.util)
 
 
 
@@ -111,7 +111,7 @@ setSparkiDebug(level)
 	
 timer(duration)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Generator which returns (yields) the amount of time which has passed since it was first called. Ends when the time of the original call plus the duration is greater than the current time. In practice, this function is usually used to create a for loop which executes for duration. (e.g. for x in timer(120): [insert code you want to run for 120 seconds])
+	Generator which returns (yields) the amount of time which has passed since it was first called. Ends when the time of the original call plus the duration is greater than the current time. In practice, this function is usually used to create a for loop which executes for duration. (e.g. for x in timer(120): [insert code you want to run for 120 seconds]). (Moved to sparki_learning.util)
 
 
 	
@@ -596,7 +596,7 @@ Related Commands
 	
 Synchronization Commands
 -----------------------------------
-The synchronization commands are provided to allow several computers to do something at the same time. In the case of sparki_learning, they are usually used to allow multiple computers to command their respective robots so that the robots can do things together (at the same time). One computer acts as the server, and all other computers act as the clients. The server is told how much time to wait, and then the server communicates that to any clients that connect to the server. When the time expires, the server and clients all return from the synchronization function. 
+The synchronization commands are provided to allow several computers to do something at the same time. In the case of sparki_learning, they are usually used to allow multiple computers to command their respective robots so that the robots can do things together (at the same time). One computer acts as the server, and all other computers act as the clients. The server is told how much time to wait, and then the server communicates that to any clients that connect to the server. When the time expires, the server and clients all return from the synchronization function. These are found in sparki_learning.sync_lib
 
 
 

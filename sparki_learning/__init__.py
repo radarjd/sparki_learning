@@ -15,11 +15,15 @@
     <http://calicoproject.org/Learning_Computing_With_Robots_Using_Calico_Python>.
     The Python library here does not implement all of that library -- in
     particular, anything having to do with the camera cannot be implemented
-    on Sparki because Sparki does not have that hardware.    
+    on Sparki because Sparki does not have that hardware.
+    
+    Command documentation on this library may be found at
+    <https://sparki-learning.readthedocs.io/en/latest/>
 """
 
 from sparki_learning.sparki_myro import *
-from sparki_learning.sync_lib import get_client_start, start_sync_server, start_sync_client
 from sparki_learning.speak import speak
+from sparki_learning.sync_lib import get_client_start, start_sync_server, start_sync_client
+from sparki_learning.util import *
 
 import sparki_learning.sparki_myro
