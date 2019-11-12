@@ -21,7 +21,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name = "sparki_learning",
-    version = "1.5.2.0",
+    version = "1.5.2.1",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets
