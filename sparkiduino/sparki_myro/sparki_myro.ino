@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - October 30, 2019 */
+   last modified - November 12, 2019 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -36,7 +36,7 @@
 #define USE_EEPROM // use EEPROM to store certain values
 #define STATUS_ACK // if this is defined, the status light will be lit when the Sparki is processing a command
 
-#include <Sparki.h>
+#include <Sparki.h> // required for the Sparki -- uses significant memory
 
 #ifdef USE_EEPROM
 #include "SparkiEEPROM.h"
@@ -44,7 +44,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.4r3";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.4r4";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -216,6 +216,7 @@ void getAccel();
 #endif // NO_ACCEL
 
 float getBattery();
+int getDistance();
 void getLight();
 void getLine();
 
@@ -665,6 +666,39 @@ void getAccel() {
 #endif // NO_ACCEL
 
 
+// getDistance function from http://therandomlab.blogspot.com/2015/05/repair-and-solve-faulty-hc-sr04.html
+// int getDistance()
+// sends the distance from the ultrasonic sensor -- replacement for the ping() function from Sparki.h
+int getDistance() // returns the distance (cm)
+{
+  long duration, distance;
+
+  digitalWrite(ULTRASONIC_TRIG, HIGH); // We send a 10us pulse
+  delayMicroseconds(10);
+  digitalWrite(ULTRASONIC_TRIG, LOW);
+
+  duration = pulseIn(ULTRASONIC_ECHO, HIGH, 20000); // We wait for the echo to come back, with a timeout of 20ms, which corresponds approximately to 3m
+
+  // pulseIn will only return 0 if it timed out. (or if ULTRASONIC_ECHO was already to 1, but it should not happen)
+  if (duration == 0) // If we timed out
+  {
+    pinMode(ULTRASONIC_ECHO, OUTPUT); // Then we set echo pin to output mode
+    digitalWrite(ULTRASONIC_ECHO, LOW); // We send a LOW pulse to the echo pin
+    delayMicroseconds(200);
+    pinMode(ULTRASONIC_ECHO, INPUT); // And finaly we come back to input mode
+  }
+
+  distance = (duration / 2) / 29.1; // We calculate the distance (sound speed in air is aprox. 291m/s), /2 because of the pulse going and coming
+
+  if (distance == 0)
+  {
+    distance = -1; // to remain consistant with the previous ping() function
+  }
+
+  return distance; //We return the result. Here you can find a 0 if we timed out
+} // end getDistance()
+
+
 // void getLight()
 // sends an array with the values of the left, center and right light sensors
 void getLight() { 
@@ -1021,6 +1055,20 @@ void setup() {
 
   sparki.servo(SERVO_CENTER); // rotate the servo to its 0 degree postion (forward)  
 
+  // code below from http://therandomlab.blogspot.com/2015/05/repair-and-solve-faulty-hc-sr04.html
+  // it is intended to compensate for unreliable ultrasonic sensors
+  digitalWrite(ULTRASONIC_TRIG, HIGH); // We send a 10us pulse
+  delayMicroseconds(10);
+  digitalWrite(ULTRASONIC_TRIG, LOW);
+  long duration = pulseIn(ULTRASONIC_ECHO, HIGH, 20000); // We wait for the echo to come back, with a timeout of 20ms, which corresponds approximately to 3m
+  // pulseIn will only return 0 if it timed out. (or if ULTRASONIC_ECHO was already to 1, but it should not happen)
+  if (duration == 0) // If we timed out
+  {
+    pinMode(ULTRASONIC_ECHO, OUTPUT); // Then we set echo pin to output mode
+    digitalWrite(ULTRASONIC_ECHO, LOW); // We send a LOW pulse to the echo pin
+    delayMicroseconds(200);
+    pinMode(ULTRASONIC_ECHO, INPUT); // And finaly we come back to input mode
+  } // end from repair-and-solve-faulty-hc-sr04.html
 
 //  sparki.println("Connecting to Bluetooth");
 //  sparki.updateLCD();
@@ -1047,7 +1095,7 @@ void loop() {
 #endif // STATUS_ACK
 
   if (serial.available()) {
-    static char inByte = getSerialChar();
+    char inByte = getSerialChar();
 
 #ifdef STATUS_ACK
     setStatusLED(100);                  // turn on the LED while we're processing a command
@@ -1212,6 +1260,9 @@ void loop() {
     case COMMAND_PING:                // no args; returns int
       {
       int distance = sparki.ping();
+//      sparki.print("Ping is ");
+//      sparki.println(distance);
+//      sparki.updateLCD();
 
 #ifndef NO_DEBUGS
       printDebug("In loop, ping distance is ", DEBUG_DEBUG);
