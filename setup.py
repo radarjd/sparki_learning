@@ -7,9 +7,9 @@
 #
 # written by Jeremy Eglen
 # Created: February 24, 2016
-# Last Modified: November 12, 2019
+# Last Modified: November 13, 2019
 # originally written targeting Python 3.4 and 3.5, some testing on 3.6 and has been lightly tested with Python 2.7
-# working with Python 3.7
+# working with Python 3.7 & 3.8
 
 from setuptools import setup, find_packages
 
@@ -21,12 +21,19 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name = "sparki_learning",
-    version = "1.5.2.1",
+    version = "1.5.2.dev2",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets
     # installed or upgraded on the target machine
     install_requires = ['pyserial>=2.7'],
+
+    python_requires='>=2.7, <4',
+
+    project_urls={
+        'Documentation': 'https://sparki-learning.readthedocs.io/en/latest/',
+        'Source': 'https://github.com/radarjd/sparki_learning/',
+    },
 
     package_data = {
     },

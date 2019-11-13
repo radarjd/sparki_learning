@@ -7,9 +7,12 @@
 #
 # written by Jeremy Eglen
 # Created: November 12, 2019 (some functions are older -- this is the original date of this file)
-# Last Modified: November 12, 2019
+# Last Modified: November 13, 2019
+from __future__ import division, print_function
+
 import sys
 import time
+
 
 # ***** DEBUG CONSTANTS ***** #
 # these are the debug levels used
@@ -156,12 +159,12 @@ def humanTime():
     return time.ctime()
 
 
-def printDebug(message, level=2, stream=sys.stderr):
+def printDebug(message, level=DEBUG_ERROR, stream=sys.stderr):
     """ Prints message to stream if level is less than or equal to GLOBAL_DEBUG
     
         arguments:
         message - the message to print
-        level - the level of the error (lower numbers are more important - default 2)
+        level - the level of the error (lower numbers are more severe - default DEBUG_ERROR [2])
         stream - the stream to which we should print (default stderr)
         
         returns:
