@@ -654,67 +654,6 @@ def waitForSync():
 
 ###################### SPARKI MYRO FUNCTIONS ######################
 # These functions are intended to be called by users of this library        
-def ask(message, mytitle="Question"):
-    """ Gets input from the user -- prints message
-
-        arguments:
-        message - string to print to prompt the user
-        mytitle - title for the window (defaults to Question)
-
-        returns:
-        string response from the user
-    """
-    global root
-    printDebug("In ask", DEBUG_INFO)
-
-    try:
-        question = tk.StringVar()
-        question.set(message)
-        entryText = tk.StringVar()  # we could use this to type default text
-
-        # start a new window
-        questionWindow = tk.Toplevel(root)
-        questionWindow.title(mytitle)
-
-        # create sections to put in the data, and use the pack layout manager
-        questionFrame = tk.Frame(questionWindow)
-        entryFrame = tk.Frame(questionWindow)
-        buttonFrame = tk.Frame(questionWindow)
-
-        questionFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.TOP)
-        entryFrame.pack(expand=tk.TRUE, fill=tk.BOTH)
-        buttonFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.BOTTOM)
-
-        # put question label in questionFrame
-        questionLabel = tk.Label(questionFrame, textvariable=question)
-        questionLabel.pack()
-
-        # in order to accept the return button in textEntry, we have to create a function
-        # to consume the event
-        def doneAction(event):
-            questionWindow.destroy()
-
-        # put entry blank in entryFrame
-        textEntry = tk.Entry(entryFrame, textvariable=entryText)
-        textEntry.bind('<Return>', doneAction)  # make it so if the use presses enter, we accept the data
-        textEntry.pack()
-
-        # put OK button in button frame
-        okButton = tk.Button(buttonFrame, text="OK", command=lambda: questionWindow.destroy())
-        okButton.pack()
-
-        questionWindow.lift()  # move the window to the top to make it more visible
-        textEntry.focus_set()  # grab the focus
-        questionWindow.wait_window(questionWindow)  # wait for this window to be destroyed (closed) before moving on
-
-        result = entryText.get()
-    except Exception as err:
-        printDebug(str(err), DEBUG_DEBUG)
-        result = input(message)
-
-    return result
-
-
 def askQuestion(message, options, mytitle="Question"):
     """ Gets input from the user -- prints message and displays buttons with options
 
@@ -2096,25 +2035,6 @@ def noop():
         printDebug("no op is not available on sparki; simulating", DEBUG_WARN)
         setStatusLED("on")
         setStatusLED("off")
-
-
-def pickAFile():
-    """ Gets the path to a file picked by the user
-
-        arguments:
-        none
-
-        returns:
-        string path to the file
-    """
-    printDebug("In pickAFile", DEBUG_INFO)
-
-    try:
-        result = tkinter.filedialog.askopenfilename()
-    except:
-        result = input("What is the path to the file? ")
-
-    return result
 
 
 def ping():

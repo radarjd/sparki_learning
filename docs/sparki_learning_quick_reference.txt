@@ -2,7 +2,7 @@
 Sparki Learning Command Quick Reference
 ======================================================
 
-for version 1.5.2 of the python library
+for version 1.6.0 of the python library
 
 (this library makes use of Python 3; Python 2.7 should work, but testing is limited)
 
@@ -316,13 +316,13 @@ Several of the commands (ask(), askQuestion(), joystick(), pickAFile() and yesor
 
 ask(message, title = "Question")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to "Question". (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)
+	Creates window with message. User is allowed to input a response. Returns the user's response. See the section on Common Variables for an explanation of message. title is optional and defaults to "Question". (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.) (Moved to sparki_learning.gui in v1.6.0.)
 
 
 
 askQuestion(message, options, title = "Question")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to "Question". (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.)
+	Creates window with message, with buttons labeled with options. options must be a list of strings. Returns the user's response. See the section on Common Variables for an explanation of message. Loops until user gives a value in options. title is optional and defaults to "Question". (Note that if this appears to do nothing, the window with the output may be hidden behind other windows.) (Moved to sparki_learning.gui in v1.6.0.)
 
 
 
@@ -344,15 +344,21 @@ joystick()
 
 
 
+messageWindow(message, title = "Message")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Strictly speaking, this is not an input command, but it does display a message to the user and "pause" your program until the user clicks okay.
+
+
+
 pickAFile()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with a file dialog so that the user can pick a file. Might be useful for reading from or saving to a file.
+	Creates window with a file dialog so that the user can pick a file. Might be useful for reading from or saving to a file. (Moved to sparki_learning.gui in v1.6.0.)
 
 
 
 yesorno(message)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with message, with buttons labeled with "yes" and "no". Returns the user's response (which will be either "yes" or "no"). See the section on Common Variables for an explanation of message.
+	Creates window with message, with buttons labeled with "yes" and "no". Returns the user's response (which will be either "yes" or "no"). See the section on Common Variables for an explanation of message. (Moved to sparki_learning.gui in v1.6.0.)
 
 
 
@@ -442,7 +448,7 @@ print(message)
 	
 printDebug(message, priority = DEBUG_WARN, output = sys.stderr)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Prints message to output if the current debug level (set by `setDebug(level)`_ and defaulting to DEBUG_WARN) is greater than or equal to priority. output defaults to standard error. Included for convenience of writing your own functions. message must be a string (i.e. message does not accept multiple arguments like speak or print).
+	Prints message to output if the current debug level (set by `setDebug(level)`_ and defaulting to DEBUG_WARN) is greater than or equal to priority. output defaults to standard error. Included for convenience of writing your own functions. message must be a string (i.e. message does not accept multiple arguments like speak or print). (Moved to sparki_learning.util in 1.5.2.dev2)
 	
 
 	

@@ -7,7 +7,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 12, 2019 (some functions are older -- this is the original date of this file)
-# Last Modified: November 13, 2019
+# Last Modified: November 14, 2019
 from __future__ import division, print_function
 
 import sys
@@ -159,13 +159,13 @@ def humanTime():
     return time.ctime()
 
 
-def printDebug(message, level=DEBUG_ERROR, stream=sys.stderr):
+def printDebug(message, level=DEBUG_ERROR, myfile=sys.stderr):
     """ Prints message to stream if level is less than or equal to GLOBAL_DEBUG
     
         arguments:
         message - the message to print
         level - the level of the error (lower numbers are more severe - default DEBUG_ERROR [2])
-        stream - the stream to which we should print (default stderr)
+        myfile - the stream to which we should print (default stderr)
         
         returns:
         nothing
@@ -173,7 +173,7 @@ def printDebug(message, level=DEBUG_ERROR, stream=sys.stderr):
     global GLOBAL_DEBUG
     
     if level <= GLOBAL_DEBUG:
-        print("[{}]/{} --- {}".format(time.ctime(), level, message), file=stream)
+        print("[{}]/{} --- {}".format(time.ctime(), level, message), file=myfile)
 
 
 def setGlobalDebug(new_level):
@@ -228,3 +228,15 @@ def wrapAngle(angle):
         return angle % 360
     else:
         return angle % -360
+
+
+def main():
+    print("This is intended to be used as a library -- your code should call this file by importing the library, e.g.")
+    print("from sparki_learning.util import *")
+    print("or")
+    print("import sparki_learning.util")
+    print("Exiting...")
+
+
+if __name__ == "__main__":
+    main()
