@@ -130,6 +130,8 @@ def flrange(start, stop, step):
         yield:
         float - the next value in the range
     """
+    printDebug("In flrange, start={}; stop={}; step={}".format(start, stop, step), sparki_learning.util.DEBUG_INFO)
+
     if step > 0:
         while start < stop:
             yield start  # yield is a special keyword which is something like return, but behaves very differently

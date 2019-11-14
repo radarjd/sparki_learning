@@ -32,8 +32,7 @@ from sparki_learning.util import *
 
 # try to import tkinter -- but make a note if we can't
 try:
-    import tkinter as tk  # for the senses, joystick, ask, and askQuestion functions
-    import tkinter.filedialog  # only used in pickAFile()
+    import tkinter as tk  # for senses and joystick
 
     root = tk.Tk()
     root.withdraw()  # hide the main window -- we're not going to use it
@@ -239,37 +238,6 @@ ypos = 0  # variables keep track of the current x,y position of the robot; each 
 
 ########### INTERNAL FUNCTIONS ###########
 # these functions are intended to be used by the library itself
-def askQuestion_text(message, options, caseSensitive=True):
-    """ Gets a string from the user, which must be one of the options -- prints message
-
-        arguments:
-        message - string to print to prompt the user
-        options - list of options for the user to choose
-        caseSensitive - boolean, if True, response must match case
-
-        returns:
-        string response from the user (if caseSentitive is False, this will always be a lower case string)
-    """
-    if not caseSensitive:  # if we're not caseSensitive, make the options lower case
-        working_options = [s.lower() for s in options]
-    else:
-        working_options = options
-
-    result = input(message)
-
-    if not caseSensitive:
-        result = result.lower()
-
-    while result not in working_options:
-        print("Your answer must be one of the following: " + str(options))
-        result = input(message)
-
-        if not caseSensitive:
-            result = result.lower()
-
-    return result
-
-
 def bluetoothRead():
     """ Returns the bluetooth address of the robot (if it has been previously stored)
     
@@ -654,62 +622,6 @@ def waitForSync():
 
 ###################### SPARKI MYRO FUNCTIONS ######################
 # These functions are intended to be called by users of this library        
-def askQuestion(message, options, mytitle="Question"):
-    """ Gets input from the user -- prints message and displays buttons with options
-
-        arguments:
-        message - string to print to prompt the user
-        options - a list of strings which could be the response
-        mytitle - title for the window (defaults to Question)
-
-        returns:
-        string response from the user
-    """
-    global root
-    printDebug("In askQuestion", DEBUG_INFO)
-
-    try:
-        choice = tk.StringVar()  # tk has its own kind of string
-        choice.set(options[0])  # default to the top answer
-        question = tk.StringVar()
-        question.set(message)
-
-        # start a new window
-        questionWindow = tk.Toplevel(root)
-        questionWindow.title(mytitle)
-
-        # create sections to put in the data, and use the pack layout manager
-        questionFrame = tk.Frame(questionWindow)
-        answersFrame = tk.Frame(questionWindow)
-        buttonFrame = tk.Frame(questionWindow)
-
-        questionFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.TOP)
-        answersFrame.pack(expand=tk.TRUE, fill=tk.BOTH)
-        buttonFrame.pack(expand=tk.TRUE, fill=tk.BOTH, side=tk.BOTTOM)
-
-        # put question label in questionFrame
-        questionLabel = tk.Label(questionFrame, textvariable=question)
-        questionLabel.pack()
-
-        # put answers radio buttons in answersFrame
-        for option in options:
-            b = tk.Radiobutton(answersFrame, text=option, variable=choice, value=option)
-            b.pack(anchor=tk.W)
-
-        # put OK button in button frame
-        okButton = tk.Button(buttonFrame, text="OK", command=lambda: questionWindow.destroy())
-        okButton.pack()
-
-        questionWindow.lift()  # move the window to the top to make it more visible
-        questionWindow.wait_window(questionWindow)  # wait for this window to be destroyed (closed) before moving on
-
-        result = choice.get()
-    except:
-        result = askQuestion_text(message, options, False)
-
-    return result
-
-
 def backward(speed, time=-1):
     """ Moves backward at speed for time; time is optional
     
@@ -2698,28 +2610,6 @@ def waitNoop(wait_time):
                 time_remaining)  # in Python >= 3.5, it will wait at least wait_time seconds; prior to that it could be less
         else:
             time.sleep(sleepTime)
-
-
-def yesorno(message):
-    """ Gets the string 'yes' or 'no' from the user -- prints message
-
-        arguments:
-        message - string to print to prompt the user
-
-        returns:
-        string response from the user
-    """
-    printDebug("In yesorno", DEBUG_INFO)
-
-    if USE_GUI:
-        try:
-            result = askQuestion(message, ["yes", "no"], "Yes or No?")
-        except:
-            result = askQuestion_text(message, ["yes", "no", "y", "n"], False)
-
-        return result
-    else:
-        return askQuestion_text(message, ["yes", "no", "y", "n"], False)
 
 
 ###################### END OF SPARKI MYRO FUNCTIONS ######################

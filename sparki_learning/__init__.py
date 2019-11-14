@@ -21,6 +21,7 @@
     <https://sparki-learning.readthedocs.io/en/latest/>
 """
 
+from sparki_learning.gui import *
 from sparki_learning.sparki_myro import *
 from sparki_learning.speak import speak
 from sparki_learning.sync_lib import get_client_start, start_sync_server, start_sync_client
