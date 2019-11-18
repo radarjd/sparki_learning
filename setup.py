@@ -7,7 +7,7 @@
 #
 # written by Jeremy Eglen
 # Created: February 24, 2016
-# Last Modified: November 14, 2019
+# Last Modified: November 18, 2019
 # originally written targeting Python 3.4 and 3.5, some testing on 3.6 and has been lightly tested with Python 2.7
 # working with Python 3.7 & 3.8
 
@@ -21,7 +21,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name = "sparki_learning",
-    version = "1.6.0.dev1",
+    version = "1.6.0.dev4",
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets

@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: November 12, 2019
+# Last Modified: November 18, 2019
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
 # working with Python 3.7
 
@@ -30,20 +30,9 @@ import time
 
 from sparki_learning.util import *
 
-# try to import tkinter -- but make a note if we can't
-try:
-    import tkinter as tk  # for senses and joystick
-
-    root = tk.Tk()
-    root.withdraw()  # hide the main window -- we're not going to use it
-    USE_GUI = True
-except:
-    print("Unable to use tkinter; no GUI available", file=sys.stderr)
-    USE_GUI = False
-
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.5.2.0"  # this may differ from the version on Sparki itself and from the library as a whole
+SPARKI_MYRO_VERSION = "1.6.0.dev2"  # this may differ from the version on Sparki itself and from the library as a whole
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
@@ -564,6 +553,11 @@ def senses_text():
         print("X accel sensor is " + str(getAccelX()))
         print("Y accel sensor is " + str(getAccelY()))
         print("Z accel sensor is " + str(getAccelZ()))
+        
+    if isMoving():
+        print("I think the robot is moving")
+    else:
+        print("I do not think the robot is moving")
 
     print("Ping is " + str(ping()) + " cm")
     print("#########################################")
@@ -1376,52 +1370,101 @@ def joystick():
     """
     printDebug("In joystick", DEBUG_INFO)
 
-    # grid is 5 rows by 3 columns
     #          |   forward   |    
     #   left   |     stop    |  right      
     #          |   backward  |
     #   open   |             |  close
     #   left   |   center    |  right     (these are for the "head" servo)
-    if USE_GUI:
-        # start a new window
-        control = tk.Toplevel()
-        control.title("GUI Control for Sparki")
-
-        # we'll use the grid layout manager
-        # top row
-        # for Buttons, we need to give a callback function -- to give a command with an argument
-        #     as a callback, we create a lambda function
-        tk.Button(control, text="forward", command=lambda: forward(1)).grid(row=0, column=1)
-
-        # 2nd row
-        tk.Button(control, text="turn left", command=lambda: turnLeft(1)).grid(row=1, column=0)
-        tk.Button(control, text="stop", command=stop).grid(row=1, column=1)  # no argument needed for stop
-        tk.Button(control, text="turn right", command=lambda: turnRight(1)).grid(row=1, column=2)
-
-        # 3rd row
-        tk.Button(control, text="backward", command=lambda: backward(1)).grid(row=2, column=1)
-
-        # 4th row
-        tk.Button(control, text="open grip", command=lambda: gripperOpen(1)).grid(row=3, column=0)
-        tk.Button(control, text="close grip", command=lambda: gripperClose(1)).grid(row=3, column=2)
-
-        # 5th row
-        tk.Button(control, text="head left", command=lambda: servo(SERVO_LEFT)).grid(row=4, column=0)
-        tk.Button(control, text="head center", command=lambda: servo(SERVO_CENTER)).grid(row=4, column=1)
-        tk.Button(control, text="head right", command=lambda: servo(SERVO_RIGHT)).grid(row=4, column=2)
-
-        # weights for resizing
-        for i in range(3):
-            control.columnconfigure(i, weight=1)
-
-        for i in range(5):
-            control.rowconfigure(i, weight=1)
-
+    #     current action:
+    #     in motion?
+    #               Exit
+    try:
+        if sys.version_info[0] >= 3:
+            import PySimpleGUI as sg
+        else:
+            import PySimpleGUI27 as sg
+        
+        moving_message = "Sparki is moving"
+        not_moving_message = "Sparki is not moving"
+        
         print("Sparki will not respond to other commands until the joystick window is closed")
-        control.lift()  # move the window to the top to make it more visible
-        control.wait_window(control)  # wait for this window to be destroyed (closed) before moving on
-    else:
-        printDebug("No GUI for joystick control", DEBUG_CRITICAL)
+        
+        layout = [[sg.Button('Forward')],
+                  [sg.Button('Left'), sg.Button('Stop'), sg.Button('Right')],
+                  [sg.Button('Backward')],
+                  [sg.Button('Open'), sg.Button('Close')],
+                  [sg.Button('Head Left'), sg.Button('Head Center'), sg.Button('Head Right')],
+                  [sg.Text('Last Click:'), sg.Text('                         ', key='_ACTION_')],
+                  [sg.Text(not_moving_message, key='_MOTION_')],
+                  [sg.Button('Exit')],
+                  [sg.Text('You must close this window to give other commands to Sparki')]]
+
+        window = sg.Window('Joystick - Drive your Sparki', layout, auto_size_text = True,
+                           auto_size_buttons = True, resizable = True,
+                           element_justification = "center")
+
+        while True:  # Event Loop
+            event, values = window.read()       # can also be written as event, values = window()
+            
+            if event is None or event == 'Exit':
+                break
+            elif event == 'Forward':
+                # change the action to be forward
+                window['_ACTION_'].update("Forward")
+                window['_MOTION_'].update(moving_message)
+                forward(1)
+            elif event == 'Left':
+                # change the action to be left
+                window['_ACTION_'].update("Left")
+                window['_MOTION_'].update(moving_message)
+                turnLeft(1)
+            elif event == 'Stop':
+                # change the action to be stop
+                window['_ACTION_'].update("Stop")
+                window['_MOTION_'].update(not_moving_message)
+                stop()
+            elif event == 'Right':
+                # change the action to be right
+                window['_ACTION_'].update("Right")
+                window['_MOTION_'].update(moving_message)
+                turnRight(1)
+            elif event == 'Backward':
+                # change the action to be backward
+                window['_ACTION_'].update("Backward")
+                window['_MOTION_'].update(moving_message)
+                backward(1)
+            elif event == 'Open':
+                # change the action to be open gripper
+                window['_ACTION_'].update("Open Gripper 1cm")
+                gripperOpen(1)
+            elif event == 'Close':
+                # change the action to be close gripper
+                window['_ACTION_'].update("Close Gripper 1cm")
+                gripperClose(1)
+            elif event == 'Head Left':
+                # change the action to turn head left
+                window['_ACTION_'].update("Head Left")
+                servo(SERVO_LEFT)
+            elif event == 'Head Center':
+                # change the action to turn head center
+                window['_ACTION_'].update("Head Center")
+                servo(SERVO_CENTER)
+            elif event == 'Head Right':
+                # change the action to turn head right
+                window['_ACTION_'].update("Head Right")
+                servo(SERVO_RIGHT)
+            else:
+                window['_ACTION_'].update("** BAD EVENT **")
+                printDebug("Bad event in joystick() -- this should never happen", DEBUG_CRITICAL)
+
+        window.close()
+        
+    except Exception as err:
+        printDebug("No gui for joystick() or other error in joystick()", DEBUG_CRITICAL)
+        printDebug(str(err), DEBUG_DEBUG)
+
+    stop()
+    print("joystick() ended")
 
 
 def LCDclear(update=True):
