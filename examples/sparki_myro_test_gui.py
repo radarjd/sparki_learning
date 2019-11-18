@@ -3,10 +3,15 @@ from __future__ import print_function
 
 from sparki_learning import *
 
+messageWindow("This will test some of the Sparki GUI functions")
+
 result = ask("What is your name? ")
 print("The user said " + result)
 
 result = yesorno("Click yes or no")
+print("The user said " + result)
+
+result = askQuestion("Choose a shape ", [ 'square', 'circle' ])
 print("The user said " + result)
 
 result = askQuestion_text("Type a shape ", [ 'square', 'circle' ], False)
