@@ -8,7 +8,7 @@
 # written by Jeremy Eglen
 # Created: February 24, 2016
 # Last Modified: November 18, 2019
-# originally written targeting Python 3.4 and 3.5, some testing on 3.6 and has been lightly tested with Python 2.7
+# originally written targeting Python 3.4 and 3.5
 # working with Python 3.7 & 3.8
 
 from setuptools import setup, find_packages
@@ -19,9 +19,14 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+# get the version number from the constants file
+with open(path.join(this_directory, "sparki_learning", "constants.py"), encoding='utf-8') as fc:
+    exec(fc.read())
+print("sparki_learning version is {}".format(SPARKI_MYRO_VERSION))
+
 setup(
     name = "sparki_learning",
-    version = "1.6.0.dev4",
+    version = SPARKI_MYRO_VERSION,
     packages = find_packages(),
 
     # Project uses pyserial for bluetooth, so ensure that package gets

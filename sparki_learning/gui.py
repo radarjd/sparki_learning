@@ -7,7 +7,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 14, 2019
-# Last Modified: November 14, 2019
+# Last Modified: November 18, 2019
 from __future__ import print_function
 
 from sparki_learning.util import printDebug
@@ -95,6 +95,7 @@ def askQuestion_text(message, options, caseSensitive=True):
         returns:
         string response from the user (if caseSentitive is False, this will always be a lower case string)
     """
+    printDebug("In askQuestion_text, message={}; options={}; caseSensitive={}".format(message, options, caseSensitive), sparki_learning.util.DEBUG_INFO)
     if not caseSensitive:  # if we're not caseSensitive, make the options lower case
         working_options = [s.lower() for s in options]
     else:
@@ -167,7 +168,7 @@ def yesorno(message):
         returns:
         string response from the user
     """
-    printDebug("In yesorno", DEBUG_INFO)
+    printDebug("In yesorno", sparki_learning.util.DEBUG_INFO)
 
     return askQuestion(message, ["yes", "no"], "Yes or No?")
 

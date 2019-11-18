@@ -7,7 +7,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 12, 2019 (some functions are older -- this is the original date of this file)
-# Last Modified: November 14, 2019
+# Last Modified: November 18, 2019
 from __future__ import division, print_function
 
 import sys
@@ -22,9 +22,10 @@ DEBUG_WARN = 3  # a generally sane default; reports issues that may be mistakes,
 DEBUG_ERROR = 2  # reports something contrary to the API
 DEBUG_CRITICAL = 1  # reports an error which interferes with proper or consistent operation
 DEBUG_ALWAYS = 0  # should always be reported
+# ***** END DEBUG CONSTANTS ***** #
 
 GLOBAL_DEBUG = DEBUG_ERROR
-# ***** END DEBUG CONSTANTS ***** #
+
 
 def bluetoothValidate(address):
     """ Returns True if the string argument appears to be a Bluetooth address (strictly speaking, a MAC address)
@@ -130,7 +131,7 @@ def flrange(start, stop, step):
         yield:
         float - the next value in the range
     """
-    printDebug("In flrange, start={}; stop={}; step={}".format(start, stop, step), sparki_learning.util.DEBUG_INFO)
+    printDebug("In flrange, start={}; stop={}; step={}".format(start, stop, step), DEBUG_INFO)
 
     if step > 0:
         while start < stop:
