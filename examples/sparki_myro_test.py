@@ -7,7 +7,7 @@ from sparki_learning import *
 
 com_port = None     # replace with your COM port or /dev/
 
-setDebug(logging.INFO)
+setDebug(DEBUG_INFO)
 
 while not com_port:
     com_port = input("What is your com port or /dev/? ")

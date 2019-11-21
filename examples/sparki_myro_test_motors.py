@@ -8,7 +8,7 @@ from sparki_learning import *
 print("initializing -- may get an error below due to library version")
 com_port = None     # replace with your COM port or /dev/
 
-setDebug(logging.INFO)
+setDebug(DEBUG_INFO)
 
 while com_port == None:
     com_port = input("What is your com port or /dev/? ")
