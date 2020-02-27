@@ -7,16 +7,11 @@
 #
 # written by Jeremy Eglen
 # Created: November 14, 2019
-# Last Modified: November 18, 2019
-from __future__ import print_function
-
+# Last Modified: February 27, 2020
 from sparki_learning.util import printDebug
 
 import sys
-if sys.version_info[0] >= 3:
-    import PySimpleGUI as sg
-else:
-    import PySimpleGUI27 as sg
+import PySimpleGUI as sg
     
 import sparki_learning.util
 

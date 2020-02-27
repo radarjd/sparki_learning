@@ -1,13 +1,10 @@
 # speak input over the computer
 #
 # Created: May 18, 2016 by Jeremy Eglen with assistance from Kelly Schmidt for the Mac function
-# Last Modified: September 7, 2016
+# Last Modified: February 27, 2020
 #
 # included with the sparki_learning library, though that is not required
 #
-
-from __future__ import print_function
-
 import os
 import platform
 import sys

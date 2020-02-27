@@ -23,8 +23,6 @@
 # To have the server join the beeping above, you'd write:
 # start_sync_server(wait_time)
 # beep()
-from __future__ import print_function
-
 from socket import *
 from time import *
 

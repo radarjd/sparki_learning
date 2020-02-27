@@ -12,12 +12,10 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: November 18, 2019
-# Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3; limited testing has been successful with Python 2.7
-# working with Python 3.7
-
-from __future__ import division, \
-    print_function  # in case this is run from Python 2.7 or greater, but less than Python 3
+# Last Modified: February 27, 2020
+# Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3
+# working with Python 3.7 and 3.8
+# don't use Python 2!
 
 import logging
 import math
@@ -32,10 +30,8 @@ from sparki_learning.util import *
 
 ########### GLOBAL VARIABLES ###########
 # ***** SERIAL TIMEOUT ***** #
-if platform.system() == "Darwin":  # Macs seem to be extremely likely to timeout -- so this is a lower value
-    CONN_TIMEOUT = 2  # in seconds
-else:
-    CONN_TIMEOUT = 5  # in seconds
+CONN_TIMEOUT = 2  # in seconds
+
     
 # ***** COMPILE OPTIONS ***** #
 # these may change upon initialization, but should not change thereafter
