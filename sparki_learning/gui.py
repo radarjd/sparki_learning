@@ -7,7 +7,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 14, 2019
-# Last Modified: February 27, 2020
+# Last Modified: April 10, 2020
 from sparki_learning.util import printDebug
 
 import sys
@@ -150,6 +150,28 @@ def pickAFile():
         printDebug("Error creating pickAFile window -- gui may not be available", sparki_learning.util.DEBUG_ERROR)
         printDebug(str(err), sparki_learning.util.DEBUG_DEBUG)
         result = input("What is the path to the file? ")
+
+    return result
+
+
+def pickAFolder():
+    """ Gets the path to a folder picked by the user
+
+        arguments:
+        none
+
+        returns:
+        string path to the folder
+    """
+    printDebug("In pickAFolder", sparki_learning.util.DEBUG_INFO)
+
+    try:
+        result = sg.PopupGetFolder("Choose a folder")
+        
+    except Exception as err:
+        printDebug("Error creating pickAFolder window -- gui may not be available", sparki_learning.util.DEBUG_ERROR)
+        printDebug(str(err), sparki_learning.util.DEBUG_DEBUG)
+        result = input("What is the path to the folder? ")
 
     return result
 
