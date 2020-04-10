@@ -13,7 +13,7 @@
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.6.2"  # this may differ from the version on Sparki itself
+SPARKI_MYRO_VERSION = "1.6.3"  # this may differ from the version on Sparki itself
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki

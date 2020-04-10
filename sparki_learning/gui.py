@@ -132,11 +132,11 @@ def messageWindow(message, mytitle="Message"):
         input(message + " (Press Enter to continue) ")
 
 
-def pickAFile():
+def pickAFile(prompt="Choose a file"):
     """ Gets the path to a file picked by the user
 
         arguments:
-        none
+        prompt - optional string prompt to the user
 
         returns:
         string path to the file
@@ -144,7 +144,7 @@ def pickAFile():
     printDebug("In pickAFile", sparki_learning.util.DEBUG_INFO)
 
     try:
-        result = sg.PopupGetFile("Choose a file")
+        result = sg.PopupGetFile(prompt)
         
     except Exception as err:
         printDebug("Error creating pickAFile window -- gui may not be available", sparki_learning.util.DEBUG_ERROR)
@@ -154,11 +154,11 @@ def pickAFile():
     return result
 
 
-def pickAFolder():
+def pickAFolder(prompt="Choose a folder"):
     """ Gets the path to a folder picked by the user
 
         arguments:
-        none
+        prompt - optional string prompt to the user
 
         returns:
         string path to the folder
@@ -166,7 +166,7 @@ def pickAFolder():
     printDebug("In pickAFolder", sparki_learning.util.DEBUG_INFO)
 
     try:
-        result = sg.PopupGetFolder("Choose a folder")
+        result = sg.PopupGetFolder(prompt)
         
     except Exception as err:
         printDebug("Error creating pickAFolder window -- gui may not be available", sparki_learning.util.DEBUG_ERROR)
