@@ -2,7 +2,11 @@
 Sparki Learning Command Quick Reference
 ======================================================
 
-for version 1.6.2 of the python library
+The Sparki robot homepage at Arcbotics may be found here: http://arcbotics.com/products/sparki/
+
+The sparki_learning library github page (with installation instructions) may be found here: https://github.com/radarjd/sparki_learning
+
+This command reference is for version 1.6.2 of the python library
 
 (this library makes use of Python 3; if you're using Python 2, stop!)
 

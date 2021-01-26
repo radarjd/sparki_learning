@@ -12,8 +12,8 @@ To make use of this library with your Sparki:
 
 To talk to the library using Python:
 1. Pair your Sparki with your computer over Bluetooth.
-2. Download a version of Python 3 -- this was originally developed on Python 3.4, and on subsequent versions of Python 3. The author believes any version of Python 3 will work <https://www.python.org/downloads/>. The author has also successfully used Python 2.7, though it is not as thoroughly tested. In my classroom, we use the Thonny IDE available from <https://thonny.org/>.
-3. Use pypi, easy_install or pip to install the library (e.g. 'pip install sparki-learning'). It should download everything for you automagically. If you're using Thonny, you can go to Tools -> Manage Packages to download the library.
+2. Download a version of Python 3 -- this was originally developed on Python 3.4, and on subsequent versions of Python 3 (currently tested up to 3.8). The author believes any version of Python 3 will work <https://www.python.org/downloads/>. In my classroom, we use the Thonny IDE available from <https://thonny.org/>.
+3. Use pypi, easy_install or pip to install the library (e.g. 'pip install sparki-learning'). It should download everything for you automagically. If you're using Thonny, you can go to Tools -> Manage Packages to download the library. The sparki_learning library presently depends on pyserial (<https://pyserial.readthedocs.io/en/latest/pyserial.html>) and pysimplegui (<https://pysimplegui.readthedocs.io/en/latest/>), which should be installed automatically. 
 4. Use the sparki_learning library to control your Sparki!
 
 All of the software in this project that I've written is provided under the Apache version 2 license available at <http://www.apache.org/licenses/LICENSE-2.0> and is WITHOUT WARRANTY, including implied warranties. I have also included a couple of sample / test programs for you to look at in python to get a feel for how to use the library. 
@@ -23,5 +23,7 @@ The implementation of the Bresenham line algorithm was adapted from https://gith
 Both libraries were written with the intention of being helpful to students and educators, and are fairly well commented. I have tested them some, but they may not work on all platforms for all people. There may be bugs. There may be problems that cause the destruction of your Sparki (though I don't think there are). You assume all risk in your use of this software.
 
 Finally, I have included an increasingly long "Quick Reference" sheet that documents the libraries. It's also available online at <https://sparki-learning.readthedocs.io/en/latest/>
+
+If you'd like to support my work, my bitcoin address is bc1q3jndk44fzhtg0m0z95933flm6fhw239yuvwvqd
 
 Sparki is an excellent little robot, and I hope this proves useful to you in exploring the world. Good luck!

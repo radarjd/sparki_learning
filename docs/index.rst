@@ -2,7 +2,11 @@
 Sparki Learning Command Quick Reference
 ======================================================
 
-for version 1.6.2 of the python library
+The Sparki robot homepage at Arcbotics may be found here: http://arcbotics.com/products/sparki/
+
+The sparki_learning library github page (with installation instructions) may be found here: https://github.com/radarjd/sparki_learning
+
+This command reference is for version 1.6.2 of the python library
 
 (this library makes use of Python 3; if you're using Python 2, stop!)
 
@@ -350,15 +354,15 @@ messageWindow(message, title = "Message")
 
 
 
-pickAFile()
+pickAFile(prompt = "Choose a file")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with a file dialog so that the user can pick a file. Might be useful for reading from or saving to a file. (Moved to sparki_learning.gui in v1.6.0.)
+	Creates window with a file dialog so that the user can pick a file. Might be useful for reading from or saving to a file. (Moved to sparki_learning.gui in v1.6.0.). prompt is an optional message prompt to the user (added in 1.6.3)
 
 
 
-pickAFolder()
+pickAFolder(prompt = "Choose a folder")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Creates window with a dialog so that the user can pick a folder.
+	Creates window with a dialog so that the user can pick a folder. prompt is an optional message prompt to the user.
 
 
 
