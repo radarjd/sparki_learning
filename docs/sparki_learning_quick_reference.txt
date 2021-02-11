@@ -75,10 +75,18 @@ humanTime()
 	Returns the time in a human readable format like "Fri Apr 5 19:50:05 2016". (Moved to sparki_learning.util)
 
 
+.. _init:
+
 
 init(com_port)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like "COM5" or "COM40". On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device. On a Mac, you can also use the secret port "mac" and the library will fill in the standard Mac port.
+
+
+
+initAuto()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Connects your computer to the Sparki via Bluetooth by guessing at the port. On Mac, this will try the most common addresses, but if you custom named the port, this will not be successful. On Windows, this will try COM3 through COM10. It will (by default) print the port that it found the connection on, so that you can put that into init_ 
 
 	
 	
@@ -349,7 +357,7 @@ joystick()
 
 
 messageWindow(message, title = "Message")
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Strictly speaking, this is not an input command, but it does display a message to the user and "pause" your program until the user clicks okay.
 
 
@@ -361,7 +369,7 @@ pickAFile(prompt = "Choose a file")
 
 
 pickAFolder(prompt = "Choose a folder")
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Creates window with a dialog so that the user can pick a folder. prompt is an optional message prompt to the user.
 
 

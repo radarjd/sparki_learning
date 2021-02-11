@@ -30,7 +30,7 @@ from sparki_learning.util import *
 
 ########### GLOBAL VARIABLES ###########
 # ***** SERIAL TIMEOUT ***** #
-CONN_TIMEOUT = 2  # in seconds
+CONN_TIMEOUT = 1  # in seconds
 
     
 # ***** COMPILE OPTIONS ***** #
@@ -65,13 +65,6 @@ in_motion = False  # set to True when moving -- note this is a guess set in moto
 init_time = -1  # time when the robot was initialized
 
 robot_library_version = None  # version of the code on the robot
-
-logging.basicConfig(level=logging.DEBUG)  # we want to catch all DEBUG messages
-sparki_logger = logging.getLogger("sparki_learning")
-sparki_logger.setLevel(logging.WARN)
-sparki_std_handler = logging.StreamHandler(sys.stderr)
-sparki_std_handler.setLevel(logging.WARN)
-sparki_logger.addHandler(sparki_std_handler)
 
 serial_port = None  # save the serial port on which we're connected
 serial_conn = None  # hold the pyserial object
@@ -1087,7 +1080,7 @@ def gripperStop():
     sendSerial(COMMAND_CODES["GRIPPER_STOP"])
 
 
-def init(com_port, print_versions=True):
+def init(com_port, print_versions=True, auto=False):
     """ Connects to the Sparki robot on com_port; if it is already connected, this will disconnect and reconnect on the given port
         Note that Sparki MUST already be paired with the computer over Bluetooth
         
@@ -1098,7 +1091,7 @@ def init(com_port, print_versions=True):
         print_versions - boolean whether or not to print connection message
         
         returns:
-        nothing
+        boolean - True if connected, False otherwise
     """
     global init_time
     global robot_library_version, SPARKI_MYRO_VERSION
@@ -1124,9 +1117,12 @@ def init(com_port, print_versions=True):
     try:
         serial_conn = serial.Serial(port=serial_port, baudrate=9600, timeout=CONN_TIMEOUT)
     except serial.SerialException:
-        printUnableToConnect()
-        raise
-
+        if auto:
+            return False
+        else:
+            printUnableToConnect()
+            raise
+        
     serial_is_connected = True  # have to do this prior to sendSerial, or sendSerial will never try to send
 
     sendSerial(COMMAND_CODES["INIT"])
@@ -1155,19 +1151,72 @@ def init(com_port, print_versions=True):
             printDebug(
                 "Unknown library version, using defaults -- you might need an upgrade of the Sparki Learning Python library",
                 DEBUG_ALWAYS)
-            printDebug("(to upgrade the library type: pip sparki-learning --upgrade)", DEBUG_ALWAYS)
+            printDebug("(to upgrade the library type: pip3 sparki-learning --upgrade)", DEBUG_ALWAYS)
             printDebug("Sparki Capabilities will be limited", DEBUG_ALWAYS)
         
         if USE_EEPROM and print_versions:
             robot_name = getName()
             printDebug(robot_name + " is ready", DEBUG_ALWAYS)
+            
+        return True
     else:
-        printDebug("Sparki communication failed", DEBUG_ALWAYS)
+        if not auto:
+            printDebug("Sparki communication failed", DEBUG_ALWAYS)
+            
         serial_is_connected = False
         init_time = -1
+        
+        return False
 
 
 initialize = init # Synonym for init(com_port)
+
+
+def initAuto(print_versions=True, print_correct_port=True):
+    """ Connects to the Sparki robot by guessing the com port; if it is already connected, this will disconnect and reconnect on the given port
+        Note that Sparki MUST already be paired with the computer over Bluetooth for this to work
+        
+        arguments:
+        print_versions - boolean whether or not to print connection message
+        print_correct_port - boolean whether or not to print the correct port
+        
+        returns:
+        string - the com port used to connect
+    """
+    printDebug("In initAuto, print_versions={}; print_correct_port={}".format(print_versions, print_correct_port), DEBUG_INFO)
+
+    possible_ports = [] # store potential ports to try
+    successful_port = None
+    
+    currentOS = platform.system()
+
+    if currentOS == "Darwin":
+        possible_ports = [ "/dev/tty.ArcBotics-DevB", "/dev/tty.HC-06-DevB", "/dev/tty.ArcBotics-DevB" ]
+    elif currentOS == "Windows":
+        possible_ports = [ "com" + str(x) for x in range(3,11) ]
+    else:
+        raise RuntimeError("unable to choose the port automatically for your OS")
+
+    for port in possible_ports:
+        success = init(port, print_versions=print_versions, auto=True)
+        
+        if success:
+            successful_port = port
+            
+            if print_correct_port:
+                print("{} is the correct port, which you can use with init() in the future".format(port))
+                
+            break  
+        else:
+            printDebug("{} is not the correct port".format(port), DEBUG_DEBUG)
+            
+    if successful_port = None:
+        printDebug("No Sparki found!", DEBUG_ALWAYS)
+        printDebug("Ports tested: {}".format("; ".join(possible_ports)), DEBUG_ERROR)
+        printUnableToConnect()
+        raise serial.SerialException("No Sparki found on any tested port.")
+
+    return successful_port
 
 
 def isMoving():
