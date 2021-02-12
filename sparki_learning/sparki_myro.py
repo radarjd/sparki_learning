@@ -451,6 +451,7 @@ def backward(speed, time=-1):
         nothing
     """
     printDebug("In backward, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
+    speed = float(speed)
 
     # adjust speed to Sparki's requirements
     if speed < 0:
@@ -619,6 +620,7 @@ def forward(speed, time=-1):
         nothing
     """
     printDebug("In forward, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
+    speed = float(speed)
 
     # adjust speed to Sparki's requirements
     if speed < 0:
@@ -1089,6 +1091,7 @@ def init(com_port, print_versions=True, auto=False):
                    if com_port is the string "mac", this will assume the standard mac port ("/dev/tty.ArcBotics-DevB")
                    if com_port is the string "hc06", this will assume the standard HC-06 port ("tty.HC-06-DevB")
         print_versions - boolean whether or not to print connection message
+        auto - boolean whether this is an auto connection attempt -- True suppresses exceptions
         
         returns:
         boolean - True if connected, False otherwise
@@ -1191,7 +1194,7 @@ def initAuto(print_versions=True, print_correct_port=True):
     currentOS = platform.system()
 
     if currentOS == "Darwin":
-        possible_ports = [ "/dev/tty.ArcBotics-DevB", "/dev/tty.HC-06-DevB", "/dev/tty.ArcBotics-DevB" ]
+        possible_ports = [ "/dev/tty.ArcBotics-DevB", "/dev/tty.HC-06-DevB", "/dev/tty.ArcBotics-SPPDev" ]
     elif currentOS == "Windows":
         possible_ports = [ "com" + str(x) for x in range(3,11) ]
     else:
@@ -1634,10 +1637,12 @@ def motors(left_speed, right_speed, time=-1):
         nothing
     """
     global in_motion
-
     printDebug(
         "In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(
             time), DEBUG_INFO)
+
+    left_speed = float(left_speed)
+    right_speed = float(right_speed)
 
     if left_speed == 0 and right_speed == 0:
         printDebug("In motors, both speeds == 0, stopping (but please use stop())", DEBUG_WARN)
@@ -2441,6 +2446,8 @@ def turnLeft(speed, time=-1):
     """
     printDebug("In turnLeft, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
 
+    speed = float(speed)
+
     # adjust speed to Sparki's requirements
     if speed < 0:
         printDebug("In turnLeft, speed < 0, calling turnRight", DEBUG_WARN)
@@ -2467,6 +2474,8 @@ def turnRight(speed, time=-1):
         nothing
     """
     printDebug("In turnRight, speed is " + str(speed) + " and time is " + str(time), DEBUG_INFO)
+
+    speed = float(speed)
 
     # adjust speed to Sparki's requirements
     if speed < 0:
