@@ -49,7 +49,7 @@ command_queue = []  # this stores every command sent to Sparki
 
 centimeters_moved = 0  # this stores the sum of centimeters moved forward or backward using the moveForwardcm()
 # or moveBackwardcm() functions; used implicitly by moveTo() and moveBy(); use directly
-# by getCentimetersMover(); this only increases in value
+# by getCentimetersMoved(); this only increases in value
 
 current_lcd_color = LCD_BLACK  # this is the color that an LCDdraw command will draw in -- can be LCD_BLACK or LCD_WHITE
 
@@ -2363,6 +2363,8 @@ def syncWait(server_ip=None, server_port=32216):
     from sparki_learning.sync_lib import get_client_start
     wait_time = get_client_start(server_ip, server_port)
 
+    print("Waiting for {} seconds".format(wait_time))
+
     waitNoop(wait_time)
 
 
@@ -2387,6 +2389,7 @@ def turnBy(degrees):
 
     printDebug("In turnBy, degrees is " + str(degrees), DEBUG_INFO)
 
+    degrees = float(degrees)
     degrees = wrapAngle(degrees)
 
     if abs(degrees) >= 360:  # >= in case there's a rounding error
@@ -2502,6 +2505,7 @@ def wait(wait_time):
         nothing
     """
     printDebug("In wait, wait_time is " + str(wait_time), DEBUG_INFO)
+    wait_time = float(wait_time)
     maxWait = 600
 
     if wait_time >= maxWait:
@@ -2526,6 +2530,7 @@ def waitNoop(wait_time):
         nothing
     """
     printDebug("In waitNoop, wait_time is " + str(wait_time), DEBUG_INFO)
+    wait_time = float(wait_time)
     maxWait = 1200
     sleepTime = 1
 

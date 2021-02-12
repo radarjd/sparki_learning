@@ -6,7 +6,7 @@ The Sparki robot homepage at Arcbotics may be found here: http://arcbotics.com/p
 
 The sparki_learning library github page (with installation instructions) may be found here: https://github.com/radarjd/sparki_learning
 
-This command reference is for version 1.6.2 of the python library
+This command reference is for version 1.6.4 of the python library
 
 (this library makes use of Python 3; if you're using Python 2, stop!)
 
@@ -92,7 +92,7 @@ initAuto()
 	
 noop()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	This does nothing. It happens to be that doing nothing can be helpful on a Mac -- Macs have a tendency to drop the bluetooth connection to the robot very quickly, probably for power saving purposes. This command will send a message to the sparki in an attempt to prevent the connection from being dropped. 
+	This does nothing. It happens to be that doing nothing can be helpful on a laptop -- laptops have a tendency to drop the bluetooth connection to the robot very quickly, probably for power saving purposes. This command will send a message to the sparki in an attempt to prevent the connection from being dropped. 
 
 
 
@@ -644,4 +644,5 @@ start_sync_client(server_ip, server_port = 32216)
 
 syncWait(server_ip, server_port = 32216)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Wait for a time specified by a sync server over a network. Uses the `get_client_start(server_ip, server_port = 32216)`_ function above. 
+	Wait for a time specified by a sync server over a network. Uses the `get_client_start(server_ip, server_port = 32216)`_ function above. One computer must be designated the sync server and execute the start_sync_server command.
+	

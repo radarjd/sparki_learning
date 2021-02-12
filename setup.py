@@ -7,7 +7,7 @@
 #
 # written by Jeremy Eglen
 # Created: February 24, 2016
-# Last Modified: November 18, 2019
+# Last Modified: February 12, 2021
 # originally written targeting Python 3.4 and 3.5
 # working with Python 3.7 & 3.8
 
