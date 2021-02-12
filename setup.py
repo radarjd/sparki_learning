@@ -33,7 +33,7 @@ setup(
     # installed or upgraded on the target machine
     install_requires = ['pyserial>=2.7', 'pysimplegui>=4.0.0'],
 
-    python_requires='>=2.7, <4',
+    python_requires='>=3.0, <4',
 
     project_urls={
         'Documentation': 'https://sparki-learning.readthedocs.io/en/latest/',
@@ -54,7 +54,6 @@ setup(
     license = "Apache License Version 2.0",
     keywords = "sparki learning myro robot",
     url = "https://github.com/radarjd/sparki_learning",   # project home page
-    download_url = "https://github.com/radarjd/sparki_learning/tarball/v1.5.2.0",
     classifiers = [
                    'Development Status :: 5 - Production/Stable',
                    'Intended Audience :: Education',

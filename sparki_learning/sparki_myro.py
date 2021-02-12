@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: February 27, 2020
+# Last Modified: February 12, 2021
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3
 # working with Python 3.7 and 3.8
 # don't use Python 2!
