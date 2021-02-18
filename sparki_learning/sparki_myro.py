@@ -1213,7 +1213,7 @@ def initAuto(print_versions=True, print_correct_port=True):
         else:
             printDebug("{} is not the correct port".format(port), DEBUG_DEBUG)
             
-    if successful_port = None:
+    if successful_port is None:
         printDebug("No Sparki found!", DEBUG_ALWAYS)
         printDebug("Ports tested: {}".format("; ".join(possible_ports)), DEBUG_ERROR)
         printUnableToConnect()
