@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: February 12, 2021
+# Last Modified: March 2, 2021
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3
 # working with Python 3.7 and 3.8
 # don't use Python 2!
@@ -1082,7 +1082,7 @@ def gripperStop():
     sendSerial(COMMAND_CODES["GRIPPER_STOP"])
 
 
-def init(com_port, print_versions=True, auto=False):
+def init(com_port, print_versions=True, auto=False, retries=2):
     """ Connects to the Sparki robot on com_port; if it is already connected, this will disconnect and reconnect on the given port
         Note that Sparki MUST already be paired with the computer over Bluetooth
         
@@ -1091,10 +1091,14 @@ def init(com_port, print_versions=True, auto=False):
                    if com_port is the string "mac", this will assume the standard mac port ("/dev/tty.ArcBotics-DevB")
                    if com_port is the string "hc06", this will assume the standard HC-06 port ("tty.HC-06-DevB")
         print_versions - boolean whether or not to print connection message
-        auto - boolean whether this is an auto connection attempt -- True suppresses exceptions
+        auto - boolean whether this is an auto connection attempt -- True suppresses serial exceptions
+        retries - int number of times to attempt connections -- done to deal with power saving, primarily
         
         returns:
         boolean - True if connected, False otherwise
+        
+        exceptions:
+        serial.SerialException - if there was a problem connecting and auto is False
     """
     global init_time
     global robot_library_version, SPARKI_MYRO_VERSION
@@ -1102,6 +1106,7 @@ def init(com_port, print_versions=True, auto=False):
     global serial_port
     global serial_is_connected
     global robot_name
+    global CONN_TIMEOUT
     global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, NOOP
 
     printDebug("In init, com_port is " + str(com_port), DEBUG_INFO)
@@ -1117,14 +1122,17 @@ def init(com_port, print_versions=True, auto=False):
     robot_name = None
     serial_port = com_port
 
-    try:
-        serial_conn = serial.Serial(port=serial_port, baudrate=9600, timeout=CONN_TIMEOUT)
-    except serial.SerialException:
-        if auto:
-            return False
-        else:
-            printUnableToConnect()
-            raise
+    for attempt in range(retries):    # retry a few times to avoid power saving port shutdown
+        try:
+            serial_conn = serial.Serial(port=serial_port, baudrate=9600, timeout=CONN_TIMEOUT)
+            break   # if we reach this break, we've successfully connected and want to leave the loop
+        except serial.SerialException:
+            if attempt + 1 >= retries: # silently ignore the exception unless we've maxxed on retries
+                if auto:
+                    return False
+                else:
+                    printUnableToConnect()
+                    raise
         
     serial_is_connected = True  # have to do this prior to sendSerial, or sendSerial will never try to send
 
