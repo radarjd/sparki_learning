@@ -6,7 +6,7 @@ The Sparki robot homepage at Arcbotics may be found here: http://arcbotics.com/p
 
 The sparki_learning library github page (with installation instructions) may be found here: https://github.com/radarjd/sparki_learning
 
-This command reference is for version 1.6.2 of the python library
+This command reference is for version 1.6.6 of the python library
 
 (this library makes use of Python 3; if you're using Python 2, stop!)
 
@@ -75,16 +75,24 @@ humanTime()
 	Returns the time in a human readable format like "Fri Apr 5 19:50:05 2016". (Moved to sparki_learning.util)
 
 
+.. _init:
 
-init(com_port)
+
+init(com_port, print_versions=True, auto=False, retries=2)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like "COM5" or "COM40". On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device. On a Mac, you can also use the secret port "mac" and the library will fill in the standard Mac port. This function has become increasingly complicated in order to make it easier to initialize the robot without errors. The print_versions argument (optional, default is True) will print a message upon initialization that tells you the Sparki and python library versions. The auto argument (optional, default is False) will suppress serial errors, and is intended to be used with the initAuto()_ command below. The retries argument (optional, default is 2) specifies the number of times to try to initialize the robot on the given port. The most common reason that initialization appears to fail even though the port is correct appears to have to do with power saving. A modern OS will deactivate the Bluetooth when it's not in use to save power. Giving a couple of tries seems to turn it back on.
+
+
+
+initAuto()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Connects your computer to the Sparki via Bluetooth. On Windows, com_port will be something like "COM5" or "COM40". On a Mac, instead of using a COM port, you will use a device path which looks something like "/dev/tty.ArcBotics-DevB". You must have paired your computer with Sparki on Bluetooth prior to executing this command. Your computer will assign the COM port or device. On a Mac, you can also use the secret port "mac" and the library will fill in the standard Mac port.
+	Connects your computer to the Sparki via Bluetooth by guessing at the port. On Mac, this will try the most common addresses, but if you custom named the port, this will not be successful. On Windows, this will try COM3 through COM10. It will (by default) print the port that it found the connection on, so that you can put that into init_ 
 
 	
 	
 noop()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	This does nothing. It happens to be that doing nothing can be helpful on a Mac -- Macs have a tendency to drop the bluetooth connection to the robot very quickly, probably for power saving purposes. This command will send a message to the sparki in an attempt to prevent the connection from being dropped. 
+	This does nothing. It happens to be that doing nothing can be helpful on a laptop -- laptops have a tendency to drop the bluetooth connection to the robot very quickly, probably for power saving purposes. This command will send a message to the sparki in an attempt to prevent the connection from being dropped. 
 
 
 
@@ -349,7 +357,7 @@ joystick()
 
 
 messageWindow(message, title = "Message")
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Strictly speaking, this is not an input command, but it does display a message to the user and "pause" your program until the user clicks okay.
 
 
@@ -361,7 +369,7 @@ pickAFile(prompt = "Choose a file")
 
 
 pickAFolder(prompt = "Choose a folder")
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Creates window with a dialog so that the user can pick a folder. prompt is an optional message prompt to the user.
 
 
@@ -636,4 +644,5 @@ start_sync_client(server_ip, server_port = 32216)
 
 syncWait(server_ip, server_port = 32216)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Wait for a time specified by a sync server over a network. Uses the `get_client_start(server_ip, server_port = 32216)`_ function above. 
+	Wait for a time specified by a sync server over a network. Uses the `get_client_start(server_ip, server_port = 32216)`_ function above. One computer must be designated the sync server and execute the start_sync_server command.
+	
