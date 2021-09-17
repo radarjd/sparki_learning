@@ -17,14 +17,29 @@ init(com_port)
 
 print("Sparki's name is " + getName())
 
-print("moving forward")
+print("moving forward for 1 second")
 forward(1, 1)
 
-print("moving backward")
+print("moving backward for 1 second")
 backward(1, 1)
 
 print("testing motors (should turn left / counter-clockwise)")
 motors(-1, 1, 1)
+
+print("turning head left")
+servo(-90)
+
+print("turning head right")
+servo(90)
+
+print("facing forward")
+servo(0)
+
+print("moving forward 5cm")
+moveForwardcm(5)
+
+print("moving backward 5cm")
+moveBackwardcm(5)
 
 print("beep")
 beep()
@@ -32,27 +47,29 @@ beep()
 print("testing motors (should turn right / clockwise)")
 motors(1, -1, 1)
 
-print("Battery power is " + str( getBattery() ) )
+print("Battery power is {}".format( getBattery() ) )
 
-print("Left light sensor is " + str( getLight( LIGHT_SENS_LEFT ) ) )
-print("Center light sensor is " + str( getLight( LIGHT_SENS_MID ) ) )
-print("Right light sensor is " + str( getLight( LIGHT_SENS_RIGHT ) ) )
+print("Distance to nearest object is {} (-1 means Sparki didn't see anything)".format( ping() ))
 
-print("Left edge line sensor is " + str( getLine( LINE_EDGE_LEFT ) ) )
-print("Left line sensor is " + str( getLine( LINE_MID_LEFT ) ) )
-print("Center line sensor is " + str( getLine( LINE_MID ) ) )
-print("Right line sensor is " + str( getLine( LINE_MID_RIGHT ) ) )
-print("Right edge line sensor is " + str( getLine( LINE_EDGE_RIGHT ) ) )
+print("Left light sensor is {}" .format( getLight( LIGHT_SENS_LEFT ) ) )
+print("Center light sensor is {}".format( getLight( LIGHT_SENS_MID ) ) )
+print("Right light sensor is {}".format( getLight( LIGHT_SENS_RIGHT ) ) )
 
-print("X accel sensor is " + str( getAccelX() ) )
-print("Y accel sensor is " + str( getAccelY() ) )
-print("Z accel sensor is " + str( getAccelZ() ) )
+print("Left edge line sensor is {}".format( getLine( LINE_EDGE_LEFT ) ) )
+print("Left line sensor is {}".format( getLine( LINE_MID_LEFT ) ) )
+print("Center line sensor is {}".format( getLine( LINE_MID ) ) )
+print("Right line sensor is {}".format( getLine( LINE_MID_RIGHT ) ) )
+print("Right edge line sensor is {}".format( getLine( LINE_EDGE_RIGHT ) ) )
 
-print("X mag sensor is " + str( getMagX() ) )
-print("Y mag sensor is " + str( getMagY() ) )
-print("Z mag sensor is " + str( getMagZ() ) )
+print("X accel sensor is {}".format( getAccelX() ) )
+print("Y accel sensor is {}".format( getAccelY() ) )
+print("Z accel sensor is {}".format( getAccelZ() ) )
 
-print("compass heading is " + str( compass() ) )
+print("X mag sensor is {}".format( getMagX() ) )
+print("Y mag sensor is {}".format( getMagY() ) )
+print("Z mag sensor is {}".format( getMagZ() ) )
+
+print("compass heading is {}".format( compass() ) )
 
 print("turning right")
 turnRight(1, 2)
@@ -81,7 +98,7 @@ turnTo(0)
 testLED = input("Should I run the RGB LED test (y to do it)? ")
 if testLED == "y":
     print("Brightening RGB LED")
-    for i in range(0,101, 5):
+    for i in range(0, 101, 5):
         wait(.01)
         setLEDBack(i)
 

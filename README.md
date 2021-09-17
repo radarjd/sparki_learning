@@ -24,6 +24,6 @@ Both libraries were written with the intention of being helpful to students and 
 
 Finally, I have included an increasingly long "Quick Reference" sheet that documents the libraries. It's also available online at <https://sparki-learning.readthedocs.io/en/latest/>
 
-If you'd like to support my work, my bitcoin address is bc1q3jndk44fzhtg0m0z95933flm6fhw239yuvwvqd
+If you'd like to support my work, my bitcoin address is bc1q3jndk44fzhtg0m0z95933flm6fhw239yuvwvqd / dogecoin is D6R66NfzPkB2SvjCnjh3vZNz2PVnRkfRnj
 
 Sparki is an excellent little robot, and I hope this proves useful to you in exploring the world. Good luck!

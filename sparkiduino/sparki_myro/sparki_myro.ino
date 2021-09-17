@@ -8,7 +8,7 @@
    remain property of their respective owners */
 
 /* initial creation - October 27, 2015 
-   last modified - November 12, 2019 */
+   last modified - September 15, 2021 */
 
 /* conceptually, the Sparki recieves commands over the Bluetooth module from another computer 
  * a minimal command set is implemented on the Sparki itself -- just sufficient to expose the major functions
@@ -22,6 +22,7 @@
 
 /* most recent version developed in Sparkiduino 1.6.8.2 -- there do appear to be differences in compiled progam size 
  * among different versions of Sparkiduino; verified to work with 1.6.9.1; verified to work with 1.6.9.4
+ * verified to work with 1.8.7.1
 */
 
 // for simplicity of installation, we're keeping the constants and prototypes in the cpp file
@@ -44,7 +45,7 @@
 
 /* ########### CONSTANTS ########### */
 /* ***** VERSION NUMBER ***** */
-const char* SPARKI_MYRO_VERSION = "1.1.4r4";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
+const char* SPARKI_MYRO_VERSION = "1.1.4r5";    // debugs off; mag on, accel on, EEPROM on; compact 2 on
 												// versions having the same number (before the lower case r)
 												// should always have the same capabilities
 
@@ -1048,6 +1049,7 @@ void turnBy(float deg) {
 // setup - start robot
 void setup() {
   setStatusLED(50);
+  sparki.RGB( 0, 100, 0 );
   sparki.clearLCD();
   sparki.print("Version ");
   sparki.println((char*)SPARKI_MYRO_VERSION);
@@ -1064,17 +1066,17 @@ void setup() {
   // pulseIn will only return 0 if it timed out. (or if ULTRASONIC_ECHO was already to 1, but it should not happen)
   if (duration == 0) // If we timed out
   {
+    sparki.RGB( 0, 0, 100 );
     pinMode(ULTRASONIC_ECHO, OUTPUT); // Then we set echo pin to output mode
     digitalWrite(ULTRASONIC_ECHO, LOW); // We send a LOW pulse to the echo pin
     delayMicroseconds(200);
     pinMode(ULTRASONIC_ECHO, INPUT); // And finaly we come back to input mode
   } // end from repair-and-solve-faulty-hc-sr04.html
+  sparki.RGB( 0, 100, 0 );
 
 //  sparki.println("Connecting to Bluetooth");
 //  sparki.updateLCD();
   serial.begin(9600);
- 
-  sparki.RGB( 0, 0, 0 );
 
 #ifdef USE_EEPROM
   char name[EEPROM_NAME_MAX_CHARS];
@@ -1085,6 +1087,8 @@ void setup() {
 
   sparki.println("Ready");
   sparki.updateLCD();
+ 
+  sparki.RGB( 0, 0, 0 );
 } // end setup()
 
 
@@ -1350,7 +1354,8 @@ void loop() {
     case COMMAND_NOOP:             // no args; returns nothing; does nothing
       // can be used to prevent a timeout in communication with the robot
       break;
-
+      
+#ifndef NO_DEBUGS
     default:
       sparki.print("Bad input");
       sparki.updateLCD();
@@ -1358,10 +1363,18 @@ void loop() {
       sparki.beep();
       serial.print(TERMINATOR); 
       break;
+#else // NO_DEBUGS
+    default:
+      sparki.print("Ignoring ");
+      sparki.println(inByte);
+      sparki.updateLCD();
+      stop();
+      serial.print(TERMINATOR); 
+      break;    
+#endif // NO_DEBUGS
     } // end switch ((char)inByte)
   } // end if (serial.available())
   
   sendSync();    // we send the sync every time rather than a more complex handshake to save space in the program
 } // end loop()
 /* ########### END OF FUNCTIONS ########### */
-
