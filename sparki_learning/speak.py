@@ -1,14 +1,16 @@
 # speak input over the computer
 #
 # Created: May 18, 2016 by Jeremy Eglen with assistance from Kelly Schmidt for the Mac function
-# Last Modified: February 27, 2020
+# Last Modified: January 18, 2022
 #
 # included with the sparki_learning library, though that is not required
 #
 import os
 import platform
+import re
 import sys
 
+clean_regex = re.compile('[^A-Za-z0-9., ]+')
 
 def speak(*message):  # the * syntax allows multiple arguments to be passed, which will be stored in the list message
     """ Speaks the message over the computer speaker; relies on underlying operating system services
@@ -82,7 +84,9 @@ def speak_mac(message):
         returns:
         nothing
     """
+    global clean_regex
     try:
+        message = clean_regex.sub(' ', message)
         os.system("say " + message)  # uses the Mac command line program "say"
     except:
         print("There was a problem using the builtin say command", file=sys.stderr)
@@ -90,22 +94,27 @@ def speak_mac(message):
 
 
 def speak_windows(message):
-    """ Prints the message to standard out (windows does not support speech at this time)
+    """ Speaks the message over the computer speaker (windows uses vb script and windows text-to-speech)
+        It's an ugly hack
 
         arguments:
-        message - string to print
+        message - string to speak
 
         returns:
         nothing
     """
+    global clean_regex
     # the code here attempts to create a vb script file to use the OS to speak
     # the given text; it's a horrid way to do this, but the best I could come
     # up with to speak using windows without relying on external programs
 
     # the idea for the code was taken from http://superuser.com/questions/223913/os-x-say-command-for-windows
     # as answered by Alessandro Mascolo
+    
     try:
-        temp_file = "tempspeech.vbs"
+        message = clean_regex.sub(' ', message)
+        temp_file_dir = os.path.expanduser('~')
+        temp_file = temp_file_dir + "/tempspeech.vbs"
         with open(temp_file, mode='w') as f:
             f.write('Dim speech\n')
             f.write('Set speech=CreateObject("SAPI.spvoice")\n')

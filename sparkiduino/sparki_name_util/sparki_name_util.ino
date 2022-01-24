@@ -7,7 +7,7 @@
 /* This utility program sets the name of the Sparki */
 
 /* initial creation - January 21, 2016 
-   last modified - January 21, 2016 */
+   last modified - September 21, 2021 */
 
 #include <Sparki.h>
 #include "SparkiEEPROM.h"
@@ -141,10 +141,23 @@ void setup() {
   
   printDebug("Hi, my name is ", 0);
   printDebug(name, 1);
+  printDebug("Done!", 1);
 } // end setup()
 
 
 void loop() {
   // do nothing...
+  static int count = 0;
+  printDebug(".");
+
+  if (count % 3 == 0) {
+    sparki.RGB( 100, 0, 0 );
+  } else if (count % 3 == 1) {
+    sparki.RGB( 0, 100, 0 );
+  } else {
+    sparki.RGB( 0, 0, 100 );
+  }
+
+  count++;
   delay(1000);
 }
