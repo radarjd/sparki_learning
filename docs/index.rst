@@ -6,7 +6,7 @@ The Sparki robot homepage at Arcbotics may be found here: http://arcbotics.com/p
 
 The sparki_learning library github page (with installation instructions) may be found here: https://github.com/radarjd/sparki_learning
 
-This command reference is for version 1.6.6 of the python library
+This command reference is for version 1.6.8 of the python library
 
 (this library makes use of Python 3; if you're using Python 2, stop!)
 
@@ -153,7 +153,7 @@ file - a string value containing an absolute path to a file, or a relative path 
 
 .. _message:
 
-message - a value to be output such as a literal string like "Hello, World", a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be "I am on iteration number " + str(count). In the two special cases of `print(message)`_ and `speak(message)`_, message may actually be multiple arguments instead of a string. That is, in the case of those two functions only, you can do something like print("Hello", 2, "you") or speak("Hello", 2, "you").
+message - a value to be output such as a literal string like "Hello, World", a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be "I am on iteration number " + str(count). In the two special cases of `print(message)`_ and `speak(message, alsoprint=False)`_, message may actually be multiple arguments instead of a string. That is, in the case of those two functions only, you can do something like print("Hello", 2, "you") or speak("Hello", 2, "you").
 
 .. _speed:
 
@@ -482,9 +482,10 @@ setStatusLED(brightness)
 
 
 	
-speak(message)
+speak(message, alsoprint=False)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Speaks the given message. Can be given an argument like print -- e.g. speak("Hello", 2, "you") should work as well as speak("Hello to you"). *Relies on operating system features, not python -- only implemented for Mac and Windows.* On Windows, this command may create a window which is open briefly during the actual speech. The speak function is implemented with a hack and may be unreliable.
+	Speaks the given message. Can be given an argument like print -- e.g. speak("Hello", 2, "you") should work as well as speak("Hello to you"). You can also give the keyword argument alsoprint=True if you want the speak commend to print out the message immediately prior to speaking. So, you could use speak("Hello", 2, "you", alsoprint=True) as well as speak("Hello to you", alsoprint=True)
+	*Relies on operating system features, not python -- only implemented for Mac and Windows.* On Mac, this uses the say command. On Windows, this command may create a window which is open briefly during the actual speech and requires write access to the user's home folder. The speak function is implemented with a hack and may be unreliable.
 
 
 

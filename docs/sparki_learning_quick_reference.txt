@@ -153,7 +153,7 @@ file - a string value containing an absolute path to a file, or a relative path 
 
 .. _message:
 
-message - a value to be output such as a literal string like "Hello, World", a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be "I am on iteration number " + str(count). In the two special cases of `print(message)`_ and `speak(message)`_, message may actually be multiple arguments instead of a string. That is, in the case of those two functions only, you can do something like print("Hello", 2, "you") or speak("Hello", 2, "you").
+message - a value to be output such as a literal string like "Hello, World", a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be "I am on iteration number " + str(count). In the two special cases of `print(message)`_ and `speak(message, alsoprint=False)`_, message may actually be multiple arguments instead of a string. That is, in the case of those two functions only, you can do something like print("Hello", 2, "you") or speak("Hello", 2, "you").
 
 .. _speed:
 

@@ -368,7 +368,7 @@ Sparki Learning Command Quick Reference
 ======================================================</p>
 <p>The Sparki robot homepage at Arcbotics may be found here: <a class="reference external" href="http://arcbotics.com/products/sparki/">http://arcbotics.com/products/sparki/</a></p>
 <p>The sparki_learning library github page (with installation instructions) may be found here: <a class="reference external" href="https://github.com/radarjd/sparki_learning">https://github.com/radarjd/sparki_learning</a></p>
-<p>This command reference is for version 1.6.6 of the python library</p>
+<p>This command reference is for version 1.6.8 of the python library</p>
 <p>(this library makes use of Python 3; if you're using Python 2, stop!)</p>
 <div class="contents topic" id="contents">
 <p class="topic-title">Contents</p>
@@ -456,7 +456,7 @@ Sparki Learning Command Quick Reference
 <li><a class="reference internal" href="#printdebug-message-priority-debug-warn-output-sys-stderr" id="id74">printDebug(message, priority = DEBUG_WARN, output = sys.stderr)</a></li>
 <li><a class="reference internal" href="#setrgbled-red-green-blue" id="id75">setRGBLED(red, green, blue)</a></li>
 <li><a class="reference internal" href="#setstatusled-brightness" id="id76">setStatusLED(brightness)</a></li>
-<li><a class="reference internal" href="#speak-message" id="id77">speak(message)</a></li>
+<li><a class="reference internal" href="#speak-message-alsoprint-false" id="id77">speak(message, alsoprint=False)</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#sensor-commands" id="id78">Sensor Commands</a><ul>
@@ -605,7 +605,7 @@ Waits time seconds before moving to the next command, and sends noops to the rob
 <p>Several commands in the myro module use variables for speed and time, including motors(), forward(), backward(), turnLeft(), and turnRight(). wait() makes use only of time. message is used for output and some input functions. file is used for reading data from files and saving data to them.</p>
 <p id="distance">distance - a float number of centimeters.</p>
 <p id="file">file - a string value containing an absolute path to a file, or a relative path from the directory where IDLE resides. An absolute path on Windows looks like &quot;C:\Music\musicfile.wav&quot; and on Mac looks like &quot;/home/music/musicfile.wav&quot;. Even on Windows, the backslashes may appear as front slashes.</p>
-<p id="message">message - a value to be output such as a literal string like &quot;Hello, World&quot;, a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be &quot;I am on iteration number &quot; + str(count). In the two special cases of <a class="reference internal" href="#print-message">print(message)</a> and <a class="reference internal" href="#speak-message">speak(message)</a>, message may actually be multiple arguments instead of a string. That is, in the case of those two functions only, you can do something like print(&quot;Hello&quot;, 2, &quot;you&quot;) or speak(&quot;Hello&quot;, 2, &quot;you&quot;).</p>
+<p id="message">message - a value to be output such as a literal string like &quot;Hello, World&quot;, a variable, or a combination. If you want message to be a literal string, remember to enclose the string in quotation marks. If you are combining a string plus a numeric value, you need to convert the numeric value to a string using the str() function. For example, if count were a variable which holds the iteration number of a loop, message could be &quot;I am on iteration number &quot; + str(count). In the two special cases of <a class="reference internal" href="#print-message">print(message)</a> and <a class="reference internal" href="#speak-message-alsoprint-false">speak(message, alsoprint=False)</a>, message may actually be multiple arguments instead of a string. That is, in the case of those two functions only, you can do something like print(&quot;Hello&quot;, 2, &quot;you&quot;) or speak(&quot;Hello&quot;, 2, &quot;you&quot;).</p>
 <p id="speed">speed - a value between -1 and 1. Any value less than -1 will be made -1; any value more than 1 will be made 1. A value of 1 means to turn the wheels at full power. A value of -1 means to turn the wheels in the opposite direction at full power. Decimal values mean to use proportionately less than full power (so .5 is half power).</p>
 <p id="time">time - the time in seconds to perform the action. Fractional values will perform for fractional seconds. A value of -1 means to perform the action forever. If time is optional for a command, the value defaults to -1 (meaning that if you omit time, the robot performs the command until you tell it to <a class="reference internal" href="#stop">stop()</a>).</p>
 </div>
@@ -866,10 +866,11 @@ Sets the RGB LED to red, green, blue, where each value is a number from 0 to 100
 <blockquote>
 Sets the status LED to brightness, where brightness is a number from 0 to 100. For the &quot;standard&quot; versions of the Sparki software, the status LED is illuminated when the robot is processing a command, and turned off when it is not, so this is of limited use.</blockquote>
 </div>
-<div class="section" id="speak-message">
-<h3><a class="toc-backref" href="#id77">speak(message)</a></h3>
+<div class="section" id="speak-message-alsoprint-false">
+<h3><a class="toc-backref" href="#id77">speak(message, alsoprint=False)</a></h3>
 <blockquote>
-Speaks the given message. Can be given an argument like print -- e.g. speak(&quot;Hello&quot;, 2, &quot;you&quot;) should work as well as speak(&quot;Hello to you&quot;). <em>Relies on operating system features, not python -- only implemented for Mac and Windows.</em> On Windows, this command may create a window which is open briefly during the actual speech. The speak function is implemented with a hack and may be unreliable.</blockquote>
+Speaks the given message. Can be given an argument like print -- e.g. speak(&quot;Hello&quot;, 2, &quot;you&quot;) should work as well as speak(&quot;Hello to you&quot;). You can also give the keyword argument alsoprint=True if you want the speak commend to print out the message immediately prior to speaking. So, you could use speak(&quot;Hello&quot;, 2, &quot;you&quot;, alsoprint=True) as well as speak(&quot;Hello to you&quot;, alsoprint=True)
+<em>Relies on operating system features, not python -- only implemented for Mac and Windows.</em> On Mac, this uses the say command. On Windows, this command may create a window which is open briefly during the actual speech and requires write access to the user's home folder. The speak function is implemented with a hack and may be unreliable.</blockquote>
 </div>
 </div>
 <div class="section" id="sensor-commands">
