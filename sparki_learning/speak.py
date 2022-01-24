@@ -12,12 +12,14 @@ import sys
 
 clean_regex = re.compile('[^A-Za-z0-9., ]+')
 
-def speak(*message):  # the * syntax allows multiple arguments to be passed, which will be stored in the list message
+def speak(*message, alsoprint=False):  # the * syntax allows multiple arguments to be passed, which will be stored in the list message
     """ Speaks the message over the computer speaker; relies on underlying operating system services
 
         arguments:
         message - data to speak; can be multiple arguments (like print) but all must be able to be converted to a string or this throws an error
                   for example, speak("Hello", 2, "day") should be a valid call
+        alsoprint - keyword only argument which will cause the message to be printed in addition to spoken;
+                    if you want to use this, you must do something like speak("Hello my name is Sparki", alsoprint=True)
 
         returns:
         nothing
@@ -26,8 +28,12 @@ def speak(*message):  # the * syntax allows multiple arguments to be passed, whi
     message = ' '.join([str(arg) for arg in message])  # concatenate all the arguments into one string
 
     if currentOS == "Darwin":
+        if alsoprint:
+            print(message)
         speak_mac(message)
     elif currentOS == "Windows":
+        if alsoprint:
+            print(message)
         speak_windows(message)
     elif "CYGWIN" in currentOS:
         speak_cygwin(message)
@@ -127,12 +133,25 @@ def speak_windows(message):
 
 
 def main():
+    alsoprint = "undefined"
+    
+    while alsoprint.lower() not in ["yes", "no", "y", "n"]:
+        alsoprint = input("Should I also print the message? [y/n] ")
+        
+        if not alsoprint:
+            alsoprint = "undefined"
+            
+    if alsoprint.lower() in ["yes","y"]:
+        alsoprint = True
+    else:
+        alsoprint = False
+    
     if len(sys.argv) > 1:  # this if statement looks for a command line argument to the program
         data = ' '.join(sys.argv[1:])  # if there's an argument, treat that thing to be spoken
     else:  # otherwise, let the user enter the thing to say
         data = input("What do you want me to say? ")
 
-    speak(data)
+    speak(data, alsoprint=alsoprint)
 
 
 if __name__ == "__main__":
