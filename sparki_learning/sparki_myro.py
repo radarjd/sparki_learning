@@ -12,7 +12,7 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: March 2, 2021
+# Last Modified: June 15, 2022
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3
 # working with Python 3.7 and 3.8
 # don't use Python 2!
@@ -205,7 +205,11 @@ def getSerialFloat():
         returns:
         float - from the serial port; returns a -1 if Sparki gave "ovf" or no response
     """
-    result = getSerialBytes()
+    try:
+        result = getSerialBytes()
+    except:
+        printDebug("in getSerialFloat -- received bad data", DEBUG_ERROR)
+        result = -1.0
 
     if str(result) == "ovf" or len(result) == 0:  # check for overflow
         result = -1.0  # -1.0 is not necessarily a great "error response", except that values from the Sparki should be positive
@@ -225,7 +229,11 @@ def getSerialInt():
         returns:
         int - from the serial port; returns a -1 if Sparki gave "ovf" or no response
     """
-    result = getSerialBytes()
+    try:
+        result = getSerialBytes()
+    except:
+        printDebug("in getSerialInt -- received bad data", DEBUG_ERROR)
+        result = -1
 
     if str(result) == "ovf" or len(result) == 0:  # check for overflow
         result = -1  # -1 is not necessarily a great "error response", except that values from the Sparki should be positive
@@ -274,8 +282,9 @@ def printUnableToConnect():
     print("    3) Your computer's Bluetooth has been paired with Sparki", file=sys.stderr)
     print("    4) Sparki's batteries have some power left", file=sys.stderr)
     print("If you see the Sparki logo on the LCD, press reset on the Sparki and try to reconnect -- you may have to do this many times.", file=sys.stderr)
-    print("Windows 10 and MacOS will shut down the Bluetooth to save power (I think). Sometimes immediately rerunning the program will fix it.", file=sys.stderr)
+    print("Windows 10 & 11 and MacOS will shut down the Bluetooth to save power (I think). Sometimes immediately rerunning the program will fix it.", file=sys.stderr)
     print("You can also try to reset your shell", file=sys.stderr)
+    print("If you're testing your program, you can try setDebug(DEBUG_DEBUG) to get more error messages", file=sys.stderr)
 
 
 def sendSerial(command, args=None):
@@ -929,8 +938,8 @@ def getName():
     global robot_name
     
     if not USE_EEPROM:
-        printDebug("getName not be implemented on Sparki", DEBUG_CRITICAL)
-        raise NotImplementedError
+        printDebug("getName not implemented -- update sparki_myro.ino", DEBUG_ERROR)
+        robot_name = "Sparki"
 
     printDebug("In getName", DEBUG_INFO)
     
@@ -938,7 +947,14 @@ def getName():
         return robot_name
     else:
         sendSerial(COMMAND_CODES["GET_NAME"])
-        robot_name = getSerialString()
+        
+        try:
+            robot_name = getSerialString()
+        except:
+            printDebug("There was a problem getting Sparki's name.", DEBUG_ERROR)
+            printDebug("You may need to set it using setName(). It will default to Sparki", DEBUG_ERROR)
+            robot_name = "Sparki"
+            
         return robot_name
 
 
