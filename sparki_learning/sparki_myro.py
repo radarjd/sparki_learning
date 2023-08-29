@@ -148,7 +148,7 @@ def disconnectSerial():
         
         # if the noop thread is running, wait until it terminates,
         # which should happen because serial_is_connected is False
-        if noop_thread is not None and noop_thread.isalive():  
+        if noop_thread is not None and noop_thread.is_alive():  
             noop_thread.join()
         
         init_time = -1
@@ -170,12 +170,16 @@ def foreverNoop():
     global serial_is_connected
     noop_wait = 10  # number of seconds to wait between scheduling noops
     
-    while serial_is_connected:
-        printDebug("In foreverNoop, about to attempt noop (should wait for command_semaphore)", DEBUG_DEBUG)
-        noop()
+    try:
+        while serial_is_connected:
+            printDebug("In foreverNoop, about to attempt noop (should wait for command_semaphore)", DEBUG_DEBUG)
+            noop()
         
-        wait(noop_wait)
-        
+            wait(noop_wait)
+    except serial.SerialTimeoutException:
+        printDebug("In foreverNoop, thread killed by serial exception", DEBUG_INFO)
+        return
+
 
 def getSerialBytes():
     """ Returns bytes from the serial port up to TERMINATOR
@@ -554,16 +558,18 @@ def compass():
         returns:
         float - heading
     """
+    global command_semaphore
 
     if NO_MAG:
         printDebug("Magnometers not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In compass", DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In compass", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["COMPASS"])
-    result = getSerialFloat()
-    return result
+        sendSerial(COMMAND_CODES["COMPASS"])
+        result = getSerialFloat()
+        return result
 
 
 def drawFunction(function, xvals, scale=1):
@@ -599,36 +605,39 @@ def EEPROMread(location, amount):
         returns:
         bytes - bytes from the EEPROM
     """
+    global command_semaphore
+    
     if not (USE_EEPROM and EXT_LCD_1):
         printDebug("EEPROMread not be implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In EEPROMread, location is " + str(location) + " and amount is " + str(amount), DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In EEPROMread, location is " + str(location) + " and amount is " + str(amount), DEBUG_INFO)
 
-    if location > EEPROM_MAX_ADDRESS:
-        printDebug(
-            "In EEPROMread, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
-            DEBUG_WARN)
+        if location > EEPROM_MAX_ADDRESS:
+            printDebug(
+                "In EEPROMread, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
+                DEBUG_WARN)
 
-    if amount > EEPROM_MAX_ADDRESS:
-        printDebug(
-            "In EEPROMread, amount greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
-            DEBUG_WARN)
+        if amount > EEPROM_MAX_ADDRESS:
+            printDebug(
+                "In EEPROMread, amount greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
+                DEBUG_WARN)
 
-    location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
-    amount = int(constrain(amount, 0, EEPROM_MAX_ADDRESS))
+        location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
+        amount = int(constrain(amount, 0, EEPROM_MAX_ADDRESS))
 
-    if amount == 0:
-        printDebug("In EEPROMread, asked to read 0 bytes, returning...", DEBUG_WARN)
+        if amount == 0:
+            printDebug("In EEPROMread, asked to read 0 bytes, returning...", DEBUG_WARN)
 
-    if location + amount > EEPROM_MAX_ADDRESS:
-        printDebug("In EEPROMread, amount greater than EEPROM space", DEBUG_CRITICAL)
-        raise IndexError
+        if location + amount > EEPROM_MAX_ADDRESS:
+            printDebug("In EEPROMread, amount greater than EEPROM space", DEBUG_CRITICAL)
+            raise IndexError
 
-    args = [location, amount]
-    sendSerial(COMMAND_CODES["READ_EEPROM"], args)
+        args = [location, amount]
+        sendSerial(COMMAND_CODES["READ_EEPROM"], args)
 
-    return getSerialBytes()
+        return getSerialBytes()
 
 
 def EEPROMwrite(location, data):
@@ -641,25 +650,28 @@ def EEPROMwrite(location, data):
         returns:
         nothing
     """
+    global command_semaphore
+    
     if not (USE_EEPROM and EXT_LCD_1):
         printDebug("EEPROMwrite not be implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In EEPROMwrite, location is " + str(location) + " and data is " + str(data), DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In EEPROMwrite, location is " + str(location) + " and data is " + str(data), DEBUG_INFO)
 
-    if location > EEPROM_MAX_ADDRESS:
-        printDebug(
-            "In EEPROMwrite, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
-            DEBUG_WARN)
+        if location > EEPROM_MAX_ADDRESS:
+            printDebug(
+                "In EEPROMwrite, location greater than maximum valid address (" + str(EEPROM_MAX_ADDRESS) + ") fixing...",
+                DEBUG_WARN)
 
-    location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
+        location = int(constrain(location, 0, EEPROM_MAX_ADDRESS))
 
-    if location + len(data) > EEPROM_MAX_ADDRESS:
-        printDebug("In EEPROMwrite, too much data to store", DEBUG_CRITICAL)
-        raise IndexError
+        if location + len(data) > EEPROM_MAX_ADDRESS:
+            printDebug("In EEPROMwrite, too much data to store", DEBUG_CRITICAL)
+            raise IndexError
 
-    args = [location, data]
-    sendSerial(COMMAND_CODES["WRITE_EEPROM"], args)
+        args = [location, data]
+        sendSerial(COMMAND_CODES["WRITE_EEPROM"], args)
 
 
 def forward(speed, time=-1):
@@ -717,15 +729,18 @@ def getAccel():
         returns:
         tuple of 3 floats representing the X, Y, and Z sensors (in that order)
     """
+    global command_semaphore
+    
     if NO_ACCEL:
         printDebug("Accelerometers not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In getAccel", DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In getAccel", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["GET_ACCEL"])
-    result = (getSerialFloat(), getSerialFloat(), getSerialFloat())
-    return result
+        sendSerial(COMMAND_CODES["GET_ACCEL"])
+        result = (getSerialFloat(), getSerialFloat(), getSerialFloat())
+        return result
 
 
 def getAccelX():
@@ -865,22 +880,25 @@ def getLight(position=LIGHT_SENS_RIGHT + 3):
         int - value of sensor at position OR
         tuple of ints - values of left, middle, and right sensors (in that order)
     """
-    printDebug("In getLight, position is " + str(position), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In getLight, position is " + str(position), DEBUG_INFO)
 
-    if position == "left":
-        position = LIGHT_SENS_LEFT
-    elif position == "center" or position == "middle":
-        position = LIGHT_SENS_MID
-    elif position == "right":
-        position = LIGHT_SENS_RIGHT
+        if position == "left":
+            position = LIGHT_SENS_LEFT
+        elif position == "center" or position == "middle":
+            position = LIGHT_SENS_MID
+        elif position == "right":
+            position = LIGHT_SENS_RIGHT
 
-    sendSerial(COMMAND_CODES["GET_LIGHT"])
-    lights = (getSerialInt(), getSerialInt(), getSerialInt())
+        sendSerial(COMMAND_CODES["GET_LIGHT"])
+        lights = (getSerialInt(), getSerialInt(), getSerialInt())
 
-    if position == LIGHT_SENS_LEFT or position == LIGHT_SENS_MID or position == LIGHT_SENS_RIGHT:
-        return lights[position]
-    else:
-        return lights
+        if position == LIGHT_SENS_LEFT or position == LIGHT_SENS_MID or position == LIGHT_SENS_RIGHT:
+            return lights[position]
+        else:
+            return lights
 
 
 def getLine(position=LINE_EDGE_RIGHT + 5):
@@ -893,22 +911,25 @@ def getLine(position=LINE_EDGE_RIGHT + 5):
         int - value of sensor at position OR
         tuple of ints - values of edge left, left, middle, right, and edge right sensors (in that order)
     """
-    printDebug("In getLine, position is " + str(position), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In getLine, position is " + str(position), DEBUG_INFO)
 
-    if position == "left":
-        position = LINE_MID_LEFT
-    elif position == "center" or position == "middle":
-        position = LINE_MID
-    elif position == "right":
-        position = LINE_MID_RIGHT
+        if position == "left":
+            position = LINE_MID_LEFT
+        elif position == "center" or position == "middle":
+            position = LINE_MID
+        elif position == "right":
+            position = LINE_MID_RIGHT
 
-    sendSerial(COMMAND_CODES["GET_LINE"])
-    lines = (getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt())
+        sendSerial(COMMAND_CODES["GET_LINE"])
+        lines = (getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt(), getSerialInt())
 
-    if position == LINE_EDGE_LEFT or position == LINE_MID_LEFT or position == LINE_MID or position == LINE_MID_RIGHT or position == LINE_EDGE_RIGHT:
-        return lines[position]
-    else:
-        return lines
+        if position == LINE_EDGE_LEFT or position == LINE_MID_LEFT or position == LINE_MID or position == LINE_MID_RIGHT or position == LINE_EDGE_RIGHT:
+            return lines[position]
+        else:
+            return lines
 
 
 def getMag():
@@ -920,15 +941,18 @@ def getMag():
         returns:
         tuple of 3 floats representing the X, Y, and Z sensors (in that order)
     """
+    global command_semaphore
+    
     if NO_MAG:
         printDebug("Magnetometers not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In getMag", DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In getMag", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["GET_MAG"])
-    result = (getSerialFloat(), getSerialFloat(), getSerialFloat())
-    return result
+        sendSerial(COMMAND_CODES["GET_MAG"])
+        result = (getSerialFloat(), getSerialFloat(), getSerialFloat())
+        return result
 
 
 def getMagX():
@@ -1102,14 +1126,17 @@ def gripperClose(distance=MAX_GRIPPER_DISTANCE):
         returns:
         nothing
     """
-    printDebug("In gripperClose, distance is " + str(distance), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In gripperClose, distance is " + str(distance), DEBUG_INFO)
 
-    distance = constrain(distance, 0, MAX_GRIPPER_DISTANCE)
-    distance = float(distance)
-    args = [distance]
+        distance = constrain(distance, 0, MAX_GRIPPER_DISTANCE)
+        distance = float(distance)
+        args = [distance]
 
-    sendSerial(COMMAND_CODES["GRIPPER_CLOSE_DIS"], args)
-    wait(distance)
+        sendSerial(COMMAND_CODES["GRIPPER_CLOSE_DIS"], args)
+        wait(distance)
 
 
 def gripperOpen(distance=MAX_GRIPPER_DISTANCE):
@@ -1121,13 +1148,16 @@ def gripperOpen(distance=MAX_GRIPPER_DISTANCE):
         returns:
         nothing
     """
-    printDebug("In gripperOpen, distance is " + str(distance), DEBUG_INFO)
-    distance = constrain(distance, 0, MAX_GRIPPER_DISTANCE)
-    distance = float(distance)
-    args = [distance]
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In gripperOpen, distance is " + str(distance), DEBUG_INFO)
+        distance = constrain(distance, 0, MAX_GRIPPER_DISTANCE)
+        distance = float(distance)
+        args = [distance]
 
-    sendSerial(COMMAND_CODES["GRIPPER_OPEN_DIS"], args)
-    wait(distance)
+        sendSerial(COMMAND_CODES["GRIPPER_OPEN_DIS"], args)
+        wait(distance)
 
 
 def gripperStop():
@@ -1139,9 +1169,12 @@ def gripperStop():
         returns:
         nothing
     """
-    printDebug("In gripperStop", DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In gripperStop", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["GRIPPER_STOP"])
+        sendSerial(COMMAND_CODES["GRIPPER_STOP"])
 
 
 def init(com_port, print_versions=True, auto=False, retries=2):
@@ -1439,9 +1472,12 @@ def LCDclear(update=True):
         returns:
         nothing
     """
-    printDebug("In LCDclear", DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In LCDclear", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["LCD_CLEAR"])
+        sendSerial(COMMAND_CODES["LCD_CLEAR"])
 
     if update:
         LCDupdate()
@@ -1461,19 +1497,22 @@ def LCDdrawPixel(x, y, update=True, outofbounds = False):
         returns:
         nothing
     """
-    # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
-    printDebug("In LCDdrawPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
+        printDebug("In LCDdrawPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
-    if outofbounds:
-        if x < 0 or x > 127 or y < 0 or y > 63:
-            return
-    else:
-        x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
-        y = int(constrain(y, 0, 63))
+        if outofbounds:
+            if x < 0 or x > 127 or y < 0 or y > 63:
+                return
+        else:
+            x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
+            y = int(constrain(y, 0, 63))
 
-    args = [x, y]
+        args = [x, y]
 
-    sendSerial(COMMAND_CODES["LCD_DRAW_PIXEL"], args)
+        sendSerial(COMMAND_CODES["LCD_DRAW_PIXEL"], args)
 
     if update:
         LCDupdate()
@@ -1560,14 +1599,17 @@ def LCDdrawString(x, y, message, update=True):
         printDebug("LCDdrawString not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In LCDdrawString, x is " + str(x) + ", y is " + str(y) + ", message is " + str(message), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In LCDdrawString, x is " + str(x) + ", y is " + str(y) + ", message is " + str(message), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 121))  # 128 (0 to 127) pixels on the LCD, and a character is 6 pixels wide
-    y = int(constrain(y, 0, 7))  # 8 (0 to 7) lines on the LCD
+        x = int(constrain(x, 0, 121))  # 128 (0 to 127) pixels on the LCD, and a character is 6 pixels wide
+        y = int(constrain(y, 0, 7))  # 8 (0 to 7) lines on the LCD
 
-    args = [x, y, message]
+        args = [x, y, message]
 
-    sendSerial(COMMAND_CODES["LCD_DRAW_STRING"], args)
+        sendSerial(COMMAND_CODES["LCD_DRAW_STRING"], args)
 
     if update:
         LCDupdate()
@@ -1606,11 +1648,14 @@ def LCDprint(message, update=True):
         returns:
         nothing
     """
-    printDebug("In LCDprint, message is " + str(message), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In LCDprint, message is " + str(message), DEBUG_INFO)
 
-    message = str(message)
+        message = str(message)
 
-    sendSerial(COMMAND_CODES["LCD_PRINT"], message)
+        sendSerial(COMMAND_CODES["LCD_PRINT"], message)
 
     if update:
         LCDupdate()
@@ -1626,11 +1671,14 @@ def LCDprintLn(message, update=True):
         returns:
         nothing
     """
-    printDebug("In LCDprintLn, message is " + str(message), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In LCDprintLn, message is " + str(message), DEBUG_INFO)
 
-    message = str(message)
+        message = str(message)
 
-    sendSerial(COMMAND_CODES["LCD_PRINTLN"], message)
+        sendSerial(COMMAND_CODES["LCD_PRINTLN"], message)
 
     if update:
         LCDupdate()
@@ -1646,24 +1694,27 @@ def LCDreadPixel(x, y):
         returns:
         bool - True if the pixel is black
     """
+    global command_semaphore
+    
     if not EXT_LCD_1:
         printDebug("LCDreadPixel not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In LCDredPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In LCDredPixel, x is " + str(x) + ", y is " + str(y), DEBUG_INFO)
 
-    x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
-    y = int(constrain(y, 0, 63))
+        x = int(constrain(x, 0, 127))  # the LCD is 128 x 64
+        y = int(constrain(y, 0, 63))
 
-    args = [x, y]
+        args = [x, y]
 
-    sendSerial(COMMAND_CODES["LCD_READ_PIXEL"], args)
-    result = getSerialInt()
+        sendSerial(COMMAND_CODES["LCD_READ_PIXEL"], args)
+        result = getSerialInt()
 
-    if result == 1:
-        return True
-    else:
-        return False
+        if result == 1:
+            return True
+        else:
+            return False
 
 
 def LCDsetColor(color=LCD_BLACK):
@@ -1676,20 +1727,22 @@ def LCDsetColor(color=LCD_BLACK):
         nothing
     """
     global current_lcd_color
-
+    global command_semaphore
+    
     # in the Sparkiduino library of 1.6.8.2 or earlier, this will function not work reliably due to a bug in the underlying library
 
     if not EXT_LCD_1:
         printDebug("LCDsetColor not implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In LCDsetColor, color is " + str(color), DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In LCDsetColor, color is " + str(color), DEBUG_INFO)
 
-    args = [color]
+        args = [color]
 
-    sendSerial(COMMAND_CODES["LCD_SET_COLOR"], args)
+        sendSerial(COMMAND_CODES["LCD_SET_COLOR"], args)
 
-    current_lcd_color = color
+        current_lcd_color = color
 
 
 def LCDupdate():
@@ -1701,9 +1754,12 @@ def LCDupdate():
         returns:
         nothing
     """
-    printDebug("In LCDupdate", DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In LCDupdate", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["LCD_UPDATE"])
+        sendSerial(COMMAND_CODES["LCD_UPDATE"])
 
 
 def motors(left_speed, right_speed, time=-1):
@@ -1805,27 +1861,29 @@ def moveBackwardcm(centimeters):
     """
     global centimeters_moved
     global in_motion
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In moveBackwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
 
-    printDebug("In moveBackwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
+        centimeters = float(centimeters)
 
-    centimeters = float(centimeters)
+        if centimeters == 0:
+            printDebug("In moveBackwardcm, centimeters is 0... doing nothing", DEBUG_WARN)
+            return
+        elif centimeters < 0:
+            printDebug("In moveBackwardcm, centimeters is negative, calling moveForwardcm", DEBUG_ERROR)
+            moveForwardcm(-centimeters)
+            return
 
-    if centimeters == 0:
-        printDebug("In moveBackwardcm, centimeters is 0... doing nothing", DEBUG_WARN)
-        return
-    elif centimeters < 0:
-        printDebug("In moveBackwardcm, centimeters is negative, calling moveForwardcm", DEBUG_ERROR)
-        moveForwardcm(-centimeters)
-        return
+        centimeters_moved += centimeters
 
-    centimeters_moved += centimeters
+        args = [centimeters]
 
-    args = [centimeters]
-
-    in_motion = True
-    sendSerial(COMMAND_CODES["BACKWARD_CM"], args)
-    wait(centimeters * SECS_PER_CM)
-    in_motion = False
+        in_motion = True
+        sendSerial(COMMAND_CODES["BACKWARD_CM"], args)
+        wait(centimeters * SECS_PER_CM)
+        in_motion = False
 
 
 def moveForwardcm(centimeters):
@@ -1839,27 +1897,29 @@ def moveForwardcm(centimeters):
     """
     global centimeters_moved
     global in_motion
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In moveForwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
 
-    printDebug("In moveForwardcm, centimeters is " + str(centimeters), DEBUG_INFO)
+        centimeters = float(centimeters)
 
-    centimeters = float(centimeters)
+        if centimeters == 0:
+            printDebug("In moveForwardcm, centimeters is 0... doing nothing", DEBUG_WARN)
+            return
+        elif centimeters < 0:
+            printDebug("In moveForwardcm, centimeters is negative, calling moveBackwardcm", DEBUG_ERROR)
+            moveBackwardcm(-centimeters)
+            return
 
-    if centimeters == 0:
-        printDebug("In moveForwardcm, centimeters is 0... doing nothing", DEBUG_WARN)
-        return
-    elif centimeters < 0:
-        printDebug("In moveForwardcm, centimeters is negative, calling moveBackwardcm", DEBUG_ERROR)
-        moveBackwardcm(-centimeters)
-        return
+        centimeters_moved += centimeters
 
-    centimeters_moved += centimeters
+        args = [centimeters]
 
-    args = [centimeters]
-
-    in_motion = True
-    sendSerial(COMMAND_CODES["FORWARD_CM"], args)
-    wait(centimeters * SECS_PER_CM)
-    in_motion = False
+        in_motion = True
+        sendSerial(COMMAND_CODES["FORWARD_CM"], args)
+        wait(centimeters * SECS_PER_CM)
+        in_motion = False
 
 
 def moveBy(dX, dY, turnBack=False):
@@ -1969,11 +2029,14 @@ def ping():
         returns:
         int - approximate distance in centimeters from nearest object (-1 means nothing was found)
     """
-    printDebug("In ping", DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In ping", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["PING"])
-    result = getSerialInt()
-    return result
+        sendSerial(COMMAND_CODES["PING"])
+        result = getSerialInt()
+        return result
 
 
 def receiveIR():
@@ -1986,11 +2049,14 @@ def receiveIR():
         int - reading (-1 indicates no data is available)
         note that the TERMINATOR and SYNC characters would never be received if sent
     """
-    printDebug("In receiveIR", DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In receiveIR", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["RECEIVE_IR"])
-    result = getSerialInt()
-    return result
+        sendSerial(COMMAND_CODES["RECEIVE_IR"])
+        result = getSerialInt()
+        return result
 
 
 def resetPosition():
@@ -2025,11 +2091,14 @@ def sendIR(sendMe):
         returns:
         nothing
     """
-    printDebug("In sendIR, sendMe is " + str(sendMe), DEBUG_INFO)
-    sendMe = int(sendMe)
-    args = [sendMe]
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In sendIR, sendMe is " + str(sendMe), DEBUG_INFO)
+        sendMe = int(sendMe)
+        args = [sendMe]
 
-    sendSerial(COMMAND_CODES["SEND_IR"], args)
+        sendSerial(COMMAND_CODES["SEND_IR"], args)
 
 
 def senses():
@@ -2225,7 +2294,7 @@ def servo(position):
 
         sendSerial(COMMAND_CODES["SERVO"], args)
         
-    wait(.1)  # be sure the head has time to turn
+        wait(.1)  # be sure the head has time to turn
 
 
 def setAngle(newAngle=0):
@@ -2382,13 +2451,16 @@ def setSparkiDebug(level):
         returns:
         none
     """
+    global command_semaphore
+    
     if SPARKI_DEBUGS:
-        printDebug("Changing Sparki debug level to " + str(level), DEBUG_INFO)
-        level = int(constrain(level, DEBUG_ALWAYS, DEBUG_DEBUG))
+        with command_semaphore:
+            printDebug("Changing Sparki debug level to " + str(level), DEBUG_INFO)
+            level = int(constrain(level, DEBUG_ALWAYS, DEBUG_DEBUG))
 
-        args = [level]
+            args = [level]
 
-        sendSerial(COMMAND_CODES["SET_DEBUG_LEVEL"], args)
+            sendSerial(COMMAND_CODES["SET_DEBUG_LEVEL"], args)
     else:
         printDebug("Setting sparki debug level is not available", DEBUG_ERROR)
 
