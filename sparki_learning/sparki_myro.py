@@ -12,16 +12,17 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: June 15, 2022
+# Last Modified: August 29, 2023
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3
 # working with Python 3.7 and 3.8
 # don't use Python 2!
 
-import logging
+#import logging
 import math
 import platform
 import sys
 import serial  # developed with pyserial 2.7, but also works with later versions
+import threading
 import time
 
 from sparki_learning.constants import *
@@ -46,6 +47,12 @@ NOOP = False  # noop() -- if False, noop is simulated with setStatusLED
 
 # ***** RUNTIME OPTIONS ***** #
 command_queue = []  # this stores every command sent to Sparki
+
+command_semaphore = None  # this locks the sparki such that only one command is sent at any time
+                          # we care about commands being atomic -- not reads and/or writes, because
+                          # a command may generate a data response from the robot
+noop_thread = None  # this thread will repeatedly sent a noop to maintain the connection
+                    # between the robot and the computer
 
 centimeters_moved = 0  # this stores the sum of centimeters moved forward or backward using the moveForwardcm()
 # or moveBackwardcm() functions; used implicitly by moveTo() and moveBy(); use directly
@@ -125,18 +132,50 @@ def disconnectSerial():
         returns:
         nothing
     """
+    global command_semaphore
     global init_time
     global serial_conn
     global serial_is_connected
     global serial_port
+    global noop_thread
 
     if serial_is_connected:
         serial_is_connected = False
         serial_conn.close()
         serial_conn = None
         serial_port = None
+        command_semaphore = None
+        
+        # if the noop thread is running, wait until it terminates,
+        # which should happen because serial_is_connected is False
+        if noop_thread is not None and noop_thread.isalive():  
+            noop_thread.join()
+        
         init_time = -1
 
+
+def foreverNoop():
+    """ Sends noops to the robot as long as the serial port is connected; intended to
+        be called as a thread, e.g.
+        noop_thread = threading.Thread(target=foreverNoop)
+        noop_thread.start()
+        terminates when serial_is_connected is False
+
+        arguments:
+        none
+        
+        returns:
+        nothing
+    """
+    global serial_is_connected
+    noop_wait = 10  # number of seconds to wait between scheduling noops
+    
+    while serial_is_connected:
+        printDebug("In foreverNoop, about to attempt noop (should wait for command_semaphore)", DEBUG_DEBUG)
+        noop()
+        
+        wait(noop_wait)
+        
 
 def getSerialBytes():
     """ Returns bytes from the serial port up to TERMINATOR
@@ -310,7 +349,8 @@ def sendSerial(command, args=None):
         printDebug("In sendSerial, no command given", DEBUG_ALWAYS)
         raise RuntimeError("Attempt to send message to Sparki without command")
 
-    command_queue.append((command, args))  # keep track of every command sent
+    if command != COMMAND_CODES["NOOP"]:
+        command_queue.append((command, args))  # keep track of every command sent except noops
 
     try:
         waitForSync()  # be sure Sparki is available before sending
@@ -479,6 +519,7 @@ def backward(speed, time=-1):
 
 def beep(time=200, freq=2800):
     """ Plays a tone on the Sparki buzzer at freq for time; both are optional
+        (note that for myro compatibility reasons, the arguments for this function are opposite other functions with a time argument)
     
         arguments:
         time - time in milliseconds to play freq (default 200ms)
@@ -487,18 +528,21 @@ def beep(time=200, freq=2800):
         returns:
         nothing
     """
-    printDebug("In beep, freq is " + str(freq) + " and time is " + str(time), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In beep, freq is " + str(freq) + " and time is " + str(time), DEBUG_INFO)
 
-    freq = int(freq)  # ensure we have the right type of data
-    time = int(time)
+        freq = int(freq)  # ensure we have the right type of data
+        time = int(time)
 
-    freq = constrain(freq, 0, 40000)
-    time = constrain(time, 0, 10000)
+        freq = constrain(freq, 0, 40000)
+        time = constrain(time, 0, 10000)
 
-    args = [freq, time]
+        args = [freq, time]
 
-    sendSerial(COMMAND_CODES["BEEP"], args)
-    wait(time / 1000)
+        sendSerial(COMMAND_CODES["BEEP"], args)
+        wait(time / 1000)
 
 
 def compass():
@@ -660,7 +704,7 @@ def gamepad():
 
     sendSerial(COMMAND_CODES["GAMEPAD"])
     print("Sparki will not respond to other commands until remote control ends")
-    print("Press - or + on the remote to stop using the gamepad")
+    print("You must press - or + on the remote to stop using the gamepad")
     # we could put a waitForSync() here, but it would likely time out
 
 
@@ -936,26 +980,28 @@ def getName():
         string - name of robot
     """
     global robot_name
+    global command_semaphore
     
     if not USE_EEPROM:
         printDebug("getName not implemented -- update sparki_myro.ino", DEBUG_ERROR)
         robot_name = "Sparki"
 
-    printDebug("In getName", DEBUG_INFO)
-    
-    if robot_name:
-        return robot_name
-    else:
-        sendSerial(COMMAND_CODES["GET_NAME"])
+    with command_semaphore:
+        printDebug("In getName", DEBUG_INFO)
         
-        try:
-            robot_name = getSerialString()
-        except:
-            printDebug("There was a problem getting Sparki's name.", DEBUG_ERROR)
-            printDebug("You may need to set it using setName(). It will default to Sparki", DEBUG_ERROR)
-            robot_name = "Sparki"
+        if robot_name:
+            return robot_name
+        else:
+            sendSerial(COMMAND_CODES["GET_NAME"])
             
-        return robot_name
+            try:
+                robot_name = getSerialString()
+            except:
+                printDebug("There was a problem getting Sparki's name.", DEBUG_ERROR)
+                printDebug("You may need to set it using setName(). It will default to Sparki", DEBUG_ERROR)
+                robot_name = "Sparki"
+                
+            return robot_name
 
 
 def getObstacle(position="all"):
@@ -1124,6 +1170,8 @@ def init(com_port, print_versions=True, auto=False, retries=2):
     global robot_name
     global CONN_TIMEOUT
     global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, NOOP
+    global command_semaphore
+    global noop_thread
 
     printDebug("In init, com_port is " + str(com_port), DEBUG_INFO)
 
@@ -1151,10 +1199,13 @@ def init(com_port, print_versions=True, auto=False, retries=2):
                     raise
         
     serial_is_connected = True  # have to do this prior to sendSerial, or sendSerial will never try to send
+    command_semaphore = threading.Semaphore()
 
-    sendSerial(COMMAND_CODES["INIT"])
+    with command_semaphore:
+        printDebug("In init, grabbing semaphore to initialize robot", DEBUG_DEBUG)
+        sendSerial(COMMAND_CODES["INIT"])
 
-    robot_library_version = getSerialString()  # Sparki sends us its library version in response
+        robot_library_version = getSerialString()  # Sparki sends us its library version in response
 
     if robot_library_version:
         init_time = currentTime()
@@ -1185,12 +1236,18 @@ def init(com_port, print_versions=True, auto=False, retries=2):
             robot_name = getName()
             printDebug(robot_name + " is ready", DEBUG_ALWAYS)
             
+        # begin the noop thread to maintain the connection
+        printDebug("In init, starting noop thread", DEBUG_DEBUG)
+        noop_thread = threading.Thread(target=foreverNoop)
+        noop_thread.start()
+            
         return True
     else:
         if not auto:
             printDebug("Sparki communication failed", DEBUG_ALWAYS)
             
         serial_is_connected = False
+        command_semaphore = None
         init_time = -1
         
         return False
@@ -1661,41 +1718,44 @@ def motors(left_speed, right_speed, time=-1):
         nothing
     """
     global in_motion
-    printDebug(
-        "In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(
-            time), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug(
+            "In motors, left speed is " + str(left_speed) + ", right speed is " + str(right_speed) + " and time is " + str(
+                time), DEBUG_INFO)
 
-    left_speed = float(left_speed)
-    right_speed = float(right_speed)
+        left_speed = float(left_speed)
+        right_speed = float(right_speed)
 
-    if left_speed == 0 and right_speed == 0:
-        printDebug("In motors, both speeds == 0, stopping (but please use stop())", DEBUG_WARN)
-        stop()
-        return
+        if left_speed == 0 and right_speed == 0:
+            printDebug("In motors, both speeds == 0, stopping (but please use stop())", DEBUG_WARN)
+            stop()
+            return
 
-    if left_speed < -1.0 or left_speed > 1.0:
-        printDebug("In motors, left_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
+        if left_speed < -1.0 or left_speed > 1.0:
+            printDebug("In motors, left_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
 
-    if right_speed < -1.0 or right_speed > 1.0:
-        printDebug("In motors, right_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
+        if right_speed < -1.0 or right_speed > 1.0:
+            printDebug("In motors, right_speed is outside of the range -1.0 to 1.0", DEBUG_ERROR)
 
-    # adjust speeds to Sparki's requirements
-    left_speed = constrain(left_speed, -1.0, 1.0)
-    right_speed = constrain(right_speed, -1.0, 1.0)
+        # adjust speeds to Sparki's requirements
+        left_speed = constrain(left_speed, -1.0, 1.0)
+        right_speed = constrain(right_speed, -1.0, 1.0)
 
-    left_speed = int(left_speed * 100)  # sparki expects an int between 1 and 100
-    right_speed = int(right_speed * 100)  # sparki expects an int between 1 and 100
-    time = float(time)
-    args = [left_speed, right_speed, time]
+        left_speed = int(left_speed * 100)  # sparki expects an int between 1 and 100
+        right_speed = int(right_speed * 100)  # sparki expects an int between 1 and 100
+        time = float(time)
+        args = [left_speed, right_speed, time]
 
-    in_motion = True
-    try:
-        sendSerial(COMMAND_CODES["MOTORS"], args)
-        if time >= 0:
-            wait(time)
-    finally:
-        if time >= 0:
-            in_motion = False
+        in_motion = True
+        try:
+            sendSerial(COMMAND_CODES["MOTORS"], args)
+            if time >= 0:
+                wait(time)
+        finally:
+            if time >= 0:
+                in_motion = False
 
 
 def move(translate_speed, rotate_speed):  # NOT WELL TESTED
@@ -2155,13 +2215,17 @@ def servo(position):
         returns:
         nothing
     """
-    printDebug("In servo, position is " + str(position), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In servo, position is " + str(position), DEBUG_INFO)
 
-    position = int(constrain(position, SERVO_LEFT, SERVO_RIGHT))
-    args = [position]
+        position = int(constrain(position, SERVO_LEFT, SERVO_RIGHT))
+        args = [position]
 
-    sendSerial(COMMAND_CODES["SERVO"], args)
-    wait(.2)
+        sendSerial(COMMAND_CODES["SERVO"], args)
+        
+    wait(.1)  # be sure the head has time to turn
 
 
 def setAngle(newAngle=0):
@@ -2226,22 +2290,24 @@ def setName(newName):
         string - name of robot
     """
     global robot_name
+    global command_semaphore
     
     if not USE_EEPROM:
         printDebug("setName not be implemented on Sparki", DEBUG_CRITICAL)
         raise NotImplementedError
 
-    printDebug("In setName, newName is " + str(newName), DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In setName, newName is " + str(newName), DEBUG_INFO)
 
-    if len(newName) > EEPROM_NAME_MAX_CHARS - 1:
-        printDebug("In setName(), the name " + str(newName) + " is too long. It must be fewer than " + str(
-            EEPROM_NAME_MAX_CHARS - 1) + " letters and numbers. Truncating...", DEBUG_WARN)
-        newName = newName[:EEPROM_NAME_MAX_CHARS - 1]
+        if len(newName) > EEPROM_NAME_MAX_CHARS - 1:
+            printDebug("In setName(), the name " + str(newName) + " is too long. It must be fewer than " + str(
+                EEPROM_NAME_MAX_CHARS - 1) + " letters and numbers. Truncating...", DEBUG_WARN)
+            newName = newName[:EEPROM_NAME_MAX_CHARS - 1]
 
-    args = [newName]
-    sendSerial(COMMAND_CODES["SET_NAME"], args)
+        args = [newName]
+        sendSerial(COMMAND_CODES["SET_NAME"], args)
     
-    robot_name = newName
+        robot_name = newName
 
 
 def setPosition(newX, newY):
@@ -2289,19 +2355,22 @@ def setRGBLED(red, green, blue):
         returns:
         nothing
     """
-    printDebug("In setRGBLED, red is " + str(red) + ", green is " + str(green) + ", blue is " + str(blue), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In setRGBLED, red is " + str(red) + ", green is " + str(green) + ", blue is " + str(blue), DEBUG_INFO)
 
-    if red == green and red == blue and red != 0:
-        printDebug(
-            "In setRGBLED, red, green and blue are the same - hardware limitations will cause this to be fully red",
-            DEBUG_WARN)
+        if red == green and red == blue and red != 0:
+            printDebug(
+                "In setRGBLED, red, green and blue are the same - hardware limitations will cause this to be fully red",
+                DEBUG_WARN)
 
-    red = int(constrain(red, 0, 100))
-    green = int(constrain(green, 0, 100))
-    blue = int(constrain(blue, 0, 100))
-    args = [red, green, blue]
+        red = int(constrain(red, 0, 100))
+        green = int(constrain(green, 0, 100))
+        blue = int(constrain(blue, 0, 100))
+        args = [red, green, blue]
 
-    sendSerial(COMMAND_CODES["SET_RGB_LED"], args)
+        sendSerial(COMMAND_CODES["SET_RGB_LED"], args)
 
 
 def setSparkiDebug(level):
@@ -2334,17 +2403,20 @@ def setStatusLED(brightness):
         returns:
         nothing
     """
-    printDebug("In setStatusLED, brightness is " + str(brightness), DEBUG_INFO)
+    global command_semaphore
+    
+    with command_semaphore:
+        printDebug("In setStatusLED, brightness is " + str(brightness), DEBUG_INFO)
 
-    if brightness == "on":
-        brightness = 100
-    elif brightness == "off":
-        brightness = 0
+        if brightness == "on":
+            brightness = 100
+        elif brightness == "off":
+            brightness = 0
 
-    brightness = int(constrain(brightness, 0, 100))
-    args = [brightness]
+        brightness = int(constrain(brightness, 0, 100))
+        args = [brightness]
 
-    sendSerial(COMMAND_CODES["SET_STATUS_LED"], args)
+        sendSerial(COMMAND_CODES["SET_STATUS_LED"], args)
 
 
 def stop():
@@ -2357,11 +2429,13 @@ def stop():
         nothing
     """
     global in_motion
+    global command_semaphore
 
-    printDebug("In stop", DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In stop", DEBUG_INFO)
 
-    sendSerial(COMMAND_CODES["STOP"])
-    in_motion = False
+        sendSerial(COMMAND_CODES["STOP"])
+        in_motion = False
 
 
 def syncWait(server_ip=None, server_port=32216):
@@ -2410,32 +2484,34 @@ def turnBy(degrees):
         nothing
     """
     global degrees_turned, in_motion
+    global command_semaphore
 
-    printDebug("In turnBy, degrees is " + str(degrees), DEBUG_INFO)
+    with command_semaphore:
+        printDebug("In turnBy, degrees is " + str(degrees), DEBUG_INFO)
 
-    degrees = float(degrees)
-    degrees = wrapAngle(degrees)
+        degrees = float(degrees)
+        degrees = wrapAngle(degrees)
 
-    if abs(degrees) >= 360:  # >= in case there's a rounding error
-        degrees = 0
+        if abs(degrees) >= 360:  # >= in case there's a rounding error
+            degrees = 0
 
-    if degrees == 0:
-        printDebug("In turnBy, degrees is 0... doing nothing", DEBUG_WARN)
-        return
+        if degrees == 0:
+            printDebug("In turnBy, degrees is 0... doing nothing", DEBUG_WARN)
+            return
 
-    degrees_turned += degrees
+        degrees_turned += degrees
 
-    # keep degrees_turned greater than -360 and less than 360
-    degrees_turned = wrapAngle(degrees_turned)
+        # keep degrees_turned greater than -360 and less than 360
+        degrees_turned = wrapAngle(degrees_turned)
 
-    printDebug("In turnBy, degrees_turned is now " + str(degrees_turned), DEBUG_DEBUG)
+        printDebug("In turnBy, degrees_turned is now " + str(degrees_turned), DEBUG_DEBUG)
 
-    args = [degrees]
+        args = [degrees]
 
-    in_motion = True
-    sendSerial(COMMAND_CODES["TURN_BY"], args)
-    wait(abs(degrees) * SECS_PER_DEGREE)
-    in_motion = False
+        in_motion = True
+        sendSerial(COMMAND_CODES["TURN_BY"], args)
+        wait(abs(degrees) * SECS_PER_DEGREE)
+        in_motion = False
 
 
 def turnTo(newHeading):

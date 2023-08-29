@@ -9,11 +9,11 @@
 #
 # written by Jeremy Eglen
 # Created: November 18, 2019
-# Last Modified: June 15, 2022
+# Last Modified: August 29, 2023
 
 ########### CONSTANTS ###########
 # ***** VERSION NUMBER ***** #
-SPARKI_MYRO_VERSION = "1.6.9"  # this may differ from the version on Sparki itself
+SPARKI_MYRO_VERSION = "1.7.0a1"  # this may differ from the version on Sparki itself
 
 # ***** MESSAGE TERMINATOR ***** #
 TERMINATOR = chr(23)  # this character is at the end of every message to / from Sparki
