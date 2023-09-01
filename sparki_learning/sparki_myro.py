@@ -12,9 +12,9 @@
 #
 # written by Jeremy Eglen
 # Created: November 2, 2015
-# Last Modified: August 29, 2023
+# Last Modified: August 30, 2023
 # Originally developed on Python 3.4 and 3.5; this version modified to work with 3.6; should work on any version >3
-# working with Python 3.7 and 3.8
+# working with Python 3.7, 3.8, and 3.10 at least
 # don't use Python 2!
 
 #import logging
@@ -53,6 +53,7 @@ command_semaphore = None  # this locks the sparki such that only one command is 
                           # a command may generate a data response from the robot
 noop_thread = None  # this thread will repeatedly sent a noop to maintain the connection
                     # between the robot and the computer
+noop_thread_name = "noop thread"  # we want to avoid multiple threads with this name
 
 centimeters_moved = 0  # this stores the sum of centimeters moved forward or backward using the moveForwardcm()
 # or moveBackwardcm() functions; used implicitly by moveTo() and moveBy(); use directly
@@ -149,36 +150,43 @@ def disconnectSerial():
         # if the noop thread is running, wait until it terminates,
         # which should happen because serial_is_connected is False
         if noop_thread is not None and noop_thread.is_alive():  
-            noop_thread.join()
+            stop_noop_thread(noop_thread)
         
         init_time = -1
 
 
-def foreverNoop():
-    """ Sends noops to the robot as long as the serial port is connected; intended to
-        be called as a thread, e.g.
-        noop_thread = threading.Thread(target=foreverNoop)
+class NoopThread(StoppableThread):
+    """ Sends noops to the robot as long as the serial port is connected
+        Works as a thread, but can be stopped, e.g.
+        noop_thread = NoopThread(name=noop_thread_name)
         noop_thread.start()
-        terminates when serial_is_connected is False
+        terminates when serial_is_connected is False or when it receives a stop event
+        StoppableThread is in the sparki_learning.util file
 
         arguments:
-        none
+        noop_wait - float number of seconds between noops -- should be greater than 1
         
         returns:
         nothing
     """
     global serial_is_connected
-    noop_wait = 10  # number of seconds to wait between scheduling noops
     
-    try:
-        while serial_is_connected:
-            printDebug("In foreverNoop, about to attempt noop (should wait for command_semaphore)", DEBUG_DEBUG)
-            noop()
-        
-            wait(noop_wait)
-    except serial.SerialTimeoutException:
-        printDebug("In foreverNoop, thread killed by serial exception", DEBUG_INFO)
-        return
+    def __init__(self, noop_wait=10, *args, **kwargs):
+        printDebug("Creating new NoopThread, noop_wait={}".format(noop_wait), DEBUG_INFO)
+        super(NoopThread, self).__init__(*args, **kwargs)
+        noop_wait = constrain(noop_wait, 3, 60)
+        self.noop_wait = noop_wait  # number of seconds to wait between scheduling noops
+    
+    def run():
+        try:
+            while serial_is_connected and not self.stopped():
+                printDebug("In NoopThread, about to attempt noop (should wait for command_semaphore)", DEBUG_DEBUG)
+                noop()
+            
+                wait(noop_wait)
+        except serial.SerialTimeoutException:
+            printDebug("In foreverNoop, thread killed by serial exception (probably robot turned off)", DEBUG_INFO)
+            return
 
 
 def getSerialBytes():
@@ -438,6 +446,45 @@ def senses_text():
 
     print("Ping is " + str(ping()) + " cm")
     print("#########################################")
+
+
+def start_noop_thread(noop_wait=10):
+    """ Begins the noop thread
+        Attempts to ensure that there isn't another noop thread running prior to initiating
+            a new noop thread
+
+        arguments:
+        none
+
+        returns:
+        nothing
+    """
+    global noop_thread, noop_thread_name
+    # check to be sure there's not a noop thread already running from a previous program
+    # this could happen because of the hacked-together nature of the noop_thread if a program stops executing
+    for t in threading.enumerate():
+        if isinstance(t, NoopThread):
+            if t.name == noop_thread_name:
+                stop_noop_thread(t)
+    
+    # begin the noop thread to maintain the connection
+    printDebug("In start_noop_thread, starting noop thread", DEBUG_DEBUG)   
+    noop_thread = NoopThread(noop_wait=noop_wait, name=noop_thread_name)
+    noop_thread.start()
+
+
+def stop_noop_thread(t):
+    """ Stops a noop_thread which is running
+
+        arguments:
+        none
+
+        returns:
+        nothing
+    """
+    printDebug("In stop_noop_thread, stopping noop thread {}".format(t), DEBUG_INFO)   
+    t.stop()
+    t.join()
 
 
 def waitForSync():
@@ -1204,7 +1251,6 @@ def init(com_port, print_versions=True, auto=False, retries=2):
     global CONN_TIMEOUT
     global NO_ACCEL, NO_MAG, SPARKI_DEBUGS, USE_EEPROM, EXT_LCD_1, NOOP
     global command_semaphore
-    global noop_thread
 
     printDebug("In init, com_port is " + str(com_port), DEBUG_INFO)
 
@@ -1269,11 +1315,8 @@ def init(com_port, print_versions=True, auto=False, retries=2):
             robot_name = getName()
             printDebug(robot_name + " is ready", DEBUG_ALWAYS)
             
-        # begin the noop thread to maintain the connection
-        printDebug("In init, starting noop thread", DEBUG_DEBUG)
-        noop_thread = threading.Thread(target=foreverNoop)
-        noop_thread.start()
-            
+        start_noop_thread()
+
         return True
     else:
         if not auto:

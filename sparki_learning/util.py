@@ -7,8 +7,9 @@
 #
 # written by Jeremy Eglen
 # Created: November 12, 2019 (some functions are older -- this is the original date of this file)
-# Last Modified: February 27, 2020
+# Last Modified: August 29, 2023
 import sys
+import threading
 import time
 
 
@@ -229,6 +230,24 @@ def wrapAngle(angle):
         return angle % 360
     else:
         return angle % -360
+
+
+# the below function was taken verbatim from https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread
+# from an answer by Grigory Zhadko which was modified by Alexey Esaulenko
+# it is used for the noop_thread in the sparki_learning library
+class StoppableThread(threading.Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
+
+    def __init__(self,  *args, **kwargs):
+        super(StoppableThread, self).__init__(*args, **kwargs)
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
 
 def main():
